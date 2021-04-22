@@ -47,6 +47,8 @@ static constexpr int n_towers_Phi = 72;
 static constexpr int n_towers_halfPhi = 36;
 static constexpr int n_towers_cardEta = 17;   // new: equivalent to n_towers_per_link
 static constexpr int n_towers_cardPhi = 4;    // new
+static constexpr int n_crystals_cardEta = (n_towers_Eta * n_towers_cardEta);
+static constexpr int n_crystals_cardPhi = (n_towers_Phi * n_towers_cardPhi);
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float cut_500_MeV = 0.5;
 
@@ -94,9 +96,9 @@ int getCard_iPhiMin(int card) {
   return phimin;
 }
 
-////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////  
 
-// Declare the class and its methods
+// Declare the EGammaCrystalsProducer class and its methods
 
 class EGammaCrystalsProducer : public edm::stream::EDProducer<> {
 public:
@@ -121,7 +123,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-// Class method definitions
+// Declare the SimpleCaloHit class
 
 class SimpleCaloHit {
 private:
@@ -142,6 +144,31 @@ public:
   inline const GlobalVector& position() const { return position_; };
   inline const EBDetId& id() const { return id_; };
 };
+
+//////////////////////////////////////////////////////////////////////////  
+
+// card_t struct: represents one RCT card
+
+class card {
+private:
+  int idx_ = -1 ;     // 0-35: odd values of cardIdx span eta = 0 to eta = 1.41
+                      //       even values of cardIdx span eta = -1.41 to eta = 0
+
+  // TO-DO: turn this into regions instead 
+  //  float crystalEnergy_[n_crystals_cardEta][n_crystals_cardPhi] = {{0}};
+  
+public:
+  inline void setIdx(int idx) { idx_ = idx; };
+  //  inline void addCrystalE(int iEta, int iPhi, float et) { crystalEnergy_[iEta][iPhi] += et; };
+
+  inline float getIdx() const { return idx_; };
+  //  inline float getCrystalE(int iEta, int iPhi) const { return crystalEnergy_[iEta][iPhi]; };
+  
+};
+
+//////////////////////////////////////////////////////////////////////////  
+
+// Remaining EGammaCrystalsProducer initializer, destructor, and produce methods
 
 EGammaCrystalsProducer::EGammaCrystalsProducer(const edm::ParameterSet & iConfig)
   : ecalTPEBToken_(consumes<EcalEBTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPEB"))),
@@ -252,8 +279,13 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   //********************** Do RCT geometry  ***************************
   //*******************************************************************
 
+
+  // 
+  std::vector<card> rctCards;
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
-    
+  
+    card rctCard;
+    rctCard.setIdx(cc);
     for (const auto& hit : ecalhits) {
       if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
   	  getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc) &&
@@ -262,9 +294,16 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	
 	std::cout << "Card: " << cc << ", hit (Eta, phi): " 
 		  << hit.position().eta() << ", " << hit.position().phi() << std::endl;
+	
       }
     }
+    
+    rctCards.push_back(rctCard);
+  }
 
+  // Sanity check: print out
+  for (const auto& card : rctCards) {
+    std::cout << card.getIdx() << std::endl;
   }
     
   std::cout << "I'm here!" << std::endl;
