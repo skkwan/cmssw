@@ -112,8 +112,8 @@ int getTower_absPhiID(float phi) {
   return phiID;
 }
 
-// given the RCT card number (0-35), get the iPhi of the "bottom left" corner (0-71)
-int getCard_ref_iPhi(int cc) {
+// given the RCT card number (0-35), get the TOWER iPhi of the "bottom left" corner (0-71)
+int getCard_refTower_iPhi(int cc) {
   if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!
       
   if ((cc % 2) == 1) { // if cc is odd
@@ -125,8 +125,8 @@ int getCard_ref_iPhi(int cc) {
   
 }
 
-// given the RCT card number (0-35), get the iEta of the "bottom left" corner (0-33)
-int getCard_ref_iEta(int cc) {
+// given the RCT card number (0-35), get the TOWER iEta of the "bottom left" corner (0-33)
+int getCard_refTower_iEta(int cc) {
   if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!  
 
   if ((cc % 2) == 1) { // if cc is odd
@@ -138,14 +138,36 @@ int getCard_ref_iEta(int cc) {
 
 }
 
+// given the RCT card number (0-35), get the crystal iPhi of the "bottom left" corner (0- 71*5)
+int getCard_ref_iPhi(int cc) {
+  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!  
+  if ((cc % 2) == 1) { // if cc is odd                                                                                     
+    return (int(cc / 2) * TOWER_IN_PHI * n_crystals_towerPhi);
+  }
+  else {  // if cc is even, the bottom left corner is further in iPhi, hence the +4                
+    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * n_crystals_towerPhi);
+  }
+}
 
-// get the RCT card region that a tower is in, given the "local" iEta of the tower
-// TO-DO: add overlap region
-// idx = 0 is region closest to eta = 0
-int getRegionIdx(int local_tower_iEta) {
-  int idx = int(local_tower_iEta / 3);
-  assert(idx < 6); 
-  return idx;
+// given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner (0-33*5)
+int getCard_ref_iEta(int cc) {
+  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds! 
+  if ((cc % 2) == 1) {  // if cc is odd
+    return ((16 * n_crystals_towerEta) + 1);
+  }
+  else {   // if cc is even
+    return (16 * n_crystals_towerEta);
+  }
+  
+}
+
+
+// get the RCT card region that a crystal is in, given the "local" iEta of the crystal 
+// 0 is region closest to eta = 0. Regions 0, 1, 2, 3, 4 are in the barrel, Region 5 is in overlap
+int getRegionNumber(int local_iEta) {
+  int no = int(local_iEta / (TOWER_IN_ETA * n_crystals_towerEta));
+  assert(no < 6); 
+  return no;
 }
 
 //////////////////////////////////////////////////////////////////////////  
@@ -398,40 +420,44 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
 	// For now, only handle positive eta cards (i.e. cc is an odd integer)
 	if ((cc % 2) == 1) {
-	  // Figure out what region (0-5) the hit falls into
-
-	  // Get the tower iEta and iPhi, relative to the bottom left corner of the card
-	  // (assuming positive eta)
-	  int inCard_tower_iEta = getTower_absEtaID(hit.position().eta()) - getCard_ref_iEta(cc);
-	  int inCard_tower_iPhi = getTower_absPhiID(hit.position().phi()) - getCard_ref_iPhi(cc);
-
-	  // The region idx (0-5) depends only on the local tower iEta 
-	  int region_idx = getRegionIdx(inCard_tower_iEta);
-	  
 	  // Get the crystal eta and phi, relative to the bottom left corner of the card 
 	  // (again assuming positive eta) (0 up to 17*5, 0 up to 4*5) 
-	  int inCard_crystal_iEta = getCrystal_iEta(hit.position().eta()) - (getCard_ref_iEta(cc) * n_crystals_towerEta);
-	  int inCard_crystal_iPhi = getCrystal_iPhi(hit.position().phi()) - (getCard_ref_iPhi(cc) * n_crystals_towerPhi);
+	  int inCard_crystal_iEta = getCrystal_iEta(hit.position().eta()) - getCard_ref_iEta(cc);
+	  int inCard_crystal_iPhi = getCrystal_iPhi(hit.position().phi()) - getCard_ref_iPhi(cc);
+
+	  // Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
+	  // everything else is determined.
+
+	  // Figure out what region (0-5) the hit falls into 
+	  // The region number (0-5) depends only on the local crystal iEta
+	  int regionNumber = getRegionNumber(inCard_crystal_iEta);
+
+	  // Get the tower eta and phi index inside the card (4x17)
+	  int inCard_tower_iEta = int(inCard_crystal_iEta / n_crystals_towerEta); 
+	  int inCard_tower_iPhi = int(inCard_crystal_iPhi / n_crystals_towerPhi);
 
 	  // Get the tower eta and phi index inside the region (3x4)
 	  int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
 	  int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
 
 	  // Get the crystal eta and phi index inside the region (15x20)
-	  int inRegion_crystal_iEta = inCard_crystal_iEta - (region_idx * TOWER_IN_ETA * n_crystals_towerEta);
+	  int inRegion_crystal_iEta = inCard_crystal_iEta % (TOWER_IN_ETA * n_crystals_towerEta);
 	  int inRegion_crystal_iPhi = inCard_crystal_iPhi;
 
-	  std::cout << "inCard_tower_iEta, inCard_tower_iPhi, region_idx: " << inCard_tower_iEta << ", " << inCard_tower_iPhi
-                    << ", " << region_idx << std::endl;
-	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi: " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi << std::endl;
-	  std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi: " << inRegion_crystal_iEta << ", " << inRegion_crystal_iPhi << std::endl;
-	  
-	  // If the region isn't the overlap (i.e. region idx = 0, 1, 2, 3 or 4)...
+	  std::cout << "inCard_crystal_iEta, inCard_crystal_iPhi, regionNumber: "
+		    << inCard_crystal_iEta << ", " 
+		    << inCard_crystal_iPhi << ", "
+		    << regionNumber << std::endl;
+	  std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi, regionNumber: "
+                    << inRegion_crystal_iEta << ", "
+                    << inRegion_crystal_iPhi << ", "
+                    << regionNumber << std::endl;
+
 	  // Within the region, figure out which crystal and link the hit falls into
 	  // Add the hit's energy to the right crystal/ right region
-	  // 
-	  if (region_idx < 5) {
-	    region3x4 myRegion = rctCard.getRegion3x4(region_idx);
+	  
+	  if (regionNumber < 5) {
+	    region3x4 myRegion = rctCard.getRegion3x4(regionNumber);
 	    linkECAL myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 
 	    // Add the energy
