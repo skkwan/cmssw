@@ -257,7 +257,8 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline region3x4 getRegion3x4(int idx) { return card3x4Regions[idx]; }
+  inline region3x4 getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
+
 };
 
 /*******************************************************************/
@@ -393,27 +394,55 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	std::cout << "Card: " << cc << ", hit (Eta, phi): " 
 		  << hit.position().eta() << ", " << hit.position().phi() << std::endl;
 
+	
+
 	// For now, only handle positive eta cards (i.e. cc is an odd integer)
 	if ((cc % 2) == 1) {
 	  // Figure out what region (0-5) the hit falls into
 
 	  // Get the tower iEta and iPhi, relative to the bottom left corner of the card
-	  int local_iEta = getTower_absEtaID(hit.position().eta()) - getCard_ref_iEta(cc);
-	  int local_iPhi = getTower_absPhiID(hit.position().phi()) - getCard_ref_iPhi(cc);
+	  // (assuming positive eta)
+	  int inCard_tower_iEta = getTower_absEtaID(hit.position().eta()) - getCard_ref_iEta(cc);
+	  int inCard_tower_iPhi = getTower_absPhiID(hit.position().phi()) - getCard_ref_iPhi(cc);
 
-	  // The region idx (0-5) depends only on the local iEta 
-	  int region_idx = getRegionIdx(local_iEta);
+	  // The region idx (0-5) depends only on the local tower iEta 
+	  int region_idx = getRegionIdx(inCard_tower_iEta);
 	  
-	  std::cout << "local_iEta, local_iPhi, region_idx: " << local_iEta << ", " << local_iPhi 
-		    << ", " << region_idx << std::endl;
+	  // Get the crystal eta and phi, relative to the bottom left corner of the card 
+	  // (again assuming positive eta) (0 up to 17*5, 0 up to 4*5) 
+	  int inCard_crystal_iEta = getCrystal_iEta(hit.position().eta()) - (getCard_ref_iEta(cc) * n_crystals_towerEta);
+	  int inCard_crystal_iPhi = getCrystal_iPhi(hit.position().phi()) - (getCard_ref_iPhi(cc) * n_crystals_towerPhi);
 
+	  // Get the tower eta and phi index inside the region (3x4)
+	  int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
+	  int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
 
+	  // Get the crystal eta and phi index inside the region (15x20)
+	  int inRegion_crystal_iEta = inCard_crystal_iEta - (region_idx * TOWER_IN_ETA * n_crystals_towerEta);
+	  int inRegion_crystal_iPhi = inCard_crystal_iPhi;
+
+	  std::cout << "inCard_tower_iEta, inCard_tower_iPhi, region_idx: " << inCard_tower_iEta << ", " << inCard_tower_iPhi
+                    << ", " << region_idx << std::endl;
+	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi: " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi << std::endl;
+	  std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi: " << inRegion_crystal_iEta << ", " << inRegion_crystal_iPhi << std::endl;
+	  
 	  // If the region isn't the overlap (i.e. region idx = 0, 1, 2, 3 or 4)...
 	  // Within the region, figure out which crystal and link the hit falls into
-
 	  // Add the hit's energy to the right crystal/ right region
-	}
+	  // 
+	  if (region_idx < 5) {
+	    region3x4 myRegion = rctCard.getRegion3x4(region_idx);
+	    linkECAL myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 
+	    // Add the energy
+	    myLink.addCrystalE(inRegion_crystal_iEta, inRegion_crystal_iPhi, hit.energy());
+
+	    // Read it back out
+	    float energy = myLink.getCrystalE(inRegion_crystal_iEta, inRegion_crystal_iPhi);
+	    std::cout << "energy " << energy << std::endl;
+	  }
+	}
+	
       }
     }
     rctCards.push_back(rctCard);
