@@ -432,7 +432,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  // The region number (0-5) depends only on the local crystal iEta
 	  int regionNumber = getRegionNumber(inCard_crystal_iEta);
 
-	  // Get the tower eta and phi index inside the card (4x17)
+	  // Get the tower eta and phi index inside the card (17x4)
 	  int inCard_tower_iEta = int(inCard_crystal_iEta / n_crystals_towerEta); 
 	  int inCard_tower_iPhi = int(inCard_crystal_iPhi / n_crystals_towerPhi);
 
