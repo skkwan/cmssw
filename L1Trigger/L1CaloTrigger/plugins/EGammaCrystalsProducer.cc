@@ -3,10 +3,11 @@
  */
 
 // system include files
-#include <memory>
 #include <array>
-#include <iostream>
 #include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <memory>
 
 // user include files
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -40,8 +41,6 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-static constexpr int n_crystals_towerEta = 5;
-static constexpr int n_crystals_towerPhi = 5;
 static constexpr int n_towers_Eta = 34;
 static constexpr int n_towers_Phi = 72;
 static constexpr int n_towers_halfPhi = 36;
@@ -49,72 +48,97 @@ static constexpr int n_towers_cardEta = 17;   // new: equivalent to n_towers_per
 static constexpr int n_towers_cardPhi = 4;    // new
 static constexpr int n_crystals_cardEta = (n_towers_Eta * n_towers_cardEta);
 static constexpr int n_crystals_cardPhi = (n_towers_Phi * n_towers_cardPhi);
-static constexpr int TOWER_IN_ETA = 3;
-static constexpr int TOWER_IN_PHI = 4;
+
+static constexpr int CRYSTALS_IN_TOWER_ETA = 5;
+static constexpr int CRYSTALS_IN_TOWER_PHI = 5;
+
+static constexpr int TOWER_IN_ETA = 3;      // number of towers in eta, in one 3x4 region
+static constexpr int TOWER_IN_PHI = 4;      // number of towers in phi, in one 3x4 region
+static constexpr int CRYSTAL_IN_ETA = 15;   // number of crystals in eta, in one 3x4 region
+static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one 3x4 region 
+
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float cut_500_MeV = 0.5;
 
+// Assert that the card index is within bounds. (Valid cc: 0 to 35, since there are 36 RCT cards)
+bool isValidCard(int cc) {
+  return ((cc > -1) && (cc < 36));
+}
+
+// 
+
 // Get crystal's iEta from real eta. (identical to getCrystal_etaID in L1EGammaCrystalsEmulatorProducer.cc)
+// This "global" iEta ranges from 0 to (33*5) since there are 34 towers in eta in the full detector, 
+// each with five crystals in eta.
 int getCrystal_iEta(float eta) {
-  float size_cell = 2 * ECAL_eta_range / (n_crystals_towerEta * n_towers_Eta);
+  float size_cell = 2 * ECAL_eta_range / (CRYSTALS_IN_TOWER_ETA * n_towers_Eta);
   int iEta = int((eta + ECAL_eta_range) / size_cell);
   return iEta;
 }
 
 // Get crystal's iPhi from real phi. (identical to getCrystal_phiID in L1EGammaCrystalsEmulatorProducer.cc)
+// This "global" iPhi ranges from 0 to (71*5) since there are 72 towers in phi in the full detector,
+// each with five crystals in eta.
 int getCrystal_iPhi(float phi) {
-  float size_cell = 2 * M_PI / (n_crystals_towerPhi * n_towers_Phi);
+  float size_cell = 2 * M_PI / (CRYSTALS_IN_TOWER_PHI * n_towers_Phi);
   int iPhi = int((phi + M_PI) / size_cell);
   return iPhi;
 }
 
-// Card boundaries in eta (identical to getEtaMax_card)
-int getCard_iEtaMax(int card) {
+// For a card (ranging from 0 to 35, since there are 36 cards), return the iEta of the crystal with max iEta.
+// This represents the card boundaries in eta (identical to getEtaMax_card in the original emulator)
+int getCard_iEtaMax(int cc) {
+  assert(isValidCard(cc));
+  
   int etamax = 0;
-  if (card % 2 == 0)
-    etamax = n_towers_cardEta* n_crystals_towerEta - 1;  // First eta half. 5 crystals in eta in 1 tower.
-  else
-    etamax = n_towers_Eta * n_crystals_towerEta - 1;
+  if (cc % 2 == 0)   // Even card: negative eta
+    etamax = (n_towers_cardEta * CRYSTALS_IN_TOWER_ETA - 1);  // First eta half. 5 crystals in eta in 1 tower.
+  else               // Odd card: positive eta
+    etamax = (n_towers_Eta * CRYSTALS_IN_TOWER_ETA - 1);
   return etamax;
 }
 
-int getCard_iEtaMin(int card) {
+// Same as above but for minimum iEta.
+int getCard_iEtaMin(int cc) {
   int etamin = 0;
-  if (card % 2 == 0)
-    etamin = 0 * n_crystals_towerEta;  // First eta half. 5 crystals in eta in 1 tower.
-  else
-    etamin = n_towers_cardEta* n_crystals_towerEta;
+  if (cc % 2 == 0)  // Even card: negative eta 
+    etamin = (0);  
+  else                // Odd card: positive eta
+    etamin = (n_towers_cardEta * CRYSTALS_IN_TOWER_ETA);
   return etamin;
 }
 
-// Card boundaries in phi
-int getCard_iPhiMax(int card) {
-  int phimax = ((card / 2) + 1) * 4 * n_crystals_towerPhi - 1;
+// Same as above but for maximum iPhi. 
+int getCard_iPhiMax(int cc) {
+  int phimax = ((cc / 2) + 1) * 4 * CRYSTALS_IN_TOWER_PHI - 1;
   return phimax;
 }
 
-int getCard_iPhiMin(int card) {
-  int phimin = (card / 2) * 4 * n_crystals_towerPhi;
+// Same as above but for minimum iPhi.
+int getCard_iPhiMin(int cc) {
+  int phimin = (cc / 2) * 4 * CRYSTALS_IN_TOWER_PHI;
   return phimin;
 }
 
-// absolute Eta IDs range from 0-33 (Adapted from getTower_absoluteEtaID)
+// For a real eta, get the tower absolute Eta index (possible values are 0-33, since there
+// are 34 towers in eta. (Adapted from getTower_absoluteEtaID)
 int getTower_absEtaID(float eta) {
   float size_cell = 2 * ECAL_eta_range / n_towers_Eta;
   int etaID = int((eta + ECAL_eta_range) / size_cell);
   return etaID;
 }
 
-// absolute Phi IDs range from 0-71 (Adapted from getTower_absolutePhiID)
+// Same as above, but for phi.
+// Possible values range from 0-71 (Adapted from getTower_absolutePhiID)
 int getTower_absPhiID(float phi) {
   float size_cell = 2 * M_PI / n_towers_Phi;
   int phiID = int((phi + M_PI) / size_cell);
   return phiID;
 }
 
-// given the RCT card number (0-35), get the TOWER iPhi of the "bottom left" corner (0-71)
+// Given the RCT card number (0-35), get the TOWER iPhi of the "bottom left" corner (0-71)
 int getCard_refTower_iPhi(int cc) {
-  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!
+  assert(isValidCard(cc));
       
   if ((cc % 2) == 1) { // if cc is odd
     return (int(cc / 2) * 4);
@@ -124,51 +148,81 @@ int getCard_refTower_iPhi(int cc) {
   }
   
 }
+ 
+// Given the RCT card number (0-35), get the TOWER iEta of the "bottom left" corner (0-33)
+ int getCard_refTower_iEta(int cc) {
+   assert(isValidCard(cc));
+   
+   if ((cc % 2) == 1) { // if cc is odd
+     return 17;
+   }
+   else {  // if cc is even 
+     return 16;
+   }
+   
+ }
 
-// given the RCT card number (0-35), get the TOWER iEta of the "bottom left" corner (0-33)
-int getCard_refTower_iEta(int cc) {
-  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!  
-
-  if ((cc % 2) == 1) { // if cc is odd
-    return 17;
-  }
-  else {  // if cc is even 
-    return 16;
-  }
-
-}
-
-// given the RCT card number (0-35), get the crystal iPhi of the "bottom left" corner (0- 71*5)
+// Given the RCT card number (0-35), get the crystal iPhi of the "bottom left" corner (0- 71*5)
 int getCard_ref_iPhi(int cc) {
-  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds!  
+  assert(isValidCard(cc));
+  
   if ((cc % 2) == 1) { // if cc is odd                                                                                     
-    return (int(cc / 2) * TOWER_IN_PHI * n_crystals_towerPhi);
+    return (int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI);
   }
   else {  // if cc is even, the bottom left corner is further in iPhi, hence the +4                
-    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * n_crystals_towerPhi);
+    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI);
   }
 }
 
-// given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner (0-33*5)
+// Given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner (0-33*5)
 int getCard_ref_iEta(int cc) {
-  if ((cc < 0) || (cc > 35)) return -1;  // out of bounds! 
-  if ((cc % 2) == 1) {  // if cc is odd
-    return ((16 * n_crystals_towerEta) + 1);
+
+  assert(isValidCard(cc));
+  if ((cc % 2) == 1) {  // if cc is odd (positive eta)
+    return ((16 * CRYSTALS_IN_TOWER_ETA) + 1);
   }
-  else {   // if cc is even
-    return (16 * n_crystals_towerEta);
+  else {   // if cc is even (negative eta)
+    return (16 * CRYSTALS_IN_TOWER_ETA);
   }
-  
+}
+
+// For a crystal with real (eta, phi) and falling in card cc, get its local iEta 
+// relative to the bottom left corner of the card (possible local iEta ranges from 0 to 17 * 5,
+// since in one card, there are 17 towers in eta, each with 5 crystals in eta.
+int getCrystal_local_iEta(float hitEta, int cc) {
+  assert(isValidCard(cc));
+
+  // if ((cc % 2) == 1) {  // if cc is odd (positive eta)  
+  //   return (getCrystal_iEta(hitEta) - getCard_ref_iEta(cc));
+  // }
+  // else { // if cc is even (negative eta)
+  //   return (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
+  // }
+
+  // Functionally the same thing as an absolute value: 
+  int diff = (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
+  return abs(diff);
+}
+
+// Same as above, but for iPhi (possible local iPhi ranges from 0 to (3*5), since in one card,
+// there are 4 towers in phi, each with 5 crystals in phi.
+int getCrystal_local_iPhi(float hitPhi, int cc) {
+  assert(isValidCard(cc));
+
+  int diff = (getCard_ref_iPhi(cc) - getCrystal_iPhi(hitPhi));
+  return abs(diff);
 }
 
 
-// get the RCT card region that a crystal is in, given the "local" iEta of the crystal 
+
+// Get the RCT card region that a crystal is in, given the "local" iEta of the crystal 
 // 0 is region closest to eta = 0. Regions 0, 1, 2, 3, 4 are in the barrel, Region 5 is in overlap
 int getRegionNumber(int local_iEta) {
-  int no = int(local_iEta / (TOWER_IN_ETA * n_crystals_towerEta));
+  int no = int(local_iEta / (TOWER_IN_ETA * CRYSTALS_IN_TOWER_ETA));
   assert(no < 6); 
   return no;
 }
+
 
 //////////////////////////////////////////////////////////////////////////  
 
@@ -197,7 +251,9 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-// Declare the SimpleCaloHit class
+/*
+ * Declare the SimpleCaloHit class (taken from previous emulator)
+ */
 
 class SimpleCaloHit {
 private:
@@ -227,14 +283,22 @@ public:
 
 class linkECAL {
 private:
-  float crystalE[n_crystals_towerEta][n_crystals_towerPhi] = {{0}};  // a 5x5 array
+  float crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  // a 5x5 array
 
 public:
+  // linkECAL() {
+  //   for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
+  //     for(int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
+  // 	crystalE[iEta][iPhi] = 0.0;
+  //     }
+  //   }
+  // }
+  
   // Set members
-  inline void addCrystalE(int iEta, int iPhi, float energy) { crystalE[iEta][iPhi] += energy; }
-
+  inline void setCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
+  inline void addCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] += energy; }
   // Access members
-  inline float getCrystalE(int iEta, int iPhi) { return crystalE[iEta][iPhi]; }
+  inline float getCrystalE(int iEta, int iPhi) const { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
   
 };
 
@@ -257,7 +321,7 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline linkECAL getLinkECAL(int iEta, int iPhi) { return linksECAL[iEta][iPhi]; }
+  inline const linkECAL getLinkECAL(int iEta, int iPhi) const { return linksECAL[iEta][iPhi]; }
 };
 
 /*******************************************************************/
@@ -279,16 +343,43 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline region3x4 getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
+  inline const region3x4 getRegion3x4(int idx) const { assert(idx < 5); return card3x4Regions[idx]; }
 
 };
 
 /*******************************************************************/
 
+/*
+ *  crystal class: 
+ */
+
+class crystal{
+public:
+  uint16_t energy;   // formerly ap_uint<10>
+  uint8_t  timing; // formerly ap_uint<4>
+
+  crystal(){
+    energy = 0;
+    timing = 0;
+  }
+
+  crystal(uint16_t energy){  // To-do: add timing information
+    this->energy = energy;
+    this->timing = 0; 
+  }
+
+  crystal& operator=(const crystal& rhs){
+    energy = rhs.energy;
+    timing = rhs.timing;
+    return *this;
+  }
+};
+
+/*******************************************************************/
 
 //////////////////////////////////////////////////////////////////////////  
 
-// Remaining EGammaCrystalsProducer initializer, destructor, and produce methods
+// EGammaCrystalsProducer initializer, destructor, and produce methods
 
 EGammaCrystalsProducer::EGammaCrystalsProducer(const edm::ParameterSet & iConfig)
   : ecalTPEBToken_(consumes<EcalEBTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPEB"))),
@@ -403,9 +494,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   // 
   std::vector<card> rctCards; 
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
-  
+          
     card rctCard;
     rctCard.setIdx(cc);
+    
     for (const auto& hit : ecalhits) {
       // Check if the hit is in cards 0-35
       if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
@@ -418,69 +510,158 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
 	
 
-	// For now, only handle positive eta cards (i.e. cc is an odd integer)
-	if ((cc % 2) == 1) {
-	  // Get the crystal eta and phi, relative to the bottom left corner of the card 
-	  // (again assuming positive eta) (0 up to 17*5, 0 up to 4*5) 
-	  int inCard_crystal_iEta = getCrystal_iEta(hit.position().eta()) - getCard_ref_iEta(cc);
-	  int inCard_crystal_iPhi = getCrystal_iPhi(hit.position().phi()) - getCard_ref_iPhi(cc);
+	// Get the crystal eta and phi, relative to the bottom left corner of the card 
+	// (0 up to 17*5, 0 up to 4*5) 
+	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
+	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
+	
+	// Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
+	// everything else is determined.
+	
+	// Figure out what region (0-5) the hit falls into 
+	// The region number (0-5) depends only on the local crystal iEta
+	int regionNumber = getRegionNumber(local_iEta);
+	
+	// Get the tower eta and phi index inside the card (17x4)
+	int inCard_tower_iEta = int(local_iEta / CRYSTALS_IN_TOWER_ETA); 
+	int inCard_tower_iPhi = int(local_iPhi / CRYSTALS_IN_TOWER_PHI);
+	
+	// Get the tower eta and phi index inside the region (3x4)
+	int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
+	int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
+	
+	// Get the crystal eta and phi index inside the 3x4 region (15x20)
+	int inRegion_crystal_iEta = local_iEta % (TOWER_IN_ETA * CRYSTALS_IN_TOWER_ETA);
+	int inRegion_crystal_iPhi = local_iPhi;
 
-	  // Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
-	  // everything else is determined.
+	// Get the crystal eta and phi index inside the link (5x5). E.g. crystal (7, 9) is crystal number (2, 4) in its link
+	int inLink_crystal_iEta = (inRegion_crystal_iEta % CRYSTALS_IN_TOWER_ETA);
+	int inLink_crystal_iPhi = (inRegion_crystal_iPhi % CRYSTALS_IN_TOWER_PHI);
 
-	  // Figure out what region (0-5) the hit falls into 
-	  // The region number (0-5) depends only on the local crystal iEta
-	  int regionNumber = getRegionNumber(inCard_crystal_iEta);
-
-	  // Get the tower eta and phi index inside the card (17x4)
-	  int inCard_tower_iEta = int(inCard_crystal_iEta / n_crystals_towerEta); 
-	  int inCard_tower_iPhi = int(inCard_crystal_iPhi / n_crystals_towerPhi);
-
-	  // Get the tower eta and phi index inside the region (3x4)
-	  int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
-	  int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
-
-	  // Get the crystal eta and phi index inside the region (15x20)
-	  int inRegion_crystal_iEta = inCard_crystal_iEta % (TOWER_IN_ETA * n_crystals_towerEta);
-	  int inRegion_crystal_iPhi = inCard_crystal_iPhi;
-
-	  std::cout << "inCard_crystal_iEta, inCard_crystal_iPhi, regionNumber: "
-		    << inCard_crystal_iEta << ", " 
-		    << inCard_crystal_iPhi << ", "
-		    << regionNumber << std::endl;
-	  std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi, regionNumber: "
-                    << inRegion_crystal_iEta << ", "
-                    << inRegion_crystal_iPhi << ", "
-                    << regionNumber << std::endl;
-
-	  // Within the region, figure out which crystal and link the hit falls into
-	  // Add the hit's energy to the right crystal/ right region
+	std::cout << "local_iEta, local_iPhi, regionNumber: "
+		  << local_iEta << ", " 
+		  << local_iPhi << ", "
+		  << regionNumber << std::endl;
+	std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi (expecting 15x20), regionNumber (expecting 0-5): "
+		  << inRegion_crystal_iEta << ", "
+		  << inRegion_crystal_iPhi << ", "
+		  << regionNumber << std::endl;
+	
+	// Within the region, figure out which crystal and link the hit falls into
+	// Add the hit's energy to the right crystal/ right region
+	
+	if (regionNumber < 5) {
+	  region3x4 myRegion = rctCard.getRegion3x4(regionNumber);
+	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi (expecting 3x4): " << inRegion_tower_iEta << ", "
+		    << inRegion_tower_iPhi << std::endl;
 	  
-	  if (regionNumber < 5) {
-	    region3x4 myRegion = rctCard.getRegion3x4(regionNumber);
-	    linkECAL myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
-
-	    // Add the energy
-	    myLink.addCrystalE(inRegion_crystal_iEta, inRegion_crystal_iPhi, hit.energy());
-
-	    // Read it back out
-	    float energy = myLink.getCrystalE(inRegion_crystal_iEta, inRegion_crystal_iPhi);
-	    std::cout << "energy " << energy << std::endl;
-	  }
+	  // Get the link
+	  linkECAL myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
+	  
+	  // Add the energy to the right 5x5 crystal 
+	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
+		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
+	  float energyBefore = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
+	  
+	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.energy());
+	  
+	  float energy = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
+	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl;
 	}
 	
       }
+      
+      
+      
     }
-    rctCards.push_back(rctCard);
-  }
 
-  // // Sanity check: print out
-  // for (const auto& card : rctCards) {
-  //   std::cout << card.getIdx() << std::endl;
-  // }
+    rctCards.push_back(rctCard);
+
+    
+    
+  } // end of loop over cards
+
+
+  crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
+  
+  // Loop through the cards
+  for (auto& myCard : rctCards) {
+    int cc = myCard.getIdx();
+
+    if (cc == 35) {
+      std::cout << "[---] ONLY DOING CARD IDX 35" << std::endl;
+      
+      // Loop through the barrel regions (0, 1, 2, 3, 4)
+      // This code should be all identical for each region
+      for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
+	
+	
+       	if (idxRegion == 0) {
+       	  std::cout << "[----] ONLY DOING REGION IDX " << idxRegion<<std::endl;
+	  region3x4 myRegion = myCard.getRegion3x4(idxRegion);
+
+	  // In each 3x4 region, loop through the links (one link per tower)
+	  for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
+	    for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
+	      
+	      // Get the link (one link per tower) 
+	      // Cheat a little knowing that we want to look for this hit:
+	      
+	      // Card: 35, hit (Eta, phi): 0.103814, 3.09848
+ // 	      local_iEta, local_iPhi, regionNumber: 9, 17, 0
+// 		inRegion_crystal_iEta, inRegion_crystal_iPhi (expecting 15x20), regionNumber (expecting 0-5): 9, 17, 0
+// 		inRegion_tower_iEta, inRegion_tower_iPhi (expecting 3x4): 1, 3
+// 		inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): 4, 2
+// energy before/after 0 0.502697
+
+	      linkECAL link = myRegion.getLinkECAL(1, 3);
+	      // In the link, get the crystals (5x5 in each link)                                   
+	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {                                              	    
+                for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {    
+		  std::cout << link.getCrystalE(iEta, iPhi) << std::endl;
+		}
+	      }
+	      
+	    }
+	  }
+	}
+      }
+    }
+  }
+	      
+      // 	      // Get the link (one link per tower)
+      // 	      linkECAL link = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
+	      
+      // 	      // Each link has a different bottom left corner in the (iEta, iPhi) of the ECAL region.
+      // 	      // This will help us fill the ECAL region 'temporary' array, going link by link
+      // 	      int ref_iEta = (iLinkEta * CRYSTALS_IN_TOWER_ETA);
+      // 	      int ref_iPhi = (iLinkPhi * CRYSTALS_IN_TOWER_PHI);
+	      
+	      
+      // 	      // In the link, get the crystals (5x5 in each link)
+      // 	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
+      // 		for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
+		  
+		  
+      // 		  // Fill the 'temporary' array with the help of the ref_iEta, ref_iPhi ints
+      // 		  std::cout << "[~~~] iEta/iPhi/energy "  << iEta << ", " << iPhi << ", " << link.getCrystalE(iEta, iPhi) << std::endl;
+      // 		  uint16_t uEnergy = (uint16_t) link.getCrystalE(iEta, iPhi);
+      // 		  temporary[(ref_iEta + iEta)][(ref_iPhi + iPhi)] = uEnergy;
+		  
+      // 		  std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
+      // 			    << ", writing energy (float/ uint:) " <<  link.getCrystalE(iEta, iPhi) << ", " << uEnergy
+      // 			    << std::endl;
+		  
+		  
+      // 		}
+      // 	      }
+      // 	    }
+      // 	  }
+      
+
     
   std::cout << "I'm here!" << std::endl;
-
+  
  
 }
 
