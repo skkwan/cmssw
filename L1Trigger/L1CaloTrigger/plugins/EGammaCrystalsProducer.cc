@@ -289,14 +289,13 @@ public:
   // constructor                                                                                               
   linkECAL() { }
 
-  // copy constructor                                                                                         
-  linkECAL& operator=(const linkECAL &other) {
+  // copy constructor
+  linkECAL(const linkECAL &other) {
     for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
       for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++ ) {
         crystalE[i][j] = other.crystalE[i][j];
       }
     }
-    return *this;
   }
 
   // Set members
@@ -327,15 +326,14 @@ public:
   // constructor                                                                            
   region3x4() { idx_ = -1; }
 
-  // copy constructor                                                                              
-  region3x4& operator=(const region3x4& other) {
+  // copy constructor
+  region3x4(const region3x4& other) {
     idx_ = other.idx_;
-    for (int i = 0; i < TOWER_IN_ETA; i++) { 
+    for (int i = 0; i < TOWER_IN_ETA; i++) {
       for (int j = 0; j < TOWER_IN_PHI; j++ ) {
-	linksECAL[i][j] = other.linksECAL[i][j]; 
+        linksECAL[i][j] = other.linksECAL[i][j];
       }
     }
-    return *this;
   }
 
   // set members
@@ -364,10 +362,9 @@ public:
   card() { idx_ = -1; }
   
   // copy constructor
-  card& operator=(const card& other) {
-    idx_ = other.idx_; 
+  card(const card& other) {
+    idx_ = other.idx_;
     for (int i = 0; i < 5; i++) { card3x4Regions[i] = other.card3x4Regions[i]; }
-    return *this;
   }
 
   // set members
