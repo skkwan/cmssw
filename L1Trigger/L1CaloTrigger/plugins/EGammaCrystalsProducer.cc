@@ -286,11 +286,25 @@ private:
   float crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  // a 5x5 array
 
 public:
+  // constructor                                                                                               
+  linkECAL() { }
+
+  // copy constructor                                                                                         
+  linkECAL& operator=(const linkECAL &other) {
+    for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
+      for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++ ) {
+        crystalE[i][j] = other.crystalE[i][j];
+      }
+    }
+    return *this;
+  }
+
   // Set members
   inline void setCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
   inline void addCrystalE(int iEta, int iPhi, float energy) { 
     assert(iEta < 5); assert(iPhi < 5);
     crystalE[iEta][iPhi] += energy; }
+  
   // Access members
   inline float getCrystalE(int iEta, int iPhi) const { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
 
@@ -310,6 +324,20 @@ private:
   linkECAL linksECAL[TOWER_IN_ETA][TOWER_IN_PHI];  // 3x4 in towers
 
 public:
+  // constructor                                                                            
+  region3x4() { idx_ = -1; }
+
+  // copy constructor                                                                              
+  region3x4& operator=(const region3x4& other) {
+    idx_ = other.idx_;
+    for (int i = 0; i < TOWER_IN_ETA; i++) { 
+      for (int j = 0; j < TOWER_IN_PHI; j++ ) {
+	linksECAL[i][j] = other.linksECAL[i][j]; 
+      }
+    }
+    return *this;
+  }
+
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
 
@@ -332,6 +360,16 @@ private:
   region3x4 card3x4Regions[5];
   
 public:
+  // constructor
+  card() { idx_ = -1; }
+  
+  // copy constructor
+  card& operator=(const card& other) {
+    idx_ = other.idx_; 
+    for (int i = 0; i < 5; i++) { card3x4Regions[i] = other.card3x4Regions[i]; }
+    return *this;
+  }
+
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
 
@@ -490,8 +528,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
           
     card rctCard;
+
+
     rctCard.setIdx(cc);
-    
+
     for (const auto& hit : ecalhits) {
       // Check if the hit is in cards 0-35
       if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
@@ -568,30 +608,30 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       
       
     }
-
-    rctCards.push_back(rctCard);
+    card newCard = rctCard;
+    rctCards.push_back(newCard);
 
     
     
   } // end of loop over cards
 
 
-  crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
+  //  crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
   
   // Loop through the cards
-  for (auto& myCard : rctCards) {
+  for (card& myCard : rctCards) {
     int cc = myCard.getIdx();
 
     if (cc == 35) {
       std::cout << "[---] ONLY DOING CARD IDX 35" << std::endl;
-      
+    //    if (cc > -1) {  // do all cards
       // Loop through the barrel regions (0, 1, 2, 3, 4)
       // This code should be all identical for each region
       for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
 	
 	
-       	if (idxRegion == 0) {
-       	  std::cout << "[----] ONLY DOING REGION IDX " << idxRegion<<std::endl;
+       	if (idxRegion > -1) {
+	  std::cout << "[----] DOING REGION IDX " << idxRegion<<std::endl;
 	  region3x4 myRegion = myCard.getRegion3x4(idxRegion);
 
 	  // In each 3x4 region, loop through the links (one link per tower)
