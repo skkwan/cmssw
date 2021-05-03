@@ -286,20 +286,14 @@ private:
   float crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  // a 5x5 array
 
 public:
-  // linkECAL() {
-  //   for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
-  //     for(int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
-  // 	crystalE[iEta][iPhi] = 0.0;
-  //     }
-  //   }
-  // }
-  
   // Set members
   inline void setCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
-  inline void addCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] += energy; }
+  inline void addCrystalE(int iEta, int iPhi, float energy) { 
+    assert(iEta < 5); assert(iPhi < 5);
+    crystalE[iEta][iPhi] += energy; }
   // Access members
   inline float getCrystalE(int iEta, int iPhi) const { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
-  
+
 };
 
 /*******************************************************************/
@@ -321,7 +315,7 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline const linkECAL getLinkECAL(int iEta, int iPhi) const { return linksECAL[iEta][iPhi]; }
+  inline linkECAL& getLinkECAL (int iEta, int iPhi) { return linksECAL[iEta][iPhi]; }
 };
 
 /*******************************************************************/
@@ -343,7 +337,7 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline const region3x4 getRegion3x4(int idx) const { assert(idx < 5); return card3x4Regions[idx]; }
+  inline const region3x4& getRegion3x4(int idx) const { assert(idx < 5); return card3x4Regions[idx]; }
 
 };
 
@@ -561,12 +555,12 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  // Add the energy to the right 5x5 crystal 
 	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
 		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
+	  // TEST 1
 	  float energyBefore = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
-	  
 	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.energy());
-	  
-	  float energy = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
-	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl;
+	  float energy = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);                   
+	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl; 
+
 	}
 	
       }
@@ -614,11 +608,14 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 // 		inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): 4, 2
 // energy before/after 0 0.502697
 
-	      linkECAL link = myRegion.getLinkECAL(1, 3);
-	      // In the link, get the crystals (5x5 in each link)                                   
-	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {                                              	    
+
+	      
+	      linkECAL myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
+
+	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {           	    
                 for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {    
-		  std::cout << link.getCrystalE(iEta, iPhi) << std::endl;
+		  std::cout << myLink.getCrystalE(iEta, iPhi) << " ";
+
 		}
 	      }
 	      
