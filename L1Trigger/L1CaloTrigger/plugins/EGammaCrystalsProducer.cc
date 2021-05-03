@@ -293,7 +293,7 @@ public:
   // copy constructor
   linkECAL(const linkECAL &other) {
     totalE = other.totalE;
-    
+    std::cout << "Inside copy constructor: getting energy "<< totalE << std::endl;
     for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
       for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++ ) {
         crystalE[i][j] = other.crystalE[i][j];
@@ -396,7 +396,7 @@ public:
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline const region3x4& getRegion3x4(int idx) const { assert(idx < 5); return card3x4Regions[idx]; }
+  inline region3x4& getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
 
 };
 
@@ -606,14 +606,14 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	// Add the hit's energy to the right crystal/ right region
 	
 	if (regionNumber < 5) {
-	  region3x4 myRegion = rctCard.getRegion3x4(regionNumber);
+	  region3x4& myRegion = rctCard.getRegion3x4(regionNumber);
 	  myRegion.setIdx(regionNumber); // a bit redundant
 
 	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi (expecting 3x4): " << inRegion_tower_iEta << ", "
 		    << inRegion_tower_iPhi << std::endl;
 	  
-	  // Get the link
-	  linkECAL myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
+	  // Get the link 
+	  linkECAL& myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 	  
 	  // Add the energy to the right 5x5 crystal 
 	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
@@ -625,28 +625,31 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl; 
 	  std::cout << "total energy: " << myLink.getTotalE() << std::endl;
 
-	  
-	  
-	  // Sanity check: can we still get the crystals
-	  
-	  std::cout << "[~~~~] sanity check: region, card: " << myRegion.getIdx() << ", " << cc << std::endl;
-	  // In each 3x4 region, loop through the links (one link per tower)                                 
-	  //	  region3x4 myRegion = rctCard.getRegion3x4(regionNumber);
-	  for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
-	    for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
 
-	      linkECAL myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
-	      std::cout << "[~~~] total energy in link: "<< myLink.getTotalE() << std::endl;
+	  
+	}
+	// Sanity check: can we still get the crystals
+	
+	// for (int i = 0; i < 5; i++) {
+	//   region3x4 myRegion = rctCard.getRegion3x4(i);
+	//   //std::cout << "[~~~~] sanity check: region, card: " << myRegion.getIdx() << ", " << cc << std::endl;
 
-	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
-		for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
-		  std::cout << myLink.getCrystalE(iEta, iPhi) << " ";
-		  
-		}
-	      }
-	    }
-	  }
-	} // end of sanity check
+	//   //	  for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
+	//   //	    for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
+
+	//   //	      linkECAL myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
+	//   //	      std::cout << "[~~~] total energy in link: "<< myLink.getTotalE() << std::endl;
+
+	//   for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
+	//     for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
+	//       linkECAL myLink = myRegion.getLinkECAL(iEta, iPhi);
+	//       std::cout << myLink.getCrystalE(iEta, iPhi) << " ";
+	      
+	//     }
+	//   }
+	//   //  }
+	//}
+	
 	
 	
 
@@ -677,13 +680,13 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	
        	if (idxRegion > -1) {
 	  std::cout << "[----] DOING REGION IDX " << idxRegion<<std::endl;
-	  region3x4 myRegion = rctCard.getRegion3x4(idxRegion);
+	  region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 
 	  // In each 3x4 region, loop through the links (one link per tower)
 	  for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
 	    for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
 	      
-	      linkECAL myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
+	      linkECAL& myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
 
 	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {           	    
                 for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {    
