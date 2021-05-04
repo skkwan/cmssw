@@ -259,6 +259,7 @@ class SimpleCaloHit {
 private:
   float pt_ = 0;
   float energy_ = 0.;
+  uint16_t et_uint_ = 0;
   GlobalVector position_;  // As opposed to GlobalPoint, so we can add them (for weighted average)
   EBDetId id_;
   
@@ -266,11 +267,13 @@ public:
   // tool functions
   inline void setPt() { pt_ = (position_.mag2() > 0) ? energy_ * sin(position_.theta()) : 0; };
   inline void setEnergy(float et) { energy_ = et / sin(position_.theta()); };
+  inline void setEt_uint(int et) { et_uint_ = (uint16_t) et; }
   inline void setPosition(const GlobalVector& pos) { position_ = pos; };
   inline void setId(const EBDetId& id) { id_ = id; };
 
   inline float pt() const { return pt_; };
   inline float energy() const { return energy_; };
+  inline uint16_t et_uint() const { return et_uint_; };
   inline const GlobalVector& position() const { return position_; };
   inline const EBDetId& id() const { return id_; };
 };
@@ -283,8 +286,8 @@ public:
 
 class linkECAL {
 private:
-  float totalE = 0;
-  float crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  // a 5x5 array
+  uint16_t totalE = 0;
+  uint16_t crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  // a 5x5 array
 
 public:
   // constructor                                                                                               
@@ -308,16 +311,16 @@ public:
   }
   
   // Set members
-  inline void setCrystalE(int iEta, int iPhi, float energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
-  inline void addCrystalE(int iEta, int iPhi, float energy) { 
+  inline void setCrystalE(int iEta, int iPhi, uint16_t energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
+  inline void addCrystalE(int iEta, int iPhi, uint16_t energy) { 
     assert(iEta < 5); assert(iPhi < 5);
     crystalE[iEta][iPhi] += energy; 
     totalE += energy; }
   
   
   // Access members
-  inline float getCrystalE(int iEta, int iPhi) const { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
-  inline float getTotalE() const { return totalE; }
+  inline uint16_t getCrystalE(int iEta, int iPhi) const { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
+  inline uint16_t getTotalE() const { return totalE; }
 
 };
 
@@ -492,6 +495,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	ehit.setId(hit.id());
 	ehit.setPosition(GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z()));
 	ehit.setEnergy(et);
+	ehit.setEt_uint(hit.encodedEt());  // also save the 10-bit Et
 	ehit.setPt();
 	ecalhits.push_back(ehit);
 	
@@ -622,7 +626,9 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 
 	  float energyBefore = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
-	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.energy());
+	  //	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.energy());
+	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
+	  
 	  float energy = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);                   
 	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl; 
 	  std::cout << "total energy in the link: " << myLink.getTotalE() << std::endl;
@@ -637,14 +643,16 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     
 
     //*******************************************************************    
-    //******* Within each card, read back the hits **********************
+    //******* Within each region, read back the hits ********************
     //******************************************************************* 
 
-    //  crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
+    crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
     
     
     for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
-      if (idxRegion > -1) {
+
+      if (idxRegion == 0) { // TEMP: only try one region
+
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 	
 	std::cout << std::endl << "[----] DOING REGION IDX " << myRegion.getIdx() << std::endl;
@@ -653,52 +661,38 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
 	  for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
 	    
+	    // Get the link (one link per tower) 
 	    linkECAL& myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
 	    
+	    // Each link has a different bottom left corner in the (iEta, iPhi) of the ECAL region.
+	    // This will help us fill the ECAL region 'temporary' array, going link by link 
+	    int ref_iEta = (iLinkEta * CRYSTALS_IN_TOWER_ETA); 
+	    int ref_iPhi = (iLinkPhi * CRYSTALS_IN_TOWER_PHI); 
+
+	    // In the link, get the crystals (5x5 in each link) 
 	    for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {           	    
 	      for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {    
-		std::cout << myLink.getCrystalE(iEta, iPhi) << " ";
+		
+		// Et as unsigned int
+		uint16_t uEnergy = myLink.getCrystalE(iEta, iPhi);
+
+		std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " 
+			  << (ref_iPhi + iPhi) 
+			  << ", writing energy (uint:) " << uEnergy << std::endl;
+
+		// Fill the 'temporary' array with a crystal object 
+		temporary[ref_iEta + iEta][ref_iPhi + iPhi] = crystal(uEnergy);
+
 	      }
 	    }
-	    
 	  }
 	}
-      }
-    }
-    
-      
-  } // end of loop over cards
-  
-      // 	      // Get the link (one link per tower)
-      // 	      linkECAL link = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
-	      
-      // 	      // Each link has a different bottom left corner in the (iEta, iPhi) of the ECAL region.
-      // 	      // This will help us fill the ECAL region 'temporary' array, going link by link
-      // 	      int ref_iEta = (iLinkEta * CRYSTALS_IN_TOWER_ETA);
-      // 	      int ref_iPhi = (iLinkPhi * CRYSTALS_IN_TOWER_PHI);
-	      
-	      
-      // 	      // In the link, get the crystals (5x5 in each link)
-      // 	      for (int iEta = 0; iEta < CRYSTALS_IN_TOWER_ETA; iEta++) {
-      // 		for (int iPhi = 0; iPhi < CRYSTALS_IN_TOWER_PHI; iPhi++) {
-		  
-		  
-      // 		  // Fill the 'temporary' array with the help of the ref_iEta, ref_iPhi ints
-      // 		  std::cout << "[~~~] iEta/iPhi/energy "  << iEta << ", " << iPhi << ", " << link.getCrystalE(iEta, iPhi) << std::endl;
-      // 		  uint16_t uEnergy = (uint16_t) link.getCrystalE(iEta, iPhi);
-      // 		  temporary[(ref_iEta + iEta)][(ref_iPhi + iPhi)] = uEnergy;
-		  
-      // 		  std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
-      // 			    << ", writing energy (float/ uint:) " <<  link.getCrystalE(iEta, iPhi) << ", " << uEnergy
-      // 			    << std::endl;
-		  
-		  
-      // 		}
-      // 	      }
-      // 	    }
-      // 	  }
       
 
+
+      } // end of "if"
+    } // end of loop over regions  
+  } // end of loop over cards
     
   std::cout << "I'm here!" << std::endl;
   
