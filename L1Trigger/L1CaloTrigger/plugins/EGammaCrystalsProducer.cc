@@ -61,7 +61,8 @@ static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float cut_500_MeV = 0.5;
 
-static constexpr int NB_CLUSTERS = 5;       // number of clusters per region
+static constexpr int N_CLUSTERS_PER_REGION = 4;       // number of clusters per ECAL region
+static constexpr int N_REGIONS_PER_CARD = 5;          // number of ECAL regions per card (TO-DO: increase to 6 when I include endcap)
 
 // Assert that the card index is within bounds. (Valid cc: 0 to 35, since there are 36 RCT cards)
 bool isValidCard(int cc) {
@@ -289,44 +290,36 @@ public:
 
 class linkECAL {
 private:
-  ap_uint<10> totalE;
   ap_uint<10> crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI];
 
 public:
   // constructor                                                                                               
-  linkECAL() { 
-    totalE = 0;
-    crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};
-  }
+  linkECAL() { crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  }
 
   // copy constructor
   linkECAL(const linkECAL &other) {
-    totalE = other.totalE;
-    std::cout << "Inside copy constructor: getting energy "<< totalE << std::endl;
+    std::cout << "Inside copy constructor: " << std::endl;
     for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
       for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++ ) {
-        crystalE[i][j] = other.crystalE[i][j];
-      }
-    }
+        crystalE[i][j] = other.crystalE[i][j];   }}
   }
-
+  
   // overload operator= to use copy constructor
-  linkECAL operator=(const linkECAL &other) {
-    linkECAL newLink(other);
-    return newLink;
-  }
+  linkECAL operator=(const linkECAL &other) { linkECAL newLink(other);  return newLink; }
   
   // Set members
-  inline void setCrystalE(int iEta, int iPhi, ap_uint<10> energy) { assert(iEta < 5); assert(iPhi < 5); crystalE[iEta][iPhi] = energy; }
+  inline void zeroOut() {  // zero out the crystalE array
+    for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
+      for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++) { 
+	crystalE[i][j] = 0;
+      }}};
+  inline void setCrystalE(int iEta, int iPhi, ap_uint<10> energy) {
+    assert(iEta < CRYSTALS_IN_TOWER_ETA); assert(iPhi < CRYSTALS_IN_TOWER_PHI); crystalE[iEta][iPhi] = energy; };
   inline void addCrystalE(int iEta, int iPhi, ap_uint<10> energy) { 
-    assert(iEta < 5); assert(iPhi < 5);
-    crystalE[iEta][iPhi] += energy; 
-    totalE += energy; }
-  
-  
+    assert(iEta < CRYSTALS_IN_TOWER_ETA); assert(iPhi < CRYSTALS_IN_TOWER_PHI); crystalE[iEta][iPhi] += energy; };
+
   // Access members
-  inline ap_uint<10> getCrystalE(int iEta, int iPhi) { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; }
-  inline ap_uint<10> getTotalE() { return totalE; }
+  inline ap_uint<10> getCrystalE(int iEta, int iPhi) { assert(iEta < 5); assert(iPhi < 5); return crystalE[iEta][iPhi]; };
 
 };
 
@@ -364,11 +357,17 @@ public:
   };
 
   // set members
+  inline void zeroOut() { 
+    for (int i = 0; i < TOWER_IN_ETA; i++) { 
+      for (int j = 0; j < TOWER_IN_PHI; j++) { 
+	linksECAL[i][j].zeroOut();
+      }}
+  };
   inline void setIdx(int idx) { idx_ = idx; };
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline linkECAL& getLinkECAL (int iEta, int iPhi) { return linksECAL[iEta][iPhi]; }
+  inline linkECAL& getLinkECAL (int iEta, int iPhi) { return linksECAL[iEta][iPhi]; };
 };
 
 /*******************************************************************/
@@ -390,6 +389,7 @@ public:
     idx_ = -1; 
     for (int i = 0; i < 5; i++) {
       card3x4Regions[i].setIdx(i);
+      card3x4Regions[i].zeroOut();
     }
   }
   
@@ -407,6 +407,7 @@ public:
 
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
+  inline void zeroOut() {  for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); } };
 
   // get members
   inline float getIdx() const { return idx_; };
@@ -1177,7 +1178,7 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
 
-  std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  //  std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   return cluster_tmp;
 
 }
@@ -1250,7 +1251,7 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
   
-  std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  //  std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   
   return cluster_tmp;
   
@@ -1387,11 +1388,11 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
 
   if ((cluster_tmpBneg.energy > cluster_tmpCenter.energy/8) && (cluster_tmpBneg.energy > cluster_tmpBpos.energy)) {    
     cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBneg.energy);
-    std::cout << "getClusterFromRegion3x4: Setting brems to 1, new energy to " << cluster_tmp.energy << std::endl;
+    std::cout << "getClusterFromRegion3x4: Brems in negative phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
     cluster_tmp.brems = 1; }
   else if(cluster_tmpBpos.energy > cluster_tmpCenter.energy/8) {
     cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBpos.energy);
-    std::cout << "getClusterFromRegion3x4: Setting brems to 2, new energy to " << cluster_tmp.energy << std::endl;
+    std::cout << "getClusterFromRegion3x4: Brems in positive phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
     cluster_tmp.brems = 2; }
 
   returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.etaMax, cluster_tmp.phiMax);
@@ -1525,6 +1526,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     card rctCard;
     rctCard.setIdx(cc);
 
+    if (cc <= 34) continue;  // TEMP
+
+    // TO-DO: zero out the rctCard (cascade: access regions, and access the links)
+    
     for (const auto& hit : ecalhits) {
       // Check if the hit is in cards 0-35
       if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
@@ -1532,11 +1537,6 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   	  (getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc)) &&
   	  (getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc))) {
 	
-	std::cout << "Card: " << cc << ", hit (Eta, phi): " 
-		  << hit.position().eta() << ", " << hit.position().phi() << std::endl;
-
-	
-
 	// Get the crystal eta and phi, relative to the bottom left corner of the card 
 	// (0 up to 17*5, 0 up to 4*5) 
 	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
@@ -1590,18 +1590,16 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  //	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
 	  //		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 
-	  //	  float energyBefore = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);
-	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
+	  myLink.setCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
 	  
-	  //	  float energy = myLink.getCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi);                   
-	  //	  std::cout << "energy before/after " << energyBefore << " " << energy << std::endl; 
-	  //	  std::cout << "total energy in the link: " << myLink.getTotalE() << std::endl;
-
-
+	  std::cout << "Card: " << cc << ", hit (Eta, phi, et): "
+		    << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
+		    << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi << ", " 
+		    << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 	  
 	}
       } 
-      
+
       
     } // end of loop over hits
     
@@ -1610,17 +1608,20 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     //******* Within each region, read back the hits ********************
     //******************************************************************* 
 
-    crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
-    
+    // Cluster sort_clusterIn[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];    // array of clusters per card, to be sorted by ET
+    // Cluster sort_clusterOut[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];   // array of clusters per card, sorted by ET
+    std::vector<Cluster> sort_clusterIn;
     
     for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
+      
+      crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
 
       if ((cc == 34) || (cc == 35)) { // TEMP: only do two regions: this should be equivalent to processInputLinks
-
+      //      if (cc > -1) {
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 	
 	std::cout << std::endl << "[----] DOING CARD " << cc << " AND REGION IDX " << myRegion.getIdx() << std::endl;
-	
+
 	// In each 3x4 region, loop through the links (one link per tower)
 	for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
 	  for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
@@ -1640,8 +1641,8 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		// Et as unsigned int
 		ap_uint<10> uEnergy = myLink.getCrystalE(iEta, iPhi);
 
-		//		std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
-		//			  << ", writing energy (uint:) " << uEnergy << std::endl;
+		std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
+			  << ", writing energy (uint:) " << uEnergy << std::endl;
 
 		// Fill the 'temporary' array with a crystal object 
 		temporary[ref_iEta + iEta][ref_iPhi + iPhi] = crystal(uEnergy);
@@ -1649,31 +1650,30 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	    }
 	  }
 	}
-
-	// 'temporary' array is ready
 	
+	// Iteratively find four clusters and remove them from 'temporary' as we go, and fill sort_clusterIn
+	// sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 0] = getClusterFromRegion3x4(temporary);
+	// sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 1] = getClusterFromRegion3x4(temporary);
+        // sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 2] = getClusterFromRegion3x4(temporary);
+        // sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 3] = getClusterFromRegion3x4(temporary);
 
-	Cluster forCluster;
-	Cluster sort_clusterIn[NB_CLUSTERS];
-	Cluster sort_clusterOut[NB_CLUSTERS];
-
-	// Iteratively find four clusters and remove them from 'temporary' as we go
-	sort_clusterIn[0] = getClusterFromRegion3x4(temporary);
-	sort_clusterIn[1] = getClusterFromRegion3x4(temporary);
-        sort_clusterIn[2] = getClusterFromRegion3x4(temporary);
-        sort_clusterIn[3] = getClusterFromRegion3x4(temporary);
-
+	for (int c = 0; c < N_CLUSTERS_PER_REGION; c++) {
+	  sort_clusterIn.push_back(getClusterFromRegion3x4(temporary));
+	}
+	
       } // end of "if"
 
-      
-      // 
-      
-      //      Cluster sort_clusterIn[NB_CLUSTERS];
-      //      Cluster sort_clusterOut[NB_CLUSTERS];
-
-      
-
     } // end of loop over regions  
+
+    // Sanity check: read back sort_clusterIn 
+    // for (int i = 0; i < (N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD); i++) {
+    //   std::cout << "card " << cc << ", sort_clusterIn[" << i << "]: ET " << sort_clusterIn[i].clusterEnergy() << std::endl;
+    // }
+
+    // for (auto & oneCluster : sort_clusterIn) {
+    //   std::cout << "card " << cc << ", cluster ET: " << oneCluster.clusterEnergy() << std::endl;
+    // }
+    
   } // end of loop over cards
     
   std::cout << "I'm here!" << std::endl;
