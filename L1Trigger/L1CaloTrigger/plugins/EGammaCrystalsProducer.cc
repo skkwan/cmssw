@@ -1013,6 +1013,14 @@ public:
 
 };
 
+//--------------------------------------------------------// 
+
+// Compare the ET of two clusters (pass this to std::sort to get clusters sorted in decreasing ET).
+
+bool compareClusterET(Cluster& lhs, Cluster& rhs) {
+  return ( lhs.clusterEnergy() > rhs.clusterEnergy() );
+}
+
 //--------------------------------------------------------//
 
 clusterInfo getClusterPosition(const ecalRegion_t& ecalRegion){
@@ -1469,67 +1477,61 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       }
   }
 
-
-  // // Get all the HCAL hits
-  // edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hbhecoll;
-  // iEvent.getByToken(hcalTPToken_, hbhecoll);
+  // Get all the HCAL hits
+  edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hbhecoll;
+  iEvent.getByToken(hcalTPToken_, hbhecoll);
   
-  // for (const auto& hit : *hbhecoll.product()) {
-  //   float et = decoder_->hcaletValue(hit.id(), hit.t0());
-  //   if (et <= 0)
-  //     continue;
+  for (const auto& hit : *hbhecoll.product()) {
+    float et = decoder_->hcaletValue(hit.id(), hit.t0());
+    if (et <= 0)
+      continue;
     
-  //   if (!(hcTopology_->validHT(hit.id()))) {
-  //     LogError("EGammaCrystalsProducer")
-  // 	<< " -- Hcal hit DetID not present in HCAL Geom: " << hit.id() << std::endl;
-  //     throw cms::Exception("EGammaCrystalsProducer");
-  //     continue;
-  //   }
-  //   const std::vector<HcalDetId>& hcId = theTrigTowerGeometry.detIds(hit.id());
-  //   if (hcId.empty()) {
-  //     LogError("EGammaCrystalsProducer")
-  // 	<< "Cannot find any HCalDetId corresponding to " << hit.id() << std::endl;
-  //     throw cms::Exception("EGammaCrystalsProducer");
-  //     continue;
-  //   }
-  //   if (hcId[0].subdetId() > 1)
-  //     continue;
-  //   GlobalVector hcal_tp_position = GlobalVector(0., 0., 0.);
-  //   for (const auto& hcId_i : hcId) {
-  //     if (hcId_i.subdetId() > 1)
-  //       continue;
-  //     // get the first HCAL TP/ cell
-  //     auto cell = hbGeometry->getGeometry(hcId_i);
-  //     if (cell == nullptr)
-  // 	continue;
-  //     GlobalVector tmpVector = GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z());
-  //     hcal_tp_position = tmpVector;
+    if (!(hcTopology_->validHT(hit.id()))) {
+      LogError("EGammaCrystalsProducer")
+  	<< " -- Hcal hit DetID not present in HCAL Geom: " << hit.id() << std::endl;
+      throw cms::Exception("EGammaCrystalsProducer");
+      continue;
+    }
+    const std::vector<HcalDetId>& hcId = theTrigTowerGeometry.detIds(hit.id());
+    if (hcId.empty()) {
+      LogError("EGammaCrystalsProducer")
+  	<< "Cannot find any HCalDetId corresponding to " << hit.id() << std::endl;
+      throw cms::Exception("EGammaCrystalsProducer");
+      continue;
+    }
+    if (hcId[0].subdetId() > 1)
+      continue;
+    GlobalVector hcal_tp_position = GlobalVector(0., 0., 0.);
+    for (const auto& hcId_i : hcId) {
+      if (hcId_i.subdetId() > 1)
+        continue;
+      // get the first HCAL TP/ cell
+      auto cell = hbGeometry->getGeometry(hcId_i);
+      if (cell == nullptr)
+  	continue;
+      GlobalVector tmpVector = GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z());
+      hcal_tp_position = tmpVector;
       
-  //     std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
-  //      		<< cell->getPosition().y() << ","
-  //      		<< cell->getPosition().z() << " and ET (GeV) "
-  // 		<< et << std::endl;
+      // std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
+      //  		<< cell->getPosition().y() << ","
+      //  		<< cell->getPosition().z() << " and ET (GeV) "
+      // 		<< et << std::endl;
       
-  //     break;
-  //   }
-  //   //    std::cout << "HCAL hit et: " << et << std::endl;
-  // }
+      break;
+    }
+  }
 
   //*******************************************************************
-  //********************** Do RCT geometry  ***************************
+  //*************** Do RCT geometry (ECAL)  ***************************
   //*******************************************************************
 
-
+  
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
           
     // Initialize variables
     card rctCard;
     rctCard.setIdx(cc);
 
-    if (cc <= 34) continue;  // TEMP
-
-    // TO-DO: zero out the rctCard (cascade: access regions, and access the links)
-    
     for (const auto& hit : ecalhits) {
       // Check if the hit is in cards 0-35
       if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
@@ -1557,7 +1559,8 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
 	int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
 	
-	// Get the crystal eta and phi index inside the 3x4 region (15x20)
+	// Within the region, figure out which crystal and link the hit falls into                                         
+        // Get the crystal eta and phi index inside the 3x4 region (15x20)
 	int inRegion_crystal_iEta = local_iEta % (TOWER_IN_ETA * CRYSTALS_IN_TOWER_ETA);
 	int inRegion_crystal_iPhi = local_iPhi;
 
@@ -1573,24 +1576,21 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	// 	  << inRegion_crystal_iEta << ", "
 	// 	  << inRegion_crystal_iPhi << ", "
 	// 	  << regionNumber << std::endl;
-	
-	// Within the region, figure out which crystal and link the hit falls into
-	// Add the hit's energy to the right crystal/ right region
-	
+
+	// Access the right region -> link -> crystal and increment the energy
 	if (regionNumber < 5) {
 	  region3x4& myRegion = rctCard.getRegion3x4(regionNumber);
 
 	  //	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi (expecting 3x4): " << inRegion_tower_iEta << ", "
 	  //		    << inRegion_tower_iPhi << std::endl;
 	  
-	  // Get the link 
+	  // Get the right link
 	  linkECAL& myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 	  
-	  // Add the energy to the right 5x5 crystal 
+	  // Add the energy to the right crystal 
 	  //	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
 	  //		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
-
-	  myLink.setCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
+	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
 	  
 	  std::cout << "Card: " << cc << ", hit (Eta, phi, et): "
 		    << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
@@ -1598,14 +1598,17 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		    << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 	  
 	}
-      } 
+      }      
+    } // end of loop over ECAL hits
 
-      
-    } // end of loop over hits
-    
+    //*******************************************************************
+    //************* Do RCT geometry (HCAL) ******************************
+    //*******************************************************************
+
+    // Same idea as the ECAL RCT geometry, except we only care about the ET in towers 
 
     //*******************************************************************    
-    //******* Within each region, read back the hits ********************
+    //******* Within each ECAL region, read back the hits ***************
     //******************************************************************* 
 
     // Cluster sort_clusterIn[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];    // array of clusters per card, to be sorted by ET
@@ -1641,8 +1644,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		// Et as unsigned int
 		ap_uint<10> uEnergy = myLink.getCrystalE(iEta, iPhi);
 
-		std::cout << "Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
-			  << ", writing energy (uint:) " << uEnergy << std::endl;
+		if (uEnergy > 0) {
+		  std::cout << "energy>0: Accessing temporary array: " << (ref_iEta + iEta) << ", " << (ref_iPhi + iPhi) 
+			    << ", writing energy (uint:) " << uEnergy << std::endl;
+		}
 
 		// Fill the 'temporary' array with a crystal object 
 		temporary[ref_iEta + iEta][ref_iPhi + iPhi] = crystal(uEnergy);
@@ -1666,19 +1671,33 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     } // end of loop over regions  
 
     // Sanity check: read back sort_clusterIn 
-    // for (int i = 0; i < (N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD); i++) {
-    //   std::cout << "card " << cc << ", sort_clusterIn[" << i << "]: ET " << sort_clusterIn[i].clusterEnergy() << std::endl;
-    // }
+    std::cout << "card " << cc << ": unsorted ET: ";
+    for (auto & c : sort_clusterIn) {
+      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";
+    }
+    std::cout << std::endl;
+    
+    // Sort the clusters in decreasing ET
+    std::sort(sort_clusterIn.begin(), sort_clusterIn.end(), compareClusterET);
 
-    // for (auto & oneCluster : sort_clusterIn) {
-    //   std::cout << "card " << cc << ", cluster ET: " << oneCluster.clusterEnergy() << std::endl;
-    // }
+    // Print the sorted vector
+    std::cout << "card " << cc << ": SORTED ET: ";
+    for (auto & c : sort_clusterIn) {
+      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";
+    }
+    std::cout << std::endl;
+
+    // Create towers using remaining ECAL energy, and the HCAL towers
+    ap_uint<12> towerEtHCAL[12]; 
+
+    
+
     
   } // end of loop over cards
-    
+  
   std::cout << "I'm here!" << std::endl;
   
- 
+  
 }
 
 ////////////////////////////////////////////////////////////////////////// 
