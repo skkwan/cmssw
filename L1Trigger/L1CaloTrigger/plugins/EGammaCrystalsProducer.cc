@@ -53,10 +53,14 @@ static constexpr int n_crystals_cardPhi = (n_towers_Phi * n_towers_cardPhi);
 static constexpr int CRYSTALS_IN_TOWER_ETA = 5;
 static constexpr int CRYSTALS_IN_TOWER_PHI = 5;
 
-static constexpr int TOWER_IN_ETA = 3;      // number of towers in eta, in one 3x4 region
-static constexpr int TOWER_IN_PHI = 4;      // number of towers in phi, in one 3x4 region
-static constexpr int CRYSTAL_IN_ETA = 15;   // number of crystals in eta, in one 3x4 region
-static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one 3x4 region 
+static constexpr int TOWER_IN_ETA = 3;      // number of towers in eta, in one 3x4 region (barrel)
+static constexpr int TOWER_IN_PHI = 4;      // number of towers in phi, in one 3x4 region (barrel)
+
+static constexpr int TOWER_IN_ETA_OVERLAP = 2; // number of towers in eta, in one 2x4 region (overlap)
+static constexpr int TOWER_IN_PHI_OVERLAP = 4; // number of towers in phi, in one 2x4 region (overlap)
+
+static constexpr int CRYSTAL_IN_ETA = 15;   // number of crystals in eta, in one 3x4 region (barrel)
+static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one 3x4 region (barrel)
 
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float cut_500_MeV = 0.5;
@@ -196,13 +200,6 @@ int getCard_ref_iEta(int cc) {
 int getCrystal_local_iEta(float hitEta, int cc) {
   assert(isValidCard(cc));
 
-  // if ((cc % 2) == 1) {  // if cc is odd (positive eta)  
-  //   return (getCrystal_iEta(hitEta) - getCard_ref_iEta(cc));
-  // }
-  // else { // if cc is even (negative eta)
-  //   return (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
-  // }
-
   // Functionally the same thing as an absolute value: 
   int diff = (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
   return abs(diff);
@@ -296,17 +293,6 @@ public:
   // constructor                                                                                               
   linkECAL() { crystalE[CRYSTALS_IN_TOWER_ETA][CRYSTALS_IN_TOWER_PHI] = {};  }
 
-  // copy constructor
-  linkECAL(const linkECAL &other) {
-    std::cout << "Inside copy constructor: " << std::endl;
-    for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
-      for (int j = 0; j < CRYSTALS_IN_TOWER_PHI; j++ ) {
-        crystalE[i][j] = other.crystalE[i][j];   }}
-  }
-  
-  // overload operator= to use copy constructor
-  linkECAL operator=(const linkECAL &other) { linkECAL newLink(other);  return newLink; }
-  
   // Set members
   inline void zeroOut() {  // zero out the crystalE array
     for (int i = 0; i < CRYSTALS_IN_TOWER_ETA; i++) {
@@ -372,8 +358,33 @@ public:
 
 /*******************************************************************/
 
+/*
+ * region2x4 class: represents one 2x4 ECAL region in the overlap. The region stores no information
+ * about which card it is located in. 
+ */
+
+class region2x4 {
+private:
+  linkECAL linksECAL[TOWER_IN_ETA_OVERLAP][TOWER_IN_PHI_OVERLAP];
+  
+public:
+  // constructor   
+  region2x4() { }
+
+  // set members
+  inline void zeroOut() { for (int i = 0; i < TOWER_IN_ETA_OVERLAP; i++) {
+      for (int j = 0; j < TOWER_IN_PHI_OVERLAP; j++) {
+	linksECAL[i][j].zeroOut(); }} };
+  
+  // get members
+  inline linkECAL& getLinkECAL(int iEta, int iPhi) { return linksECAL[iEta][iPhi]; };
+
+};
+
+/*******************************************************************/
+
 /* 
- * card class: represents one RCT card. Each card has five 3x4 regions.
+ * card class: represents one RCT card. Each card has five 3x4 regions and one 2x4 region.
  *             idx 0-35: odd values of cardIdx span eta = 0 to eta = 1.41 
  *                       even values of cardIdx span eta = -1.41 to eta = 0
  */
@@ -382,36 +393,38 @@ class card {
 private:
   int idx_ = -1 ; 
   region3x4 card3x4Regions[5];
+  region2x4 card2x4Region;
   
 public:
   // constructor
-  card() { 
+  card() {  
     idx_ = -1; 
+    card2x4Region.zeroOut();
     for (int i = 0; i < 5; i++) {
       card3x4Regions[i].setIdx(i);
-      card3x4Regions[i].zeroOut();
-    }
-  }
+      card3x4Regions[i].zeroOut(); }}
   
   // copy constructor
   card(const card& other) {
     idx_ = other.idx_;
-    for (int i = 0; i < 5; i++) { card3x4Regions[i] = other.card3x4Regions[i]; }
-  }
+    card2x4Region = other.card2x4Region;
+    for (int i = 0; i < 5; i++) { card3x4Regions[i] = other.card3x4Regions[i]; }  }
 
   // overload operator= to use copy constructor
   card operator=(const card& other) {
     card newCard(other);
-    return newCard;
-  }
-
+    return newCard;  }
+  
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
-  inline void zeroOut() {  for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); } };
+  inline void zeroOut() { 
+    card2x4Region.zeroOut();
+    for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); }; };
 
   // get members
   inline float getIdx() const { return idx_; };
   inline region3x4& getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
+  inline region2x4& getRegion2x4() { return card2x4Region; }
 
 };
 
