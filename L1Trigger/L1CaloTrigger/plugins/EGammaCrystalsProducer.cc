@@ -621,6 +621,32 @@ typedef struct {
   ecaltp_t pk14;
 } etaStripPeak_t ;
 
+class tower_t {
+public:
+  ap_uint<16> data;
+
+  tower_t(){
+    data = 0;
+  }
+  tower_t& operator=(const tower_t& rhs){
+    data = rhs.data;
+    return *this;
+  }
+
+  tower_t(ap_uint<12> et, ap_uint<3> hoe, ap_uint<1> satur){
+    data = (et) | 
+      (((ap_uint<16>) hoe)  << 12) | 
+      (((ap_uint<16>) satur)  << 15);
+  }
+
+  ap_uint<12> et() {return (data & 0xFFF);}
+  ap_uint<3> hoe() {return ((data >> 12) & 0x7);}
+  ap_uint<1> satur() {return ((data >> 15) & 0x2);}
+  
+  operator uint16_t() {return (uint16_t) data;}
+
+};
+
 /*******************************************************************/
 
 //////////////////////////////////////////////////////////////////////////  
@@ -1028,6 +1054,50 @@ crystalMax getPeakBin15N(const etaStripPeak_t& etaStrip){
   x.phiMax = bestOf15.phi ;
 
   return x ;
+}
+
+//--------------------------------------------------------// 
+
+// Take a 3x4 ECAL region (i.e. 15x20 in crystals, add crystal energies in squares of 5x5, giving
+// 3x4 = 12 ECAL tower sums.) Store these 12 values in towerEt.
+
+void getECALTowersEt(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_uint<12> towerEt[12]){
+
+    ap_uint<10> temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI] ;
+    ap_uint<12> towerEtN[3][4][5] ;
+    for (int i = 0; i < CRYSTAL_IN_ETA; i++){
+      for(int k = 0; k < CRYSTAL_IN_PHI; k++){
+	temp[i][k] = tempX[i][k].energy ;
+      }}
+    
+    for(int i=0; i<CRYSTAL_IN_ETA; i=i+5){
+      for(int k=0; k<CRYSTAL_IN_PHI; k=k+5){
+	towerEtN[i/5][k/5][0] = temp[i][k] + temp[i][k+1] + temp[i][k+2] + temp[i][k+3] + temp[i][k+4] ;
+	towerEtN[i/5][k/5][1] = temp[i+1][k] + temp[i+1][k+1] + temp[i+1][k+2] + temp[i+1][k+3] + temp[i+1][k+4] ;
+	towerEtN[i/5][k/5][2] = temp[i+2][k] + temp[i+2][k+1] + temp[i+2][k+2] + temp[i+2][k+3] + temp[i+2][k+4] ;
+	towerEtN[i/5][k/5][3] = temp[i+3][k] + temp[i+3][k+1] + temp[i+3][k+2] + temp[i+3][k+3] + temp[i+3][k+4] ;
+	towerEtN[i/5][k/5][4] = temp[i+4][k] + temp[i+4][k+1] + temp[i+4][k+2] + temp[i+4][k+3] + temp[i+4][k+4] ;
+      }}
+
+    towerEt[0]= towerEtN[0][0][0] + towerEtN[0][0][1] + towerEtN[0][0][2] + towerEtN[0][0][3] + towerEtN[0][0][4] ;
+    towerEt[1]= towerEtN[0][1][0] + towerEtN[0][1][1] + towerEtN[0][1][2] + towerEtN[0][1][3] + towerEtN[0][1][4] ;
+    towerEt[2]= towerEtN[0][2][0] + towerEtN[0][2][1] + towerEtN[0][2][2] + towerEtN[0][2][3] + towerEtN[0][2][4] ;
+    towerEt[3]= towerEtN[0][3][0] + towerEtN[0][3][1] + towerEtN[0][3][2] + towerEtN[0][3][3] + towerEtN[0][3][4] ;
+    towerEt[4]= towerEtN[1][0][0] + towerEtN[1][0][1] + towerEtN[1][0][2] + towerEtN[1][0][3] + towerEtN[1][0][4] ;
+    towerEt[5]= towerEtN[1][1][0] + towerEtN[1][1][1] + towerEtN[1][1][2] + towerEtN[1][1][3] + towerEtN[1][1][4] ;
+    towerEt[6]= towerEtN[1][2][0] + towerEtN[1][2][1] + towerEtN[1][2][2] + towerEtN[1][2][3] + towerEtN[1][2][4] ;
+    towerEt[7]= towerEtN[1][3][0] + towerEtN[1][3][1] + towerEtN[1][3][2] + towerEtN[1][3][3] + towerEtN[1][3][4] ;
+    towerEt[8]= towerEtN[2][0][0] + towerEtN[2][0][1] + towerEtN[2][0][2] + towerEtN[2][0][3] + towerEtN[2][0][4] ;
+    towerEt[9]= towerEtN[2][1][0] + towerEtN[2][1][1] + towerEtN[2][1][2] + towerEtN[2][1][3] + towerEtN[2][1][4] ;
+    towerEt[10]= towerEtN[2][2][0] + towerEtN[2][2][1] + towerEtN[2][2][2] + towerEtN[2][2][3] + towerEtN[2][2][4] ;
+    towerEt[11]= towerEtN[2][3][0] + towerEtN[2][3][1] + towerEtN[2][3][2] + towerEtN[2][3][3] + towerEtN[2][3][4] ;
+
+    std::cout << "getECALTowersEt (after subtracting clusters): ";
+    for (int i = 0; i < 12; i++) {
+      std::cout << towerEt[i] << " ";
+    }
+    std::cout << std::endl;
+    
 }
 
 //--------------------------------------------------------//  
@@ -1601,10 +1671,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       GlobalVector tmpVector = GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z());
       hcal_tp_position = tmpVector;
       
-      std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
-       		<< cell->getPosition().y() << ","
-       		<< cell->getPosition().z() << " and ET (GeV) " << et
-      		<< ", encoded Et " << encodedEt << std::endl;
+      // std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
+      //  		<< cell->getPosition().y() << ","
+      //  		<< cell->getPosition().z() << " and ET (GeV) " << et
+      // 		<< ", encoded Et " << encodedEt << std::endl;
       
       break;
     }
@@ -1743,11 +1813,18 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
 	int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
 
-	std::cout << "HCAL hit eta/phi : "  << hit.position().eta() << ", " << hit.position().phi() << ", "
+	std::cout << "HCAL hit eta/phi : "  << hit.position().eta() << ", " << hit.position().phi() << ", region: " << regionNumber << ", "
 		  << "inRegion_tower_iEta and iPhi : " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi 
-		  << ", energy " << hit.energy() 
+		  << ", energy " << hit.et_uint() 
 		  << std::endl;
 
+	// Access the right HCAL region -> tower and increment the ET
+	if (regionNumber < 5) {
+	  towers3x4& myTowers3x4 = rctCard.getTowers3x4(regionNumber);
+	  towerHCAL& myTower = myTowers3x4.getTowerHCAL(inRegion_tower_iEta, inRegion_tower_iPhi);
+	  myTower.addEt(hit.et_uint());
+
+	}
       }
     } // end of loop over hcal hits
 
@@ -1757,22 +1834,26 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
     // Cluster sort_clusterIn[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];    // array of clusters per card, to be sorted by ET
     // Cluster sort_clusterOut[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];   // array of clusters per card, sorted by ET
-    std::vector<Cluster> sort_clusterIn;
+    std::vector<Cluster> sort_clusterIn;                  // Vector of clusters in the card
+    tower_t towerEt[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
     
     for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
       
-      crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
+      crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];   // ECAL crystal array (will be changed)
+      ap_uint<12> towerEtHCAL[TOWER_IN_ETA * TOWER_IN_PHI];    // HCAL tower ET in the 3x4 region
 
       //      if ((cc == 34) || (cc == 35)) { // TEMP: only do two regions: this should be equivalent to processInputLinks
       if (cc > -1) {
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
-	
+	towers3x4& myTowers = rctCard.getTowers3x4(idxRegion);
+
 	std::cout << std::endl << "[----] DOING CARD " << cc << " AND REGION IDX " << myRegion.getIdx() << std::endl;
 
 	// In each 3x4 region, loop through the links (one link per tower)
 	for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
 	  for (int iLinkPhi = 0; iLinkPhi < TOWER_IN_PHI; iLinkPhi++) {
 	    
+	    ///// ECAL
 	    // Get the link (one link per tower) 
 	    linkECAL& myLink = myRegion.getLinkECAL(iLinkEta, iLinkPhi);
 	    
@@ -1796,7 +1877,12 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		// Fill the 'temporary' array with a crystal object 
 		temporary[ref_iEta + iEta][ref_iPhi + iPhi] = crystal(uEnergy);
 	      }
-	    }
+	    } // end of loop over crystals
+
+	    ///// Get HCAL tower ET
+	    towerHCAL& myTower = myTowers.getTowerHCAL(iLinkEta, iLinkPhi);
+	    //	    std::cout << "towerEt element # " << (iLinkEta * TOWER_IN_PHI) + iLinkPhi << ": will fill with Et " << myTower.getEt() << std::endl;
+	    towerEtHCAL[(iLinkEta * TOWER_IN_PHI) + iLinkPhi] = myTower.getEt();
 	  }
 	}
 	
@@ -1807,9 +1893,23 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         // sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 3] = getClusterFromRegion3x4(temporary);
 
 	for (int c = 0; c < N_CLUSTERS_PER_REGION; c++) {
-	  sort_clusterIn.push_back(getClusterFromRegion3x4(temporary));
+	  sort_clusterIn.push_back(getClusterFromRegion3x4(temporary));  // iteratively remove energy from 'temporary'
 	}
+
+	// Create towers using remaining ECAL energy, and the HCAL towers were already calculated in towersEtHCAL[12]                 
+	ap_uint<12> towerEtECAL[12];
+	getECALTowersEt(temporary, towerEtECAL);
 	
+	// Add the towerETHCAL and towerETECAL arrays, and fill the 17x4 array of towerEt 
+	for (int i = 0; i < 12; i++) {
+	  ap_uint<12> towerTotalEt = towerEtHCAL[i] + towerEtECAL[i];
+	  // Get the tower's indices in a (17x4) card
+	  int iEta = (idxRegion * TOWER_IN_ETA) + (i / TOWER_IN_PHI);   
+	  int iPhi = (i % TOWER_IN_PHI);
+	  //	  std::cout << "(" << iEta << "," << iPhi << ")";
+	  towerEt[iEta][iPhi] = tower_t(towerTotalEt, 0, 0);
+	}
+
       } // end of "if"
 
     } // end of loop over regions  
@@ -1825,19 +1925,23 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     std::sort(sort_clusterIn.begin(), sort_clusterIn.end(), compareClusterET);
 
     // Print the sorted vector
-    std::cout << "card " << cc << ": SORTED ET: ";
+    std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
     for (auto & c : sort_clusterIn) {
       std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";
     }
     std::cout << std::endl;
 
-    // Create towers using remaining ECAL energy, and the HCAL towers
-    ap_uint<12> towerEtHCAL[12]; 
+    // Also print the towers
+    std::cout << "Sanity check: Card " << cc << ": towers (remaining ECAL, plus HCAL): ";
+    for (int i = 0; i < n_towers_cardEta; i++) {
+      for (int j = 0; j < n_towers_cardPhi; j++ ) {
+        
+      std::cout << towerEt[i][j].et() << " "; 
+      }
+    }
+    std::cout << std::endl;
 
-    
-
-    
-  } // end of loop over cards
+    } // end of loop over cards
   
   std::cout << "I'm here!" << std::endl;
   
