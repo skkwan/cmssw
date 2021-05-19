@@ -262,6 +262,7 @@ private:
   float energy_ = 0.;
   ap_uint<10> et_uint_;
   GlobalVector position_;  // As opposed to GlobalPoint, so we can add them (for weighted average)
+  HcalDetId id_hcal_;
   EBDetId id_;
   
 public:
@@ -270,6 +271,7 @@ public:
   inline void setEnergy(float et) { energy_ = et / sin(position_.theta()); };
   inline void setEt_uint(ap_uint<10> et_uint) { et_uint_ = et_uint; }
   inline void setPosition(const GlobalVector& pos) { position_ = pos; };
+  inline void setIdHcal(const HcalDetId& idhcal) { id_hcal_ = idhcal; };
   inline void setId(const EBDetId& id) { id_ = id; };
 
   inline float pt() const { return pt_; };
@@ -383,6 +385,69 @@ public:
 
 /*******************************************************************/
 
+/*
+ * towerHCAL class: represents one HCAL tower
+ */
+
+class towerHCAL {
+private:
+  ap_uint<10> et;
+  ap_uint<6> fb;
+
+public:
+  // constructor
+  towerHCAL() { et = 0;  fb = 0; };
+
+  // copy constructor
+  towerHCAL(const towerHCAL &other) {
+    et = other.et; fb = other.fb;   };
+
+  // set members
+  inline void zeroOut() { et = 0; fb = 0; };
+  inline void addEt(ap_uint<6> newEt) { et += newEt; };
+
+  // get members
+  inline ap_uint<10> getEt() { return et; };
+
+};
+
+/*******************************************************************/
+
+/*
+ * towers3x4 class: represents 3x4 array of HCAL towers. idx = 0, 1, ... 4 are the barrel gion
+ */
+
+class towers3x4 {
+private:
+  int idx_ = -1; 
+  towerHCAL towersHCAL[TOWER_IN_ETA][TOWER_IN_PHI];  // 3x4 in towers
+
+public:
+  // constructor                                                                            
+  towers3x4() { idx_ = -1; };
+
+  // copy constructor
+  towers3x4(const towers3x4& other) {
+    idx_ = other.idx_;
+    for (int i = 0; i < TOWER_IN_ETA; i++) {
+      for (int j = 0; j < TOWER_IN_PHI; j++ ) {
+	towersHCAL[i][j] = other.towersHCAL[i][j]; }}; };
+
+  // set members
+  inline void zeroOut() { 
+    for (int i = 0; i < TOWER_IN_ETA; i++) { 
+      for (int j = 0; j < TOWER_IN_PHI; j++) { 
+	towersHCAL[i][j].zeroOut();      }}   };
+  inline void setIdx(int idx) { idx_ = idx; };
+
+  // get members
+  inline float getIdx() const { return idx_; };
+  inline towerHCAL& getTowerHCAL ( int iEta, int iPhi ){ return towersHCAL[iEta][iPhi]; }; 
+  
+};
+
+/*******************************************************************/
+
 /* 
  * card class: represents one RCT card. Each card has five 3x4 regions and one 2x4 region.
  *             idx 0-35: odd values of cardIdx span eta = 0 to eta = 1.41 
@@ -393,6 +458,8 @@ class card {
 private:
   int idx_ = -1 ; 
   region3x4 card3x4Regions[5];
+  towers3x4 card3x4Towers[5];
+
   region2x4 card2x4Region;
   
 public:
@@ -401,29 +468,35 @@ public:
     idx_ = -1; 
     card2x4Region.zeroOut();
     for (int i = 0; i < 5; i++) {
-      card3x4Regions[i].setIdx(i);
-      card3x4Regions[i].zeroOut(); }}
+      card3x4Regions[i].setIdx(i);  
+      card3x4Regions[i].zeroOut();
+      card3x4Towers[i].setIdx(i);
+      card3x4Towers[i].zeroOut();
+    }};
   
   // copy constructor
   card(const card& other) {
     idx_ = other.idx_;
     card2x4Region = other.card2x4Region;
-    for (int i = 0; i < 5; i++) { card3x4Regions[i] = other.card3x4Regions[i]; }  }
+    for (int i = 0; i < 5; i++) {
+      card3x4Regions[i] = other.card3x4Regions[i]; 
+      card3x4Towers[i]  = other.card3x4Towers[i];  }};
 
   // overload operator= to use copy constructor
   card operator=(const card& other) {
     card newCard(other);
-    return newCard;  }
+    return newCard;  };
   
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
   inline void zeroOut() { 
     card2x4Region.zeroOut();
-    for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); }; };
+    for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); card3x4Towers[i].zeroOut();    }; };
 
   // get members
   inline float getIdx() const { return idx_; };
   inline region3x4& getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
+  inline towers3x4& getTowers3x4(int idx) { assert(idx < 5); return card3x4Towers[idx]; }
   inline region2x4& getRegion2x4() { return card2x4Region; }
 
 };
@@ -1491,11 +1564,14 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   }
 
   // Get all the HCAL hits
+  std::vector<SimpleCaloHit> hcalhits;
   edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hbhecoll;
   iEvent.getByToken(hcalTPToken_, hbhecoll);
   
   for (const auto& hit : *hbhecoll.product()) {
     float et = decoder_->hcaletValue(hit.id(), hit.t0());
+    ap_uint<10> encodedEt = hit.t0().compressedEt(); 
+    // same thing as SOI_compressedEt() in HcalTriggerPrimitiveDigi.h///
     if (et <= 0)
       continue;
     
@@ -1525,13 +1601,21 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       GlobalVector tmpVector = GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z());
       hcal_tp_position = tmpVector;
       
-      // std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
-      //  		<< cell->getPosition().y() << ","
-      //  		<< cell->getPosition().z() << " and ET (GeV) "
-      // 		<< et << std::endl;
+      std::cout << "Found HCAL cell/TP with coordinates " << cell->getPosition().x() << ","
+       		<< cell->getPosition().y() << ","
+       		<< cell->getPosition().z() << " and ET (GeV) " << et
+      		<< ", encoded Et " << encodedEt << std::endl;
       
       break;
     }
+    SimpleCaloHit hhit;
+    hhit.setId(hit.id());
+    hhit.setIdHcal(hit.id());
+    hhit.setPosition(hcal_tp_position);
+    hhit.setEnergy(et);
+    hhit.setPt();
+    hhit.setEt_uint(encodedEt);
+    hcalhits.push_back(hhit);
   }
 
   //*******************************************************************
@@ -1605,20 +1689,67 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  //		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
 	  
-	  std::cout << "Card: " << cc << ", hit (Eta, phi, et): "
-		    << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
-		    << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi << ", " 
-		    << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
-	  
 	}
+	
+	// Overlap region: a couple things are different
+	if (regionNumber == 5) {
+	  // Get the tower eta and phi index inside the region (2x4), re-defining earlier ints 
+	  inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA_OVERLAP;
+	  inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI_OVERLAP;
+	  region2x4& myRegion = rctCard.getRegion2x4();
+	  linkECAL& myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
+	}
+
+	std::cout << "Card: " << cc << ", hit (Eta, phi, et): "
+		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
+		  << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
+		  << inRegion_tower_iPhi << ", "
+		  << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
       }      
     } // end of loop over ECAL hits
+
+    
 
     //*******************************************************************
     //************* Do RCT geometry (HCAL) ******************************
     //*******************************************************************
 
     // Same idea as the ECAL RCT geometry, except we only care about the ET in towers 
+
+    // Loop over hcal hits to get the HCAL towers.
+    for (const auto& hit : hcalhits) {
+      if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
+          getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc) &&
+          getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc) &&
+          getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc) && hit.pt() > 0) {
+
+	// HCAL: Get the crystal eta and phi, relative to the bottom left corner of the card 
+	// (0 up to 17*5, 0 up to 4*5) 
+	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
+	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
+	
+	// HCAL: Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
+	// everything else is determined.
+	
+	// HCAL: Figure out what region (0-5) the hit falls into 
+	// The region number (0-5) depends only on the local crystal iEta
+	int regionNumber = getRegionNumber(local_iEta);
+	
+	// HCAL: Get the tower eta and phi index inside the card (17x4)
+	int inCard_tower_iEta = int(local_iEta / CRYSTALS_IN_TOWER_ETA); 
+	int inCard_tower_iPhi = int(local_iPhi / CRYSTALS_IN_TOWER_PHI);
+	
+	// HCAL: Get the tower eta and phi index inside the region (3x4)
+	int inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA;
+	int inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI;
+
+	std::cout << "HCAL hit eta/phi : "  << hit.position().eta() << ", " << hit.position().phi() << ", "
+		  << "inRegion_tower_iEta and iPhi : " << inRegion_tower_iEta << ", " << inRegion_tower_iPhi 
+		  << ", energy " << hit.energy() 
+		  << std::endl;
+
+      }
+    } // end of loop over hcal hits
 
     //*******************************************************************    
     //******* Within each ECAL region, read back the hits ***************
@@ -1632,8 +1763,8 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       
       crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];
 
-      if ((cc == 34) || (cc == 35)) { // TEMP: only do two regions: this should be equivalent to processInputLinks
-      //      if (cc > -1) {
+      //      if ((cc == 34) || (cc == 35)) { // TEMP: only do two regions: this should be equivalent to processInputLinks
+      if (cc > -1) {
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 	
 	std::cout << std::endl << "[----] DOING CARD " << cc << " AND REGION IDX " << myRegion.getIdx() << std::endl;
