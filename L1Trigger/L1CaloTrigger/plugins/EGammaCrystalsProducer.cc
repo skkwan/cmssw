@@ -56,8 +56,8 @@ static constexpr int CRYSTALS_IN_TOWER_PHI = 5;
 static constexpr int TOWER_IN_ETA = 3;      // number of towers in eta, in one 3x4 region (barrel)
 static constexpr int TOWER_IN_PHI = 4;      // number of towers in phi, in one 3x4 region (barrel)
 
-static constexpr int TOWER_IN_ETA_OVERLAP = 2; // number of towers in eta, in one 2x4 region (overlap)
-static constexpr int TOWER_IN_PHI_OVERLAP = 4; // number of towers in phi, in one 2x4 region (overlap)
+//static constexpr int TOWER_IN_ETA_OVERLAP = 2; // number of towers in eta, in one 2x4 region (overlap)
+//static constexpr int TOWER_IN_PHI_OVERLAP = 4; // number of towers in phi, in one 2x4 region (overlap)
 
 static constexpr int CRYSTAL_IN_ETA = 15;   // number of crystals in eta, in one 3x4 region (barrel)
 static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one 3x4 region (barrel)
@@ -66,7 +66,8 @@ static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float cut_500_MeV = 0.5;
 
 static constexpr int N_CLUSTERS_PER_REGION = 4;       // number of clusters per ECAL region
-static constexpr int N_REGIONS_PER_CARD = 5;          // number of ECAL regions per card (TO-DO: increase to 6 when I include endcap)
+static constexpr int N_REGIONS_PER_CARD = 6;          // number of ECAL regions per card
+
 
 // Assert that the card index is within bounds. (Valid cc: 0 to 35, since there are 36 RCT cards)
 bool isValidCard(int cc) {
@@ -173,24 +174,27 @@ int getCard_refTower_iPhi(int cc) {
 // Given the RCT card number (0-35), get the crystal iPhi of the "bottom left" corner (0- 71*5)
 int getCard_ref_iPhi(int cc) {
   assert(isValidCard(cc));
-  
-  if ((cc % 2) == 1) { // if cc is odd                                                                                     
-    return (int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI);
+
+  int ref_iPhi;
+  if ((cc % 2) == 1) { // if cc is odd                   
+    ref_iPhi = int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI;
   }
   else {  // if cc is even, the bottom left corner is further in iPhi, hence the +4                
-    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI);
+    ref_iPhi = ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI;
   }
+
+  return ref_iPhi;
 }
 
-// Given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner (0-33*5)
+// Given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner
 int getCard_ref_iEta(int cc) {
 
   assert(isValidCard(cc));
   if ((cc % 2) == 1) {  // if cc is odd (positive eta)
-    return ((16 * CRYSTALS_IN_TOWER_ETA) + 1);
+    return (17 * CRYSTALS_IN_TOWER_ETA);
   }
   else {   // if cc is even (negative eta)
-    return (16 * CRYSTALS_IN_TOWER_ETA);
+    return ((16 * CRYSTALS_IN_TOWER_ETA) + 4);
   }
 }
 
@@ -202,6 +206,7 @@ int getCrystal_local_iEta(float hitEta, int cc) {
 
   // Functionally the same thing as an absolute value: 
   int diff = (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
+
   return abs(diff);
 }
 
@@ -361,31 +366,6 @@ public:
 /*******************************************************************/
 
 /*
- * region2x4 class: represents one 2x4 ECAL region in the overlap. The region stores no information
- * about which card it is located in. 
- */
-
-class region2x4 {
-private:
-  linkECAL linksECAL[TOWER_IN_ETA_OVERLAP][TOWER_IN_PHI_OVERLAP];
-  
-public:
-  // constructor   
-  region2x4() { }
-
-  // set members
-  inline void zeroOut() { for (int i = 0; i < TOWER_IN_ETA_OVERLAP; i++) {
-      for (int j = 0; j < TOWER_IN_PHI_OVERLAP; j++) {
-	linksECAL[i][j].zeroOut(); }} };
-  
-  // get members
-  inline linkECAL& getLinkECAL(int iEta, int iPhi) { return linksECAL[iEta][iPhi]; };
-
-};
-
-/*******************************************************************/
-
-/*
  * towerHCAL class: represents one HCAL tower
  */
 
@@ -449,7 +429,8 @@ public:
 /*******************************************************************/
 
 /* 
- * card class: represents one RCT card. Each card has five 3x4 regions and one 2x4 region.
+ * card class: represents one RCT card. Each card has five 3x4 regions and one 2x4 region,
+ *             which is represented by a 3x4 region with its third row zero'd out.
  *             idx 0-35: odd values of cardIdx span eta = 0 to eta = 1.41 
  *                       even values of cardIdx span eta = -1.41 to eta = 0
  */
@@ -457,17 +438,14 @@ public:
 class card {
 private:
   int idx_ = -1 ; 
-  region3x4 card3x4Regions[5];
-  towers3x4 card3x4Towers[5];
-
-  region2x4 card2x4Region;
+  region3x4 card3x4Regions[N_REGIONS_PER_CARD];
+  towers3x4 card3x4Towers[N_REGIONS_PER_CARD];
   
 public:
   // constructor
   card() {  
     idx_ = -1; 
-    card2x4Region.zeroOut();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < N_REGIONS_PER_CARD; i++) {
       card3x4Regions[i].setIdx(i);  
       card3x4Regions[i].zeroOut();
       card3x4Towers[i].setIdx(i);
@@ -477,8 +455,7 @@ public:
   // copy constructor
   card(const card& other) {
     idx_ = other.idx_;
-    card2x4Region = other.card2x4Region;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < N_REGIONS_PER_CARD; i++) {
       card3x4Regions[i] = other.card3x4Regions[i]; 
       card3x4Towers[i]  = other.card3x4Towers[i];  }};
 
@@ -490,14 +467,12 @@ public:
   // set members
   inline void setIdx(int idx) { idx_ = idx; };
   inline void zeroOut() { 
-    card2x4Region.zeroOut();
-    for (int i = 0; i < 5; i++) { card3x4Regions[i].zeroOut(); card3x4Towers[i].zeroOut();    }; };
+    for (int i = 0; i < N_REGIONS_PER_CARD; i++) { card3x4Regions[i].zeroOut(); card3x4Towers[i].zeroOut();    }; };
 
   // get members
   inline float getIdx() const { return idx_; };
-  inline region3x4& getRegion3x4(int idx) { assert(idx < 5); return card3x4Regions[idx]; }
-  inline towers3x4& getTowers3x4(int idx) { assert(idx < 5); return card3x4Towers[idx]; }
-  inline region2x4& getRegion2x4() { return card2x4Region; }
+  inline region3x4& getRegion3x4(int idx) { assert(idx < N_REGIONS_PER_CARD); return card3x4Regions[idx]; }
+  inline towers3x4& getTowers3x4(int idx) { assert(idx < N_REGIONS_PER_CARD); return card3x4Towers[idx]; }
 
 };
 
@@ -1745,7 +1720,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	// 	  << regionNumber << std::endl;
 
 	// Access the right region -> link -> crystal and increment the energy
-	if (regionNumber < 5) {
+	if (regionNumber < N_REGIONS_PER_CARD) {
 	  region3x4& myRegion = rctCard.getRegion3x4(regionNumber);
 
 	  //	  std::cout << "inRegion_tower_iEta, inRegion_tower_iPhi (expecting 3x4): " << inRegion_tower_iEta << ", "
@@ -1761,17 +1736,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 	  
 	}
 	
-	// Overlap region: a couple things are different
-	if (regionNumber == 5) {
-	  // Get the tower eta and phi index inside the region (2x4), re-defining earlier ints 
-	  inRegion_tower_iEta = inCard_tower_iEta % TOWER_IN_ETA_OVERLAP;
-	  inRegion_tower_iPhi = inCard_tower_iPhi % TOWER_IN_PHI_OVERLAP;
-	  region2x4& myRegion = rctCard.getRegion2x4();
-	  linkECAL& myLink = myRegion.getLinkECAL(inRegion_tower_iEta, inRegion_tower_iPhi);
-	}
-
 	std::cout << "Card: " << cc << ", hit (Eta, phi, et): "
 		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
+	  // << "local_iEta/iPhi: " << local_iEta << ", " << local_iPhi << ", " 
+	  //	  << "inCard_tower_iEta/iPhi: " << inCard_tower_iEta     << ", " << inCard_tower_iPhi << ", "
 		  << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
 		  << inRegion_tower_iPhi << ", "
 		  << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
@@ -1819,7 +1787,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 		  << std::endl;
 
 	// Access the right HCAL region -> tower and increment the ET
-	if (regionNumber < 5) {
+	if (regionNumber < N_REGIONS_PER_CARD) {
 	  towers3x4& myTowers3x4 = rctCard.getTowers3x4(regionNumber);
 	  towerHCAL& myTower = myTowers3x4.getTowerHCAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 	  myTower.addEt(hit.et_uint());
@@ -1837,12 +1805,11 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     std::vector<Cluster> sort_clusterIn;                  // Vector of clusters in the card
     tower_t towerEt[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
     
-    for (int idxRegion = 0; idxRegion < 5; idxRegion++) {
+    for (int idxRegion = 0; idxRegion < N_REGIONS_PER_CARD; idxRegion++) {
       
       crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];   // ECAL crystal array (will be changed)
       ap_uint<12> towerEtHCAL[TOWER_IN_ETA * TOWER_IN_PHI];    // HCAL tower ET in the 3x4 region
 
-      //      if ((cc == 34) || (cc == 35)) { // TEMP: only do two regions: this should be equivalent to processInputLinks
       if (cc > -1) {
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 	towers3x4& myTowers = rctCard.getTowers3x4(idxRegion);
@@ -1893,7 +1860,10 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         // sort_clusterIn[(idxRegion * N_CLUSTERS_PER_REGION) + 3] = getClusterFromRegion3x4(temporary);
 
 	for (int c = 0; c < N_CLUSTERS_PER_REGION; c++) {
-	  sort_clusterIn.push_back(getClusterFromRegion3x4(temporary));  // iteratively remove energy from 'temporary'
+	  Cluster newCluster = getClusterFromRegion3x4(temporary); // iteratively remove energy from 'temporary' 
+	  if (newCluster.clusterEnergy() > 0) {                    // only add clusters with >0 energy to the vector 
+	    sort_clusterIn.push_back(newCluster);
+	  }
 	}
 
 	// Create towers using remaining ECAL energy, and the HCAL towers were already calculated in towersEtHCAL[12]                 
