@@ -50,6 +50,12 @@ static constexpr int n_towers_cardPhi = 4;
 static constexpr int n_crystals_cardEta = (n_towers_Eta * n_towers_cardEta);
 static constexpr int n_crystals_cardPhi = (n_towers_Phi * n_towers_cardPhi);
 
+// outputs
+static constexpr int n_links_card = 4;
+static constexpr int n_clusters_link = 3;
+static constexpr int n_towers_per_link = 17;
+static constexpr int n_clusters_4link = 4 * 3;
+
 static constexpr int CRYSTALS_IN_TOWER_ETA = 5;
 static constexpr int CRYSTALS_IN_TOWER_PHI = 5;
 
@@ -242,6 +248,12 @@ int getEtaMin_card_emulator(int card) {
 int getPhiMin_card_emulator(int card) {
   int phimin = (card / 2) * 4 * CRYSTALS_IN_TOWER_PHI;
   return phimin;
+}
+
+// From the etaID (0- 33*5) and phiID (0 - 71*5) of a crystal, get the crystal ID (0-24) within the
+// tower it's in, where 0-24 is "unwrapping" the 5x5 array, using rows in eta.
+int getCrystalIDInTower_emulator(int etaID, int phiID) {
+  return int(CRYSTALS_IN_TOWER_PHI * (phiID % CRYSTALS_IN_TOWER_PHI) + (etaID % CRYSTALS_IN_TOWER_ETA));
 }
 
 //////////////////////////////////////////////////////////////////////////  
@@ -1208,7 +1220,7 @@ clusterInfo getClusterPosition(const ecalRegion_t& ecalRegion){
 Cluster packCluster(ap_uint<15>& clusterEt, ap_uint<5>& etaMax_t, ap_uint<5>& phiMax_t){
   
 
-  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", eta and phi: " << etaMax_t << ", " << phiMax_t << std::endl;
+  //  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", eta and phi: " << etaMax_t << ", " << phiMax_t << std::endl;
   
   ap_uint<12> peggedEt;
   Cluster pack;
@@ -1222,6 +1234,8 @@ Cluster packCluster(ap_uint<15>& clusterEt, ap_uint<5>& etaMax_t, ap_uint<5>& ph
 
   
   pack = Cluster(peggedEt, towerEta, towerPhi, clusterEta, clusterPhi, 0);
+  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", clusterEta and Phi: " << clusterEta << ", "
+	    << clusterPhi << std::endl;
 
   return pack;
 }
@@ -1683,15 +1697,17 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   //*******************************************************************
 
   // Definition of L1 outputs
-  // 36 L1 cards, each with 4x17 towers
-  ap_uint<12> ECAL_tower_L1Card[n_towers_cardPhi][n_towers_cardEta][n_towers_halfPhi];
-  ap_uint<12> HCAL_tower_L1Card[n_towers_cardPhi][n_towers_cardEta][n_towers_halfPhi];
-  int iEta_tower_L1Card[n_towers_cardPhi][n_towers_cardEta][n_towers_halfPhi];
-  int iPhi_tower_L1Card[n_towers_cardPhi][n_towers_cardEta][n_towers_halfPhi];
+  // 36 L1 cards, each with 4x17 towers. All using CMSSW indexing convention, NOT firmware convention
+  ap_uint<12> ECAL_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
+  ap_uint<12> HCAL_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
+  int iEta_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];  
+  int iPhi_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
+  // 36 L1 cards send each 4 links with 3 clusters
+  int crystalID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
 
   // Zero out the L1 outputs
-  for (int ii = 0; ii < n_towers_cardPhi; ++ii) {
-    for (int jj = 0; jj < n_towers_cardEta; ++jj) {
+  for (int ii = 0; ii < n_links_card; ++ii) {
+    for (int jj = 0; jj < n_towers_per_link; ++jj) {
       for (int ll = 0; ll < n_towers_halfPhi; ++ll) {
         ECAL_tower_L1Card[ii][jj][ll] = 0;
         HCAL_tower_L1Card[ii][jj][ll] = 0;
@@ -1701,6 +1717,13 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     }
   }
 
+  for (int ii = 0; ii < n_links_card; ++ii) {
+    for (int jj = 0; jj < n_clusters_link; ++jj) {
+      for (int ll = 0; ll < n_towers_halfPhi; ++ll) {
+        crystalID_cluster_L1Card[ii][jj][ll] = 0;
+      }
+    }
+  }
   //*******************************************************************
   //*************** Do RCT geometry (ECAL)  ***************************
   //*******************************************************************
@@ -1789,8 +1812,8 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     // n.b. iEta_tower_L1Card and iPhi_tower_L1Card (the CMSSW emulator Layer 1 outputs) use a different convention
     // so later on when we compute a 17x4 tower array, it is rotated for the negative eta cards.
     static constexpr float tower_width = 0.0873;
-    for (int jj = 0; jj < n_towers_cardPhi ; ++jj) {
-      for (int ii = 0; ii < n_towers_cardEta; ++ii) {
+    for (int jj = 0; jj < n_links_card ; ++jj) {
+      for (int ii = 0; ii < n_towers_per_link; ++ii) {
 	float phi = getPhiMin_card_emulator(cc) * tower_width / CRYSTALS_IN_TOWER_PHI - M_PI + (jj + 0.5) * tower_width;
 	float eta = getEtaMin_card_emulator(cc) * tower_width / CRYSTALS_IN_TOWER_ETA - n_towers_cardEta * tower_width +
 	  (ii + 0.5) * tower_width;
@@ -1957,9 +1980,23 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
     // Print the sorted vector
     std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
-    for (auto & c : sort_clusterIn) {
-      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";
+    // for (auto & c : sort_clusterIn) {
+    for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
+      Cluster c = sort_clusterIn[jj];
+
+      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
+		<< ", setting crystal_ID_clusterL1Card[" << jj % n_links_card << "]["
+		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi()) 
+		<< std::endl;
+      
+      // Distribute (up to 12) clusters across 4 links
+      // crystalID_cluster_L1Card
+      crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
+	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi());
+      
+      
     }
+    
     std::cout << std::endl;
 
     // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
