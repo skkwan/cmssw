@@ -447,6 +447,7 @@ public:
  *             which is represented by a 3x4 region with its third row zero'd out.
  *             idx 0-35: odd values of cardIdx span eta = 0 to eta = 1.41 
  *                       even values of cardIdx span eta = -1.41 to eta = 0
+ *             The realEta and realPhi arrays store the (eta, phi) of the center of the towers.
  */
 
 class card {
@@ -1785,6 +1786,8 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
     // Also initialize tower (iEta, iPhi) coordinates (code lifted from 
     // https://github.com/cms-l1t-offline/cmssw/blob/25a1610b718c4cf94c33afb6e23767b5d3a677d7/L1Trigger/L1CaloTrigger/plugins/L1EGammaCrystalsEmulatorProducer.cc#L717-L727), changing the const variable names and getTowers_absEtaID function name
+    // n.b. iEta_tower_L1Card and iPhi_tower_L1Card (the CMSSW emulator Layer 1 outputs) use a different convention
+    // so later on when we compute a 17x4 tower array, it is rotated for the negative eta cards.
     static constexpr float tower_width = 0.0873;
     for (int jj = 0; jj < n_towers_cardPhi ; ++jj) {
       for (int ii = 0; ii < n_towers_cardEta; ++ii) {
@@ -1860,7 +1863,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     tower_t towerEt[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
     tower_t towerEtHCAL[n_towers_cardEta][n_towers_cardPhi]; 
     tower_t towerEtECAL[n_towers_cardEta][n_towers_cardPhi]; 
-    
+
     for (int idxRegion = 0; idxRegion < N_REGIONS_PER_CARD; idxRegion++) {
       
       crystal temporary[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI];       // ECAL crystal array (will be changed)
@@ -1934,7 +1937,7 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
       } // end of "if"
 
-    } // end of loop over regions  
+    } // end of loop over regions
 
     //-------------------------------------------//
     // Sort the clusters                         //
@@ -1959,19 +1962,29 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     }
     std::cout << std::endl;
 
-    // Also print the towers
+    // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
+    // (rotating the negative eta cards so that the endcap region is pointing up)
+    // while the emulator treats the 4x17 array as always starting in the top left corner if we look
+    // at the usual RCT diagram.
     std::cout << "Sanity check: Card " << cc << ": towers (remaining ECAL, plus HCAL): ";
     for (int i = 0; i < n_towers_cardEta; i++) {
       for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
       std::cout << towerEt[i][j].et() << " "; 
+      
       // n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
-      ECAL_tower_L1Card[j][i][cc] = towerEtECAL[i][j].et();
-      HCAL_tower_L1Card[j][i][cc] = towerEtHCAL[i][j].et();
+      if ((cc % 2) == 1) { // if cc is odd (positive eta)
+	ECAL_tower_L1Card[j][i][cc] = towerEtECAL[i][j].et();
+	HCAL_tower_L1Card[j][i][cc] = towerEtHCAL[i][j].et();
+      }
+      else {  // if cc is even (negative eta), we need to rotate the coordinates
+	ECAL_tower_L1Card[j][i][cc] = towerEtECAL[16-i][3-j].et();
+	HCAL_tower_L1Card[j][i][cc] = towerEtHCAL[16-i][3-j].et();
+      }
       }
     }
     std::cout << std::endl;
-
+    
   } // end of loop over cards
   
   std::cout << "I'm here!" << std::endl;
