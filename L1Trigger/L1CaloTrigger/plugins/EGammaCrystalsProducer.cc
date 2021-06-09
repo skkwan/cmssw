@@ -256,6 +256,14 @@ int getCrystalIDInTower_emulator(int etaID, int phiID) {
   return int(CRYSTALS_IN_TOWER_PHI * (phiID % CRYSTALS_IN_TOWER_PHI) + (etaID % CRYSTALS_IN_TOWER_ETA));
 }
 
+// From a crystal's etaID (0- 33*5) and phiID (0 - 71*5), get the tower ID (0-4*17) within the card it's in,
+// where we "unwrapped" the 4*17 tower array, using rows in 
+int getTowerID_emulator(int etaID, int phiID) {
+  return int(n_towers_per_link * ((phiID / CRYSTALS_IN_TOWER_PHI) % 4) +
+             (etaID / CRYSTALS_IN_TOWER_ETA) % n_towers_per_link);
+
+}
+
 //////////////////////////////////////////////////////////////////////////  
 
 // Declare the EGammaCrystalsProducer class and its methods
@@ -1702,8 +1710,9 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   ap_uint<12> HCAL_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
   int iEta_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];  
   int iPhi_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
-  // 36 L1 cards send each 4 links with 3 clusters
-  int crystalID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
+  // 36 L1 cards send each 4 links with 3 clusters (up to 12 per card)
+  int crystalID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];  // range: [0, 5*5) 
+  int towerID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];    // range: [0, 17*4)
 
   // Zero out the L1 outputs
   for (int ii = 0; ii < n_links_card; ++ii) {
@@ -1720,7 +1729,9 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   for (int ii = 0; ii < n_links_card; ++ii) {
     for (int jj = 0; jj < n_clusters_link; ++jj) {
       for (int ll = 0; ll < n_towers_halfPhi; ++ll) {
+	towerID_cluster_L1Card[ii][jj][ll]   = 0;
         crystalID_cluster_L1Card[ii][jj][ll] = 0;
+	
       }
     }
   }
@@ -1985,15 +1996,18 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       Cluster c = sort_clusterIn[jj];
 
       std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
-		<< ", setting crystal_ID_clusterL1Card[" << jj % n_links_card << "]["
+		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
 		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi()) 
+		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
+		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.clusterEta(), c.clusterPhi())
 		<< std::endl;
       
       // Distribute (up to 12) clusters across 4 links
       // crystalID_cluster_L1Card
       crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
 	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi());
-      
+      towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+	getTowerID_emulator(c.clusterEta(), c.clusterPhi());
       
     }
     
