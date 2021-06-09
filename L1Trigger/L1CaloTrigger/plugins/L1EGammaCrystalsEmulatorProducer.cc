@@ -56,6 +56,8 @@ Implementation:
 #include "L1Trigger/L1TCalorimeter/interface/CaloTools.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "Phase2L1CaloEGammaEmulator.h"
+
 static constexpr bool do_brem = true;
 
 static constexpr int n_eta_bins = 2;
@@ -757,6 +759,13 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       }
     }
   }  //End of loop over cards
+
+  // Print Layer 1 outputs
+  // Write the emulator outputs to a .txt file
+  ofstream f;
+  f.open("cmsswProducerL1outputs.txt");
+  printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  f.close();
 
   //*********************************************************
   //******************** Do layer 2 *************************

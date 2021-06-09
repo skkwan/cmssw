@@ -19,7 +19,7 @@ static constexpr int dimCard = 36;
 
 // Helper function to print a 4x17x36 int array to a ostream f.                                                                
 
-void printL1ArrayInt(ofstream& f, int array[dimPhi][dimEta][dimCard],
+inline void printL1ArrayInt(ofstream& f, int array[dimPhi][dimEta][dimCard],
                      string desc = "") {
 
   for (int kk = 0; kk < dimCard; kk++) {
@@ -38,7 +38,7 @@ void printL1ArrayInt(ofstream& f, int array[dimPhi][dimEta][dimCard],
 
 // Helper function to print a 4x17x36 float array to a ostream f.                                                                    
           
-void printL1ArrayFloat(ofstream& f, float array[dimPhi][dimEta][dimCard],
+inline void printL1ArrayFloat(ofstream& f, float array[dimPhi][dimEta][dimCard],
                        string desc = "") {
 
   for (int kk = 0; kk < dimCard; kk++) {
