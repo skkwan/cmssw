@@ -1897,9 +1897,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Cluster sort_clusterIn[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];    // array of clusters per card, to be sorted by ET
     // Cluster sort_clusterOut[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];   // array of clusters per card, sorted by ET
     std::vector<Cluster> sort_clusterIn;                  // Vector of clusters in the card
-    tower_t towerEt[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
-    tower_t towerEtHCAL[n_towers_cardEta][n_towers_cardPhi]; 
-    tower_t towerEtECAL[n_towers_cardEta][n_towers_cardPhi]; 
+    tower_t towerSumCard[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
+    tower_t towerHCALCard[n_towers_cardEta][n_towers_cardPhi]; // (not to be confused with the 12x1 array of ap_uints, towerEtHCAL
+    tower_t towerECALCard[n_towers_cardEta][n_towers_cardPhi]; 
 
     for (int idxRegion = 0; idxRegion < N_REGIONS_PER_CARD; idxRegion++) {
       
@@ -1943,7 +1943,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
 	    ///// Get HCAL tower ET
 	    towerHCAL& myTower = myTowers.getTowerHCAL(iLinkEta, iLinkPhi);
-	    //	    std::cout << "towerEt element # " << (iLinkEta * TOWER_IN_PHI) + iLinkPhi << ": will fill with Et " << myTower.getEt() << std::endl;
+	    std::cout << "towerEtHCAL element # " << (iLinkEta * TOWER_IN_PHI) + iLinkPhi << ": will fill with Et " << myTower.getEt() << std::endl;
 	    towerEtHCAL[(iLinkEta * TOWER_IN_PHI) + iLinkPhi] = myTower.getEt();
 	  }
 	}
@@ -1962,14 +1962,15 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	
 	// Add the towerETHCAL and towerETECAL arrays, and fill the 17x4 array of towerEt 
 	for (int i = 0; i < 12; i++) {
+	  
 	  ap_uint<12> towerTotalEt = towerEtHCAL[i] + towerEtECAL[i];
 	  // Get the tower's indices in a (17x4) card
 	  int iEta = (idxRegion * TOWER_IN_ETA) + (i / TOWER_IN_PHI);   
 	  int iPhi = (i % TOWER_IN_PHI);
 	  //	  std::cout << "(" << iEta << "," << iPhi << ")";
-	  towerEt[iEta][iPhi]     = tower_t(towerTotalEt, 0, 0);
-	  towerEtHCAL[iEta][iPhi] = tower_t(towerEtHCAL[i], 0, 0);
-	  towerEtECAL[iEta][iPhi] = tower_t(towerEtECAL[i], 0, 0);
+	  towerSumCard[iEta][iPhi]  = tower_t(towerTotalEt, 0, 0);
+	  towerHCALCard[iEta][iPhi] = tower_t(towerEtHCAL[i], 0, 0);
+	  towerECALCard[iEta][iPhi] = tower_t(towerEtECAL[i], 0, 0);
 	}
 
       } // end of "if"
@@ -2024,16 +2025,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     for (int i = 0; i < n_towers_cardEta; i++) {
       for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
-      std::cout << towerEt[i][j].et() << " "; 
+	std::cout << towerSumCard[i][j].et() << " "; 
       
       // n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
       if ((cc % 2) == 1) { // if cc is odd (positive eta)
-	ECAL_tower_L1Card[j][i][cc] = towerEtECAL[i][j].et();
-	HCAL_tower_L1Card[j][i][cc] = towerEtHCAL[i][j].et();
+	ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
+	HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
       }
       else {  // if cc is even (negative eta), we need to rotate the coordinates
-	ECAL_tower_L1Card[j][i][cc] = towerEtECAL[16-i][3-j].et();
-	HCAL_tower_L1Card[j][i][cc] = towerEtHCAL[16-i][3-j].et();
+	ECAL_tower_L1Card[j][i][cc] = towerECALCard[16-i][3-j].et();
+	HCAL_tower_L1Card[j][i][cc] = towerHCALCard[16-i][3-j].et();
       }
       }
     }
@@ -2047,6 +2048,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   ofstream f;
   f.open("firmwareEmulatorL1outputs.txt");
   printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
+  printL1ArrayUint12(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
   f.close();
 }
 
