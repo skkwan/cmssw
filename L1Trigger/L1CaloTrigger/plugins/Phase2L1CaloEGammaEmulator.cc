@@ -8,6 +8,7 @@
 #include <cmath>
 // #include <cstdint>
 #include <iostream>
+#include <fstream>
 #include <memory>
 
 // user include files
@@ -41,6 +42,8 @@
 #include "L1Trigger/L1TCalorimeter/interface/CaloTools.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+#include "Phase2L1CaloEGammaEmulator.h"
 
 static constexpr int n_towers_Eta = 34;
 static constexpr int n_towers_Phi = 72;
@@ -266,12 +269,12 @@ int getTowerID_emulator(int etaID, int phiID) {
 
 //////////////////////////////////////////////////////////////////////////  
 
-// Declare the EGammaCrystalsProducer class and its methods
+// Declare the Phase2L1CaloEGammaEmulator class and its methods
 
-class EGammaCrystalsProducer : public edm::stream::EDProducer<> {
+class Phase2L1CaloEGammaEmulator : public edm::stream::EDProducer<> {
 public:
-  explicit EGammaCrystalsProducer(const edm::ParameterSet&);
-  ~EGammaCrystalsProducer() override;
+  explicit Phase2L1CaloEGammaEmulator(const edm::ParameterSet&);
+  ~Phase2L1CaloEGammaEmulator() override;
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
@@ -1583,20 +1586,20 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
 
 //////////////////////////////////////////////////////////////////////////  
 
-// EGammaCrystalsProducer initializer, destructor, and produce methods
+// Phase2L1CaloEGammaEmulator initializer, destructor, and produce methods
 
-EGammaCrystalsProducer::EGammaCrystalsProducer(const edm::ParameterSet & iConfig)
+Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet & iConfig)
   : ecalTPEBToken_(consumes<EcalEBTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPEB"))),
     hcalTPToken_(
 		 consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP"))),
   calib_(iConfig.getParameter<edm::ParameterSet>("calib")) {
 }
 
-EGammaCrystalsProducer::~EGammaCrystalsProducer() {}
+Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
 
 
 
-void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
   // Detector geometry
@@ -1658,16 +1661,16 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       continue;
     
     if (!(hcTopology_->validHT(hit.id()))) {
-      LogError("EGammaCrystalsProducer")
+      LogError("Phase2L1CaloEGammaEmulator")
   	<< " -- Hcal hit DetID not present in HCAL Geom: " << hit.id() << std::endl;
-      throw cms::Exception("EGammaCrystalsProducer");
+      throw cms::Exception("Phase2L1CaloEGammaEmulator");
       continue;
     }
     const std::vector<HcalDetId>& hcId = theTrigTowerGeometry.detIds(hit.id());
     if (hcId.empty()) {
-      LogError("EGammaCrystalsProducer")
+      LogError("Phase2L1CaloEGammaEmulator")
   	<< "Cannot find any HCalDetId corresponding to " << hit.id() << std::endl;
-      throw cms::Exception("EGammaCrystalsProducer");
+      throw cms::Exception("Phase2L1CaloEGammaEmulator");
       continue;
     }
     if (hcId[0].subdetId() > 1)
@@ -2035,16 +2038,20 @@ void EGammaCrystalsProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       }
     }
     std::cout << std::endl;
-    
+
   } // end of loop over cards
   
   std::cout << "I'm here!" << std::endl;
-  
-  
+
+  // Write the emulator outputs to a .txt file
+  ofstream f;
+  f.open("firmwareEmulatorL1outputs.txt");
+  printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  f.close();
 }
 
 ////////////////////////////////////////////////////////////////////////// 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(EGammaCrystalsProducer);
+DEFINE_FWK_MODULE(Phase2L1CaloEGammaEmulator);
 

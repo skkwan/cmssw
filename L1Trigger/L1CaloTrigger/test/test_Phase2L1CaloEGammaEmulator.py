@@ -47,18 +47,18 @@ process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 #
 # ----    Produce the L1EGCrystal clusters using Emulator
 
-process.load('L1Trigger.L1CaloTrigger.EGammaCrystalsProducer_cfi')
+process.load('L1Trigger.L1CaloTrigger.Phase2L1CaloEGammaEmulator_cfi')
 
-process.pL1EG = cms.Path( process.EGammaCrystalsProducer )
+process.pL1EG = cms.Path( process.Phase2L1CaloEGammaEmulatorProducer )
 
 process.Out = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "l1egCrystalTest.root" ),
+    fileName = cms.untracked.string( "phase2L1CaloEGamma.root" ),
     outputCommands = cms.untracked.vstring(
-                    "keep *_L1EGammaClusterEmuProducer_*_*",
-                    "keep *_TriggerResults_*_*",
-                    "keep *_simHcalTriggerPrimitiveDigis_*_*",
-                    "keep *_EcalEBTrigPrimProducer_*_*"
-                    )
+        "keep *_L1EGammaClusterEmuProducer_*_*",
+        "keep *_TriggerResults_*_*",
+        "keep *_simHcalTriggerPrimitiveDigis_*_*",
+        "keep *_EcalEBTrigPrimProducer_*_*"
+    )
 )
 
 
