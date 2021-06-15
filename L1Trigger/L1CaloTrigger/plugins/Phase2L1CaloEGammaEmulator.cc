@@ -1641,7 +1641,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	ehit.setId(hit.id());
 	ehit.setPosition(GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z()));
 	ehit.setEnergy(et);
-	ehit.setEt_uint((ap_uint<10>) hit.encodedEt());  // also save the 10-bit Et
+	ehit.setEt_uint((ap_uint<10>) hit.encodedEt());  // also save the uint Et
 	ehit.setPt();
 	ecalhits.push_back(ehit);
 	
@@ -2049,7 +2049,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   f.open("firmwareEmulatorL1outputs.txt");
   printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-  printL1ArrayUint12(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
+  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
+  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
+  
   f.close();
 }
 

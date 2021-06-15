@@ -18,6 +18,6 @@ cmsRun test_Phase2L1CaloEGammaEmulator.py &
 wait
 
 echo "runTests.sh: Running diff on the output files (<: in CMSSW, >: in firmware-based emulator)..."
-diff cmsswProducerL1outputs.txt firmwareEmulatorL1outputs.txt
+diff -y cmsswProducerL1outputs.txt firmwareEmulatorL1outputs.txt
 
 echo "runTests.sh: Done (<: in CMSSW, >: in firmware-based emulator)"

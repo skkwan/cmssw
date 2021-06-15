@@ -709,7 +709,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
             for (int ii = 0; ii < n_towers_per_link; ++ii) {
               //Apply Mark's calibration at the same time (row of the lowest pT, as a function of eta)
               if ((getCrystal_etaID(hit.position().eta()) / n_crystals_towerEta) % n_towers_per_link == ii) {
-                ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * calib_(0, std::abs(hit.position().eta()));
+		ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * calib_(0, std::abs(hit.position().eta()));
+		ECAL_tower_L1Card[jj][ii][cc] += hit.pt();
                 iEta_tower_L1Card[jj][ii][cc] = getTower_absoluteEtaID(hit.position().eta());  //hit.id().ieta();
                 iPhi_tower_L1Card[jj][ii][cc] = getTower_absolutePhiID(hit.position().phi());  //hit.id().iphi();
               }
@@ -741,7 +742,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
           if ((getCrystal_phiID(hit.position().phi()) / n_crystals_towerPhi) % n_links_card == jj) {
             for (int ii = 0; ii < n_towers_per_link; ++ii) {
               if ((getCrystal_etaID(hit.position().eta()) / n_crystals_towerEta) % n_towers_per_link == ii) {
-                HCAL_tower_L1Card[jj][ii][cc] += hit.pt();
+		HCAL_tower_L1Card[jj][ii][cc] += hit.pt();
                 iEta_tower_L1Card[jj][ii][cc] = getTower_absoluteEtaID(hit.position().eta());  //hit.id().ieta();
                 iPhi_tower_L1Card[jj][ii][cc] = getTower_absolutePhiID(hit.position().phi());  //hit.id().iphi();
               }
@@ -768,6 +769,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
   printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
+  printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
   f.close();
 
   //*********************************************************

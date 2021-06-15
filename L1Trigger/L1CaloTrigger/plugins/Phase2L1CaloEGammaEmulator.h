@@ -59,9 +59,8 @@ inline void printL1ArrayFloat(ofstream& f, float array[dimPhi][dimEta][dimCard],
 
 // float et = hit.encodedEt() / 8.;
 
-inline void printL1ArrayUint12(ofstream& f, ap_uint<12> array[dimPhi][dimEta][dimCard],
-			       string desc = "", unsigned int precision = 3,
-			       bool printAsUint = false) {
+inline void printL1ArrayEncodedEt(ofstream& f, ap_uint<12> array[dimPhi][dimEta][dimCard],
+			     string desc = "", unsigned int precision = 3 ) {
 
   for (int kk = 0; kk < dimCard; kk++) {
     f << "[CARD " << kk << "]: " << desc << std::endl;
@@ -69,14 +68,8 @@ inline void printL1ArrayUint12(ofstream& f, ap_uint<12> array[dimPhi][dimEta][di
       for (int jj = 0; jj < dimEta; jj++) {
 	float fVal = array[ii][jj][kk] / 8.;
 	ap_uint<12> uVal = array[ii][jj][kk];
-	
-	if (printAsUint) {
-	  f << uVal << "\t"; 
-	}
-	else {
-	  f << std::setprecision(precision) << fVal << "\t";
-	}
 
+	f << std::setprecision(precision) << fVal << "\t";
       }
       // Write newline after each row
       f << std::endl;
@@ -84,6 +77,37 @@ inline void printL1ArrayUint12(ofstream& f, ap_uint<12> array[dimPhi][dimEta][di
   }
 
 }
+
+//--------------------------------------------------------//                                                  
+
+// Helper function to print a 4x17x36 ap_uint<12> array to a ostream f,                                                    
+// where the ap_uint<12> are encoded floats (divide by 8).
+
+// Use LSB 0.5
+// https://github.com/cms-sw/cmssw/blob/master/L1Trigger/L1TCalorimeter/python/caloParams_cfi.py#L15
+
+inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimEta][dimCard],
+				       string desc = "", unsigned int precision = 3 ) {
+
+  
+  float LSB = 0.5;
+
+  for (int kk = 0; kk < dimCard; kk++) {
+    f << "[CARD " << kk << "]: " << desc << std::endl;
+    for (int ii = 0; ii < dimPhi; ii++) {
+      for (int jj = 0; jj < dimEta; jj++) {
+        float fVal = array[ii][jj][kk] * LSB;
+        ap_uint<12> uVal = array[ii][jj][kk];
+
+        f << std::setprecision(precision) << fVal << "\t";
+      }
+      // Write newline after each row                                                                                                    
+      f << std::endl;
+    }
+  }
+
+}
+
 
 
 #endif
