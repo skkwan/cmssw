@@ -253,18 +253,19 @@ int getPhiMin_card_emulator(int card) {
   return phimin;
 }
 
-// From the etaID (0- 33*5) and phiID (0 - 71*5) of a crystal, get the crystal ID (0-24) within the
-// tower it's in, where 0-24 is "unwrapping" the 5x5 array, using rows in eta.
-int getCrystalIDInTower_emulator(int etaID, int phiID) {
-  return int(CRYSTALS_IN_TOWER_PHI * (phiID % CRYSTALS_IN_TOWER_PHI) + (etaID % CRYSTALS_IN_TOWER_ETA));
+// Convert crystalEta (0-4) and crystalPhi (0-4) indices to a crystalIDInTower (0-24) (i.e. go from a 5x5 array
+// to a flattened 0-24 value). 
+// TO-DO: check this for negative eta cards
+int getCrystalIDInTower_emulator(int crystalEta, int crystalPhi) {
+  return int(CRYSTALS_IN_TOWER_PHI * (crystalPhi % CRYSTALS_IN_TOWER_PHI) + (crystalEta % CRYSTALS_IN_TOWER_ETA));
 }
 
-// From a crystal's etaID (0- 33*5) and phiID (0 - 71*5), get the tower ID (0-4*17) within the card it's in,
-// where we "unwrapped" the 4*17 tower array, using rows in 
-int getTowerID_emulator(int etaID, int phiID) {
-  return int(n_towers_per_link * ((phiID / CRYSTALS_IN_TOWER_PHI) % 4) +
-             (etaID / CRYSTALS_IN_TOWER_ETA) % n_towers_per_link);
-
+// From a crystal's towerEta (0- 17) and towerPhi (0-3), get the tower ID (0-4*17) within the card it's in,
+// where we "unwrapped" the 4*17 tower array. This serves the same purpose as getTowerID in the CMSSW emulator which
+// starts with the crystal index in the entire card.
+// TO-DO: account for negative eta cards
+int getTowerID_emulator(int towerEta, int towerPhi) {
+  return int(n_towers_per_link * (towerPhi % 4) + (towerEta % n_towers_per_link));
 }
 
 //////////////////////////////////////////////////////////////////////////  
@@ -1253,8 +1254,10 @@ Cluster packCluster(ap_uint<15>& clusterEt, ap_uint<5>& etaMax_t, ap_uint<5>& ph
 
   
   pack = Cluster(peggedEt, towerEta, towerPhi, clusterEta, clusterPhi, 0);
-  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", clusterEta and Phi: " << clusterEta << ", "
-	    << clusterPhi << std::endl;
+  std::cout << "[-->] packCluster: clusterEt " << clusterEt 
+	    << ", towerEta and Phi: "   << towerEta   << ", " << towerPhi
+	    << ", clusterEta and Phi: " << clusterEta << ", " << clusterPhi 
+	    << std::endl;
 
   return pack;
 }
@@ -1722,6 +1725,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   int iEta_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];  
   int iPhi_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
   // 36 L1 cards send each 4 links with 3 clusters (up to 12 per card)
+  ap_uint<12> energy_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi]; 
   int crystalID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];  // range: [0, 5*5) 
   int towerID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];    // range: [0, 17*4)
 
@@ -1740,6 +1744,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   for (int ii = 0; ii < n_links_card; ++ii) {
     for (int jj = 0; jj < n_clusters_link; ++jj) {
       for (int ll = 0; ll < n_towers_halfPhi; ++ll) {
+	energy_cluster_L1Card[ii][jj][ll]    = 0;
 	towerID_cluster_L1Card[ii][jj][ll]   = 0;
         crystalID_cluster_L1Card[ii][jj][ll] = 0;
 	
@@ -2039,15 +2044,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
 		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi()) 
 		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
-		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.clusterEta(), c.clusterPhi())
+		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi())
 		<< std::endl;
       
       // Distribute (up to 12) clusters across 4 links
-      // crystalID_cluster_L1Card
+
+      energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+	c.clusterEnergy();
       crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
 	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi());
       towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-	getTowerID_emulator(c.clusterEta(), c.clusterPhi());
+	getTowerID_emulator(c.towerEta(), c.towerPhi());
+
       
     }
     
@@ -2088,11 +2096,12 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   int oneCard = 1;
   printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", oneCard);
   printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", oneCard);
-  printL1Array4_3_36Int(f, towerID_cluster_L1Card, 
-			"towerID_cluster_L1Card (range: ?: the tower that a cluster falls in)",
-			oneCard);
-  printL1Array4_3_36Int(f, crystalID_cluster_L1Card,
-			"crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", oneCard);
+  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12>)", oneCard);
+  printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
+			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)",
+			  oneCard);
+  printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
+			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", oneCard);
   f.close();
 }
 

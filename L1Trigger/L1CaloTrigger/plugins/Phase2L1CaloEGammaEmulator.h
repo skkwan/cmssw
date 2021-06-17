@@ -131,15 +131,14 @@ inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimE
 
 }
 
-//--------------------------------------------------------//                                                                                                
+//--------------------------------------------------------//                                                                 
 
-// Helper function to print a 4x17x36 int array to a ostream f.                                                                                             
+// Helper function to print a 4x3x36 int array to a ostream f.                                                              
 
-inline void printL1Array4_3_36Int(ofstream& f, int array[dimPhi][nClustersPerLink][dimCard],
-				  string desc = "", int oneCard = -1) {
+inline void printL1Array_ClusterInt(ofstream& f, int array[dimPhi][nClustersPerLink][dimCard],
+				    string desc = "", int oneCard = -1) {
 
   for (int kk = 0; kk < dimCard; kk++) {
-
     if ((oneCard != -1) && (kk == oneCard)) {
 
       f << "[CARD " << kk << "]: " << desc << std::endl;
@@ -148,11 +147,31 @@ inline void printL1Array4_3_36Int(ofstream& f, int array[dimPhi][nClustersPerLin
 	  f << array[ii][jj][kk] << "\t";
 	}
 	f << std::endl;
-
       }
     }
   }
+}
 
+//--------------------------------------------------------//
+
+// Helper function to print a 4x3x36 ap uint array to a ostream f.
+
+inline void printL1Array_ClusterUint(ofstream& f, ap_uint<12> array[dimPhi][nClustersPerLink][dimCard],
+				     string desc = "", int oneCard = -1) {
+
+  for (int kk = 0; kk < dimCard; kk++) {
+    if ((oneCard != -1) && (kk == oneCard)) {
+
+      f << "[CARD " << kk << "]: " << desc << std::endl;
+      for (int ii = 0; ii < dimPhi; ii++) {
+        for (int jj = 0; jj < nClustersPerLink; jj++) {
+          f << array[ii][jj][kk] << "\t";
+        }
+        f << std::endl;
+      }
+    }
+  } 
+  
 }
 
 

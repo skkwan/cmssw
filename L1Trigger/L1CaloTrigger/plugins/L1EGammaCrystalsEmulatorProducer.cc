@@ -770,7 +770,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
   printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
   printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
-  printL1Array4_3_36Int(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
+  printL1Array_ClusterInt(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
   f.close();
 
   //*********************************************************
