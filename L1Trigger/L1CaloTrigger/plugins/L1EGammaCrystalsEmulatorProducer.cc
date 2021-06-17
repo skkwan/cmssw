@@ -766,10 +766,11 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   ofstream f;
   f.open("cmsswProducerL1outputs.txt");
   //  unsigned int precision = 3;
-  printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
-  printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
+  // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
   printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
   printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
+  printL1Array4_3_36Int(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
   f.close();
 
   //*********************************************************
