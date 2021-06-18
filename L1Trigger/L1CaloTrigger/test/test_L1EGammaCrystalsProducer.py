@@ -17,8 +17,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 # One file (10 GB)
 #`xrdcp root://cmsxrootd.fnal.gov///store/mc/Phase2HLTTDRWinter20DIGI/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW/PU200_110X_mcRun4_realistic_v3-v2/110000/005E74D6-B50E-674E-89E6-EAA9A617B476.root .`
 
+# file dataset=/SinglePion_PT0to200/Phase2HLTTDRWinter20DIGI-NoPU_110X_mcRun4_realistic_v3-v2/GEN-SIM-DIGI-RAW
+
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
+                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/SinglePion_PT0to200_NoPU_04AC207E-AF58-C04A-9F90-746DDC628248.root'),
                             inputCommands = cms.untracked.vstring(
                                 "keep *"
                             )
