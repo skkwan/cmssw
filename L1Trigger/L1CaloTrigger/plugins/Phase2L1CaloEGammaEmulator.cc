@@ -256,8 +256,18 @@ int getPhiMin_card_emulator(int card) {
 // Convert crystalEta (0-4) and crystalPhi (0-4) indices to a crystalIDInTower (0-24) (i.e. go from a 5x5 array
 // to a flattened 0-24 value). 
 // TO-DO: check this for negative eta cards
-int getCrystalIDInTower_emulator(int crystalEta, int crystalPhi) {
-  return int(CRYSTALS_IN_TOWER_PHI * (crystalPhi % CRYSTALS_IN_TOWER_PHI) + (crystalEta % CRYSTALS_IN_TOWER_ETA));
+int getCrystalIDInTower_emulator(int crystalEta, int crystalPhi, int card) {
+  
+  if ((card % 2) == 1) { // if card is odd (positive eta)
+    return int(CRYSTALS_IN_TOWER_PHI * (crystalPhi % CRYSTALS_IN_TOWER_PHI) + (crystalEta % CRYSTALS_IN_TOWER_ETA));
+  }
+  else {  
+    // if card is even (negative eta): (0, 0) starts at diagram top left, which is flipped from diagram bottom left
+    // everything else is the same as the positive eta case
+    int flippedEta = (4 - crystalEta);
+    int flippedPhi = (4 - crystalPhi);
+    return int(CRYSTALS_IN_TOWER_PHI * (flippedPhi % CRYSTALS_IN_TOWER_PHI) + (flippedEta % CRYSTALS_IN_TOWER_ETA));
+  }
 }
 
 // From a crystal's card number (0-35), region number (0 through 5, inclusive),
@@ -267,12 +277,23 @@ int getCrystalIDInTower_emulator(int crystalEta, int crystalPhi) {
 
 // TO-DO: account for negative eta cards
 int getTowerID_emulator(int towerEtaInRegion, int towerPhiInRegion, int card, int region) {
-  
-  int towerPhiInCard = towerPhiInRegion;                               // region number doesn't affect the phi index
-  int towerEtaInCard = ((region * TOWER_IN_ETA) + towerEtaInRegion) ;  // towerEtaInRegion is 0-3, towerEtaInCard is 0-16
+ 
+  if ((card % 2) == 1) { 
+    // if card is odd (positive eta)
+    int towerPhiInCard = towerPhiInRegion;                               // region number doesn't affect the phi index  
+    int towerEtaInCard = ((region * TOWER_IN_ETA) + towerEtaInRegion) ;  // towerEtaInRegion is 0-3, towerEtaInCard is 0-16
+    
+    // "Unroll" the 17x4 into one index
+    return int(n_towers_per_link * (towerPhiInCard % 4) + (towerEtaInCard % n_towers_per_link));
+  }
+  else { 
+    // if card is even (negative eta)
+    int towerPhiInCardFlipped = (3 - towerPhiInRegion);                         // up/down is flipped for negative eta cards
+    int towerEtaInCardFlipped = (16 - ((region * TOWER_IN_ETA) + towerEtaInRegion)); // like pos. eta, just flip left/right
 
-  // "Unroll" the 17x4 into one index
-  return int(n_towers_per_link * (towerPhiInCard % 4) + (towerEtaInCard % n_towers_per_link));
+    // "Unroll" the 17x4 into one index. Same as + eta, just use "flipped" indices
+    return int(n_towers_per_link * (towerPhiInCardFlipped % 4) + (towerEtaInCardFlipped % n_towers_per_link));
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////  
@@ -2055,7 +2076,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
       std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
 		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
-		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi()) 
+		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
 		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
 		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
 		<< std::endl;
@@ -2065,7 +2086,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
 	c.clusterEnergy();
       crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
-	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi());
+	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
       towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
 	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
 
