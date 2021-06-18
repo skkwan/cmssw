@@ -23,12 +23,13 @@ static constexpr int nClustersPerLink = 3;
 
 inline void printL1ArrayInt(ofstream& f, int array[dimPhi][dimEta][dimCard],
 			    string desc = "",
+			    bool printOnlyOneCard = false,
 			    int oneCard = -1) {
 
   
   for (int kk = 0; kk < dimCard; kk++) {
     
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
       
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
@@ -47,13 +48,13 @@ inline void printL1ArrayInt(ofstream& f, int array[dimPhi][dimEta][dimCard],
 // Helper function to print a 4x17x36 float array to a ostream f.                                                                    
           
 inline void printL1ArrayFloat(ofstream& f, float array[dimPhi][dimEta][dimCard],
-			      string desc = "", 
+			      string desc = "", bool printOnlyOneCard = false, 
 			      int oneCard = -1,
 			      unsigned int precision = 3) {
 
   for (int kk = 0; kk < dimCard; kk++) {
 
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
 	for (int jj = 0; jj < dimEta; jj++) {
@@ -73,13 +74,13 @@ inline void printL1ArrayFloat(ofstream& f, float array[dimPhi][dimEta][dimCard],
 // float et = hit.encodedEt() / 8.;
 
 inline void printL1ArrayEncodedEt(ofstream& f, ap_uint<12> array[dimPhi][dimEta][dimCard],
-				  string desc = "", 
+				  string desc = "", bool printOnlyOneCard = false, 
 				  int oneCard = -1, 
 				  unsigned int precision = 3 ) {
 
   for (int kk = 0; kk < dimCard; kk++) {
 
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
 	for (int jj = 0; jj < dimEta; jj++) {
@@ -105,7 +106,7 @@ inline void printL1ArrayEncodedEt(ofstream& f, ap_uint<12> array[dimPhi][dimEta]
 // https://github.com/cms-sw/cmssw/blob/master/L1Trigger/L1TCalorimeter/python/caloParams_cfi.py#L15
 
 inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimEta][dimCard],
-				     string desc = "", 
+				     string desc = "", bool printOnlyOneCard = false, 
 				     int oneCard = -1,
 				     unsigned int precision = 3 ) {
   
@@ -114,7 +115,7 @@ inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimE
 
   for (int kk = 0; kk < dimCard; kk++) {
 
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
 	for (int jj = 0; jj < dimEta; jj++) {
@@ -136,10 +137,10 @@ inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimE
 // Helper function to print a 4x3x36 int array to a ostream f.                                                              
 
 inline void printL1Array_ClusterInt(ofstream& f, int array[dimPhi][nClustersPerLink][dimCard],
-				    string desc = "", int oneCard = -1) {
+				    string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {
 
   for (int kk = 0; kk < dimCard; kk++) {
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
 
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
@@ -157,10 +158,33 @@ inline void printL1Array_ClusterInt(ofstream& f, int array[dimPhi][nClustersPerL
 // Helper function to print a 4x3x36 ap uint array to a ostream f.
 
 inline void printL1Array_ClusterUint(ofstream& f, ap_uint<12> array[dimPhi][nClustersPerLink][dimCard],
-				     string desc = "", int oneCard = -1) {
+				     string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {
 
   for (int kk = 0; kk < dimCard; kk++) {
-    if ((oneCard != -1) && (kk == oneCard)) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
+
+      f << "[CARD " << kk << "]: " << desc << std::endl;
+      for (int ii = 0; ii < dimPhi; ii++) {
+        for (int jj = 0; jj < nClustersPerLink; jj++) {
+	  // Convert to float
+          f << (array[ii][jj][kk])/8. << "\t";
+        }
+        f << std::endl;
+      }
+    }
+  } 
+  
+}
+
+//--------------------------------------------------------//                                                                  
+
+// Helper function to print a 4x3x36 float array to a ostream f.                                                            
+
+inline void printL1Array_ClusterFloat(ofstream& f, float array[dimPhi][nClustersPerLink][dimCard],
+                                     string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {
+
+  for (int kk = 0; kk < dimCard; kk++) {
+    if ((!printOnlyOneCard) || (printOnlyOneCard && (kk == oneCard))) {
 
       f << "[CARD " << kk << "]: " << desc << std::endl;
       for (int ii = 0; ii < dimPhi; ii++) {
@@ -170,8 +194,8 @@ inline void printL1Array_ClusterUint(ofstream& f, ap_uint<12> array[dimPhi][nClu
         f << std::endl;
       }
     }
-  } 
-  
+  }
+
 }
 
 

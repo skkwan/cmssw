@@ -1789,35 +1789,34 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*************** Do RCT geometry (ECAL)  ***************************
   //*******************************************************************
 
-  int oneCard = 0;
+  //  int theCard = 0;
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
     // TEMP: only do one card
-    if (cc != oneCard) continue;
+    //    if (cc != theCard) continue;
     
     // Initialize variables
     card rctCard;
     rctCard.setIdx(cc);
     
     // TEMP: do not loop over ECAL hits
-    for (int j = 0; j < 1; j++) {
-    //    for (const auto& hit : ecalhits) {
+    // for (int j = 0; j < 1; j++) {
+    for (const auto& hit : ecalhits) {
 
       // TEMP: do not use this block
-
-      if (true) {
+      // if (true) {
       // Check if the hit is in cards 0-35
-      // if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
-      // 	  (getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc)) &&
-      // 	  (getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc)) &&
-      // 	  (getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc))) {
+      if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
+      	  (getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc)) &&
+      	  (getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc)) &&
+      	  (getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc))) {
 	
 	// Get the crystal eta and phi, relative to the bottom left corner of the card 
 	// (0 up to 17*5, 0 up to 4*5) 
-	// int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
-        // int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
+	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
+        int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
       
-	int local_iEta = 0;
-	int local_iPhi = 0;
+	// int local_iEta = 0;
+	// int local_iPhi = 0;
 	
 	// Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
 	// everything else is determined.
@@ -1866,15 +1865,15 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  //	  std::cout << "inLink_crystal_iEta, inLink_crystal_iPhi (expecting 5x5): " 
 	  //		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 
-	  // myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
+	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
 	  // TEMP: add a dummy energy
-	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, 1);
+	  // myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, 1);
 	  
 	}
 	
 	std::cout << "Card: " << cc 
-	  // << ", hit (Eta, phi, et): "
-	  // << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
+		  << ", hit (Eta, phi, et): "
+		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
 		  << "local_iEta/iPhi: " << local_iEta << ", " << local_iPhi << ", " 
 		  << "inCard_tower_iEta/iPhi: " << inCard_tower_iEta     << ", " << inCard_tower_iPhi << ", "
 		  << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
@@ -1913,23 +1912,23 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Loop over hcal hits to get the HCAL towers.
 
     // TEMP: don't do HCAL hits
-    for (int k = 0; k < 1; k++) {
-    // for (const auto& hit : hcalhits) {
+    //    for (int k = 0; k < 1; k++) {
+    for (const auto& hit : hcalhits) {
 
       // TEMP: do not use this conditional
-      if (true) {
-    //   if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
-    //       getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc) &&
-    //       getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc) &&
-    //       getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc) && hit.pt() > 0) {
+      // if (true) {
+      if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
+          getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc) &&
+          getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc) &&
+          getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc) && hit.pt() > 0) {
 
 	// HCAL: Get the crystal eta and phi, relative to the bottom left corner of the card 
 	// (0 up to 17*5, 0 up to 4*5) 
-    //	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
-    //	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
+      	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
+	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
 
-	int local_iEta = 0;
-	int local_iPhi = 0;
+	// int local_iEta = 0;
+	// int local_iPhi = 0;
 	
 	// HCAL: Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
 	// everything else is determined.
@@ -2126,17 +2125,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   // Write the emulator outputs to a .txt file
   ofstream f;
   f.open("firmwareEmulatorL1outputs.txt");
+  // Use optional arguments if you want to print only one card
   // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-
-  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", oneCard);
-  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", oneCard);
-  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12>)", oneCard);
+  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
+  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
+  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)");
   printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
-			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)",
-			  oneCard);
+			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
   printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
-			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", oneCard);
+			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
   f.close();
 }
 
