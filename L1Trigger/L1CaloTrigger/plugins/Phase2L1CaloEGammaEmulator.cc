@@ -72,6 +72,7 @@ static constexpr int CRYSTAL_IN_ETA = 15;   // number of crystals in eta, in one
 static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one 3x4 region (barrel)
 
 static constexpr float ECAL_eta_range = 1.4841;
+static constexpr float half_crystal_size = 0.00873;
 static constexpr float cut_500_MeV = 0.5;
 
 static constexpr int N_CLUSTERS_PER_REGION = 4;       // number of clusters per ECAL region
@@ -82,8 +83,6 @@ static constexpr int N_REGIONS_PER_CARD = 6;          // number of ECAL regions 
 bool isValidCard(int cc) {
   return ((cc > -1) && (cc < 36));
 }
-
-// 
 
 // Get crystal's iEta from real eta. (identical to getCrystal_etaID in L1EGammaCrystalsEmulatorProducer.cc)
 // This "global" iEta ranges from 0 to (33*5) since there are 34 towers in eta in the full detector, 
@@ -101,6 +100,19 @@ int getCrystal_iPhi(float phi) {
   float size_cell = 2 * M_PI / (CRYSTALS_IN_TOWER_PHI * n_towers_Phi);
   int iPhi = int((phi + M_PI) / size_cell);
   return iPhi;
+}
+
+// Get crystal's real eta from iEta (similar to getEta_fromL2LinkCardTowerCrystal).            
+// See comments above for iEta/iPhi description.                                                  
+float getEta_fromCrystaliEta(int iEta) {
+  float size_cell = 2 * ECAL_eta_range / (CRYSTALS_IN_TOWER_ETA * n_towers_Eta);
+  return iEta * size_cell - ECAL_eta_range + half_crystal_size;
+}
+
+// Get crystal's real eta from iPhi (similar to getPhi_fromL2LinkCardTowerCrystal).
+float getPhi_fromCrystaliPhi(int iPhi) {
+  float size_cell = 2 * M_PI / (CRYSTALS_IN_TOWER_PHI * n_towers_Phi);
+  return iPhi * size_cell - M_PI + half_crystal_size;
 }
 
 // For a card (ranging from 0 to 35, since there are 36 cards), return the iEta of the crystal with max iEta.
@@ -156,53 +168,36 @@ int getTower_absPhiID(float phi) {
 
 // Given the RCT card number (0-35), get the TOWER iPhi of the "bottom left" corner (0-71)
 int getCard_refTower_iPhi(int cc) {
-  assert(isValidCard(cc));
-      
-  if ((cc % 2) == 1) { // if cc is odd
-    return (int(cc / 2) * 4);
-  }
-  else {  // if cc is even
-    return ((int(cc / 2) * 4) + 3);
-  }
-  
+  if ((cc % 2) == 1) { return (int(cc / 2) * 4); }          // if cc is odd: positive eta
+  else               { return ((int(cc / 2) * 4) + 3);  }   // if cc is even: negative eta
 }
  
 // Given the RCT card number (0-35), get the TOWER iEta of the "bottom left" corner (0-33)
- int getCard_refTower_iEta(int cc) {
-   assert(isValidCard(cc));
-   
-   if ((cc % 2) == 1) { // if cc is odd
-     return 17;
-   }
-   else {  // if cc is even 
-     return 16;
-   }
-   
- }
+int getCard_refTower_iEta(int cc) {
+  if ((cc % 2) == 1) { return 17; } // if cc is odd: positive eta
+  else               { return 16; } // if cc is even: negative eta
+}
 
 // Given the RCT card number (0-35), get the crystal iPhi of the "bottom left" corner (0- 71*5)
-int getCard_ref_iPhi(int cc) {
-  assert(isValidCard(cc));
+int getCard_refCrystal_iPhi(int cc) {
 
-  int ref_iPhi;
-  if ((cc % 2) == 1) { // if cc is odd                   
-    ref_iPhi = int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI;
+  if ((cc % 2) == 1) { 
+    // if cc is odd: positive eta   
+    return int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI; 
+  } 
+  else {  
+    // if cc is even, the bottom left corner is further in phi, hence the +4                
+    return ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI;
   }
-  else {  // if cc is even, the bottom left corner is further in iPhi, hence the +4                
-    ref_iPhi = ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI;
-  }
-
-  return ref_iPhi;
 }
 
 // Given the RCT card number (0-35), get the crystal iEta of the "bottom left" corner
-int getCard_ref_iEta(int cc) {
+int getCard_refCrystal_iEta(int cc) {
 
-  assert(isValidCard(cc));
   if ((cc % 2) == 1) {  // if cc is odd (positive eta)
     return (17 * CRYSTALS_IN_TOWER_ETA);
   }
-  else {   // if cc is even (negative eta)
+  else {   // if cc is even (negative eta) the bottom left corner is further in eta, hence +4
     return ((16 * CRYSTALS_IN_TOWER_ETA) + 4);
   }
 }
@@ -214,7 +209,7 @@ int getCrystal_local_iEta(float hitEta, int cc) {
   assert(isValidCard(cc));
 
   // Functionally the same thing as an absolute value: 
-  int diff = (getCard_ref_iEta(cc) - getCrystal_iEta(hitEta));
+  int diff = (getCard_refCrystal_iEta(cc) - getCrystal_iEta(hitEta));
 
   return abs(diff);
 }
@@ -224,11 +219,9 @@ int getCrystal_local_iEta(float hitEta, int cc) {
 int getCrystal_local_iPhi(float hitPhi, int cc) {
   assert(isValidCard(cc));
 
-  int diff = (getCard_ref_iPhi(cc) - getCrystal_iPhi(hitPhi));
+  int diff = (getCard_refCrystal_iPhi(cc) - getCrystal_iPhi(hitPhi));
   return abs(diff);
 }
-
-
 
 // Get the RCT card region that a crystal is in, given the "local" iEta of the crystal 
 // 0 is region closest to eta = 0. Regions 0, 1, 2, 3, 4 are in the barrel, Region 5 is in overlap
@@ -293,6 +286,40 @@ int getTowerID_emulator(int towerEtaInRegion, int towerPhiInRegion, int card, in
 
     // "Unroll" the 17x4 into one index. Same as + eta, just use "flipped" indices
     return int(n_towers_per_link * (towerPhiInCardFlipped % 4) + (towerEtaInCardFlipped % n_towers_per_link));
+  }
+}
+
+// From a crystal in card cc, region regionIdx, tower number (0-2 for a 3x4 region) and crystal number (in the tower)
+// return the crystal iEta (0-33*5) in the entire card. Use this with getEta_fromCrystal_iEta to go from a cluster
+// to the real eta of its position.
+int getCrystal_iEta_fromCardRegionInfo(int cc,
+				       int regionIdx,
+				       int towerEta_in_region,
+				       int crystalEta_in_tower) {
+  
+  int crystalEta_in_card = ((regionIdx * TOWER_IN_ETA * CRYSTALS_IN_TOWER_ETA) + (towerEta_in_region * CRYSTALS_IN_TOWER_ETA)
+			    + crystalEta_in_tower);
+  if ((cc % 2) == 1) {
+    // if card is odd (positive eta)
+    return (getCard_refCrystal_iEta(cc) + crystalEta_in_card);
+  }
+  else {
+    // if card is even (negative eta)
+    return (getCard_refCrystal_iEta(cc) - crystalEta_in_card);
+  }
+}
+
+// Same thing as above but in phi.
+int getCrystal_iPhi_fromCardRegionInfo(int cc, int regionIdx, int towerPhi_in_region, int crystalPhi_in_tower) {
+  
+  int crystalPhi_in_card = (towerPhi_in_region * CRYSTALS_IN_TOWER_PHI) + crystalPhi_in_tower;
+  if ((cc % 2) == 1) {
+    // if card is odd (positive eta)   
+    return (getCard_refCrystal_iPhi(cc) + crystalPhi_in_card);
+  }
+  else {
+    // if card is even (negative eta)
+    return (getCard_refCrystal_iPhi(cc) - crystalPhi_in_card);
   }
 }
 
@@ -1650,6 +1677,7 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet &
     hcalTPToken_(
 		 consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP"))),
   calib_(iConfig.getParameter<edm::ParameterSet>("calib")) {
+  produces<l1tp2::CaloCrystalClusterCollection>();
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -1667,6 +1695,13 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   hcTopology_ = hbTopology.product();
   HcalTrigTowerGeometry theTrigTowerGeometry(hcTopology_);
   iSetup.get<CaloTPGRecord>().get(decoder_);
+
+  /////////////////////////////////////////////////////
+  // Declare output collections
+  ///////////////////////////////////////////////////// 
+
+  auto L1EGXtalClusters = std::make_unique<l1tp2::CaloCrystalClusterCollection>();
+  auto L1CaloTowers = std::make_unique<l1tp2::CaloTowerCollection>();
 
   /////////////////////////////////////////////////////
   // Get all the ECAL hits
@@ -1801,7 +1836,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*************** Do RCT geometry (ECAL)  ***************************
   //*******************************************************************
 
-  //  int theCard = 0;
+
+  //  int theCard = 29;
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
     // TEMP: only do one card
     //    if (cc != theCard) continue;
@@ -1811,11 +1847,15 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     rctCard.setIdx(cc);
     
     // TEMP: do not loop over ECAL hits
-    // for (int j = 0; j < 1; j++) {
+    int nHits = 4;
+    int arr_local_iEta[nHits] = {0, 1, 8, 9};
+    int arr_local_iPhi[nHits] = {0, 0, 10, 10};
+    
+    //    for (int j = 0; j < nHits; j++) {
     for (const auto& hit : ecalhits) {
 
       // TEMP: do not use this block
-      // if (true) {
+      //  if (true) {
       // Check if the hit is in cards 0-35
       if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
       	  (getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc)) &&
@@ -1827,8 +1867,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
         int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
       
-	// int local_iEta = 0;
-	// int local_iPhi = 0;
+	// int local_iEta = arr_local_iEta[j];
+	// int local_iPhi = arr_local_iPhi[j];
 	
 	// Once we have the iEta and iPhi of the crystal relative to the bottom left corner,
 	// everything else is determined.
@@ -1858,7 +1898,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	// 	  << local_iEta << ", " 
 	// 	  << local_iPhi << ", "
 	// 	  << regionNumber << std::endl;
-	// std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi (expecting 15x20), regionNumber (expecting 0-5): "
+	// std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi (expecting 15x20), regionNumber (expecting 0-5): " << std::endl;
 	// 	  << inRegion_crystal_iEta << ", "
 	// 	  << inRegion_crystal_iPhi << ", "
 	// 	  << regionNumber << std::endl;
@@ -1878,19 +1918,30 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  //		    << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
 
 	  myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, hit.et_uint());
+
 	  // TEMP: add a dummy energy
-	  // myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, 1);
+	  // myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, 10);
 	  
 	}
 	
 	std::cout << "Card: " << cc 
 		  << ", hit (Eta, phi, et): "
-		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ", "
-		  << "local_iEta/iPhi: " << local_iEta << ", " << local_iPhi << ", " 
-		  << "inCard_tower_iEta/iPhi: " << inCard_tower_iEta     << ", " << inCard_tower_iPhi << ", "
-		  << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
-		  << inRegion_tower_iPhi << ", "
-		  << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi << std::endl;
+		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ". "
+		  << "(iEta, iPhi): " 
+		  << getCrystal_iEta(hit.position().eta()) << ", "
+		  << getCrystal_iPhi(hit.position().phi()) << ". "
+		  << "(Crystal eta, phi): "
+		  << getEta_fromCrystaliEta(getCrystal_iEta(hit.position().eta())) << ", "
+		  << getPhi_fromCrystaliPhi(getCrystal_iPhi(hit.position().phi())) << ". "
+		  << "(Go back to iEta, iPhi in card: ) "
+		  << getCrystal_iEta_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iEta, inLink_crystal_iEta) << ", "
+		  << getCrystal_iPhi_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iPhi, inLink_crystal_iPhi) << "."
+		  // << "local_iEta/iPhi: " << local_iEta << ", " << local_iPhi << ", " 
+		  // << "inCard_tower_iEta/iPhi: " << inCard_tower_iEta     << ", " << inCard_tower_iPhi << ", "
+		  // << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
+		  // << inRegion_tower_iPhi << ", "
+		  // << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi 
+		  << std::endl;
       }      
   } // end of loop over ECAL hits
 
@@ -1928,16 +1979,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     for (const auto& hit : hcalhits) {
 
       // TEMP: do not use this conditional
-      // if (true) {
+      //      if (true) {
       if (getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc) &&
           getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc) &&
           getCrystal_iEta(hit.position().eta()) <= getCard_iEtaMax(cc) &&
           getCrystal_iEta(hit.position().eta()) >= getCard_iEtaMin(cc) && hit.pt() > 0) {
 
-	// HCAL: Get the crystal eta and phi, relative to the bottom left corner of the card 
-	// (0 up to 17*5, 0 up to 4*5) 
+      	// HCAL: Get the crystal eta and phi, relative to the bottom left corner of the card 
+      	// (0 up to 17*5, 0 up to 4*5) 
       	int local_iEta = getCrystal_local_iEta(hit.position().eta(), cc);
-	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
+      	int local_iPhi = getCrystal_local_iPhi(hit.position().phi(), cc);
 
 	// int local_iEta = 0;
 	// int local_iPhi = 0;
@@ -1968,8 +2019,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  towerHCAL& myTower = myTowers3x4.getTowerHCAL(inRegion_tower_iEta, inRegion_tower_iPhi);
 
 	  // TEMP: add a dummy energy
-	  myTower.addEt(1);
-	  //	  myTower.addEt(hit.et_uint());
+	  // myTower.addEt(1);
+	  myTower.addEt(hit.et_uint());
 
 	}
       }
@@ -2079,75 +2130,110 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Write the outputs to the L1 outputs       //
     //-------------------------------------------//
 
-    // Print the sorted vector
-    std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
-    // for (auto & c : sort_clusterIn) {
-    for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
-      Cluster c = sort_clusterIn[jj];
+    // // Print the sorted vector
+    // std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
+    // // for (auto & c : sort_clusterIn) {
+    // for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
+    //   Cluster c = sort_clusterIn[jj];
 
-      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
-		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
-		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
-		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
-		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
-		<< std::endl;
+    //   std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
+    // 		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
+    // 		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
+    // 		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
+    // 		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
+    // 		<< std::endl;
       
-      // Distribute (up to 12) clusters across 4 links
+    //   // Distribute (up to 12) clusters across 4 links
 
-      energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-	c.clusterEnergy();
-      crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
-	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
-      towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
+    //   energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+    // 	c.clusterEnergy();
+    //   crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
+    // 	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
+    //   towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+    // 	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
 
       
-    }
+    // }
     
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
-    // (rotating the negative eta cards so that the endcap region is pointing up)
-    // while the emulator treats the 4x17 array as always starting in the top left corner if we look
-    // at the usual RCT diagram.
-    std::cout << "Sanity check: Card " << cc << ": towers (HCAL + ECAL): ";
-    for (int i = 0; i < n_towers_cardEta; i++) {
-      for (int j = 0; j < n_towers_cardPhi; j++ ) {
+    // // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
+    // // (rotating the negative eta cards so that the endcap region is pointing up)
+    // // while the emulator treats the 4x17 array as always starting in the top left corner if we look
+    // // at the usual RCT diagram.
+    // std::cout << "Sanity check: Card " << cc << ": towers (HCAL + ECAL): ";
+    // for (int i = 0; i < n_towers_cardEta; i++) {
+    //   for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
-	std::cout << towerSumCard[i][j].et() << " "; 
+    // 	std::cout << towerSumCard[i][j].et() << " "; 
       
-	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
-	if ((cc % 2) == 1) { // if cc is odd (positive eta)
-	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
-	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
-	}
-	else {  // if cc is even (negative eta), we need to rotate the coordinates
-	  //	  std::cout << "writing to [" << (3-j) << "][" << (16-i) << "] ";
-	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j].et();
-	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j].et();
-	}
-      }
-    }
-    std::cout << std::endl;
+    // 	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
+    // 	if ((cc % 2) == 1) { // if cc is odd (positive eta)
+    // 	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
+    // 	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
+    // 	}
+    // 	else {  // if cc is even (negative eta), we need to rotate the coordinates
+    // 	  //	  std::cout << "writing to [" << (3-j) << "][" << (16-i) << "] ";
+    // 	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j].et();
+    // 	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j].et();
+    // 	}
+    //   }
+    // }
+    // std::cout << std::endl;
+
+
+    ///////////////////////////////////////////////////////////
+    // Produce output collections
+    //////////////////////////////////////////////////////////
+    for (auto & c : sort_clusterIn) {                                                      
+      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";    
+
+      float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, c.region(), c.towerEta(), c.clusterEta()) );
+      float realPhi = getPhi_fromCrystaliPhi( getCrystal_iPhi_fromCardRegionInfo(cc, c.region(), c.towerPhi(), c.clusterPhi()) );
+      
+      std::cout << "Real eta, phi " << " (" << realEta << ", " << realPhi << ") ";
+      reco::Candidate::PolarLorentzVector p4calibrated(c.clusterEnergy(),
+						       realEta,
+						       realPhi,
+						       0.);
+      
+      // Constructor definition at: https://github.com/cms-l1t-offline/cmssw/blob/l1t-phase2-v3.3.11/DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h#L34
+      l1tp2::CaloCrystalCluster cluster(p4calibrated,
+					c.clusterEnergy()/8.0,
+					0,  // float h over e
+					0,  // float iso
+					0   // DetId seedCrystal 
+					);
+      
+      L1EGXtalClusters->push_back(cluster);
+
+					
+						       
+    }                                                                                                            
+
+
 
   } // end of loop over cards
+
+  iEvent.put(std::move(L1EGXtalClusters));
   
   std::cout << "I'm here!" << std::endl;
 
-  // Write the emulator outputs to a .txt file
-  ofstream f;
-  f.open("firmwareEmulatorL1outputs.txt");
-  // Use optional arguments if you want to print only one card
-  // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
-  // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
-  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
-  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)");
-  printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
-			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
-  printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
-			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
-  f.close();
+  // // Write the emulator outputs to a .txt file
+  // ofstream f;
+  // f.open("firmwareEmulatorL1outputs.txt");
+  // // Use optional arguments if you want to print only one card
+  // // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  // // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
+  // bool printOnlyOneCard = true;
+  // printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", printOnlyOneCard, theCard);
+  // printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", printOnlyOneCard, theCard);
+  // printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)", printOnlyOneCard, theCard);
+  // printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
+  // 			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)", printOnlyOneCard, theCard);
+  // printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
+  // 			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", printOnlyOneCard, theCard);
+  // f.close();
 }
 
 ////////////////////////////////////////////////////////////////////////// 

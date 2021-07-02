@@ -21,7 +21,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 # xrdcp root://cms-xrd-global.cern.ch///store/mc/Phase2HLTTDRWinter20DIGI/SinglePion_PT0to200/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/0248A46E-D4D8-514D-A6F9-699E32BDF4B6.root SinglePion_PT0to200_PU200_04AC207E-AF58-C04A-9F90-746DDC628248.root
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/SinglePion_PT0to200_NoPU_04AC207E-AF58-C04A-9F90-746DDC628248.root'),
+#                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/SinglePion_PT0to200_NoPU_04AC207E-AF58-C04A-9F90-746DDC628248.root'),
+                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
                             inputCommands = cms.untracked.vstring(
                                 "keep *"
                             )

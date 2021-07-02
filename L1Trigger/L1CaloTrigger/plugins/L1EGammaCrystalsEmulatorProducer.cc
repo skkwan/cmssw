@@ -480,8 +480,16 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   // After merging the clusters in different regions of a single L1 card
   vector<mycluster> cluster_list_merged[n_towers_halfPhi];
 
+
+  int theCard = 29;
+
+
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
     // Loop over 3x4 etaxphi regions to search for max 5 clusters
+
+    // TEMP: only do one card
+    if (cc != theCard) continue;
+
     for (int nregion = 0; nregion <= n_clusters_max; ++nregion) {
       int nclusters = 0;
       bool build_cluster = true;
@@ -765,14 +773,15 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   // Write the emulator outputs to a .txt file
   ofstream f;
   f.open("cmsswProducerL1outputs.txt");
+  bool printOneCard = true;
   //  unsigned int precision = 3;
   // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-  printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
-  printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
-  printL1Array_ClusterFloat(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)");
-  printL1Array_ClusterInt(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
-  printL1Array_ClusterInt(f, crystalID_cluster_L1Card, "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
+  printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", printOneCard, theCard);
+  printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", printOneCard, theCard);
+  printL1Array_ClusterFloat(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)", printOneCard, theCard);
+  printL1Array_ClusterInt(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)", printOneCard, theCard);
+  printL1Array_ClusterInt(f, crystalID_cluster_L1Card, "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", printOneCard, theCard);
   f.close();
 
   //*********************************************************
