@@ -481,14 +481,14 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   vector<mycluster> cluster_list_merged[n_towers_halfPhi];
 
 
-  int theCard = 29;
+  int theCard = -1;
 
 
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
     // Loop over 3x4 etaxphi regions to search for max 5 clusters
 
     // TEMP: only do one card
-    if (cc != theCard) continue;
+    //    if (cc != theCard) continue;
 
     for (int nregion = 0; nregion <= n_clusters_max; ++nregion) {
       int nclusters = 0;
@@ -670,9 +670,9 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       }
       if (cluster_list[cc][jj].cpt > 0) {
         cluster_list[cc][jj].cpt =
-            cluster_list[cc][jj].cpt *
-            calib_(cluster_list[cc][jj].cpt,
-                   std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
+	  cluster_list[cc][jj].cpt * 1.0;
+	  // calib_(cluster_list[cc][jj].cpt,
+          //          std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
       }
     }
@@ -717,7 +717,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
             for (int ii = 0; ii < n_towers_per_link; ++ii) {
               //Apply Mark's calibration at the same time (row of the lowest pT, as a function of eta)
               if ((getCrystal_etaID(hit.position().eta()) / n_crystals_towerEta) % n_towers_per_link == ii) {
-		ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * calib_(0, std::abs(hit.position().eta()));
+		// TEMP: comment out calibration
+		ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * 1.0; //calib_(0, std::abs(hit.position().eta()));
 		ECAL_tower_L1Card[jj][ii][cc] += hit.pt();
                 iEta_tower_L1Card[jj][ii][cc] = getTower_absoluteEtaID(hit.position().eta());  //hit.id().ieta();
                 iPhi_tower_L1Card[jj][ii][cc] = getTower_absolutePhiID(hit.position().phi());  //hit.id().iphi();
@@ -773,7 +774,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   // Write the emulator outputs to a .txt file
   ofstream f;
   f.open("cmsswProducerL1outputs.txt");
-  bool printOneCard = true;
+  bool printOneCard = false;
   //  unsigned int precision = 3;
   // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
@@ -1129,6 +1130,9 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                                             is_looseTkiso&& is_looseTkss,
                                             is_iso&& is_ss);
           // Experimental parameters, don't want to bother with hardcoding them in data format
+	  // Print L2 array output
+	  printL1Array_ClusterFloat(f, energy_cluster_L2Card, "energy_cluster_L2Card (float)", printOneCard, theCard);
+
           std::map<std::string, float> params;
           params["standaloneWP_showerShape"] = is_ss;
           params["standaloneWP_isolation"] = is_iso;
