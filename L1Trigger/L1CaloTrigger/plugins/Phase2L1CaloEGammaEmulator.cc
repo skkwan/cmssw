@@ -187,8 +187,7 @@ int getCard_refCrystal_iPhi(int cc) {
   } 
   else {  
     // if cc is even, the bottom left corner is further in phi, hence the +4 and -1
-    //    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI) - 1;
-    return ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI);
+    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI) - 1;
   }
 }
 
