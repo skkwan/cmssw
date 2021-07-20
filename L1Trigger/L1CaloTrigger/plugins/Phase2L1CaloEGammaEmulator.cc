@@ -186,8 +186,9 @@ int getCard_refCrystal_iPhi(int cc) {
     return int(cc / 2) * TOWER_IN_PHI * CRYSTALS_IN_TOWER_PHI; 
   } 
   else {  
-    // if cc is even, the bottom left corner is further in phi, hence the +4                
-    return ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI;
+    // if cc is even, the bottom left corner is further in phi, hence the +4 and -1
+    //    return (((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI) - 1;
+    return ((int(cc / 2) * TOWER_IN_PHI) + 4) * CRYSTALS_IN_TOWER_PHI);
   }
 }
 
@@ -1736,6 +1737,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	ehit.setEt_uint((ap_uint<10>) hit.encodedEt());  // also save the uint Et
 	ehit.setPt();
 	ecalhits.push_back(ehit);
+
 	
       }
   }
@@ -1837,10 +1839,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*******************************************************************
 
 
-  //  int theCard = 29;
+  int theCard = 28;
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
     // TEMP: only do one card
-    //    if (cc != theCard) continue;
+    if (cc != theCard) continue;
     
     // Initialize variables
     card rctCard;
@@ -1894,15 +1896,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	int inLink_crystal_iEta = (inRegion_crystal_iEta % CRYSTALS_IN_TOWER_ETA);
 	int inLink_crystal_iPhi = (inRegion_crystal_iPhi % CRYSTALS_IN_TOWER_PHI);
 
+	
 	// std::cout << "local_iEta, local_iPhi, regionNumber: "
 	// 	  << local_iEta << ", " 
 	// 	  << local_iPhi << ", "
-	// 	  << regionNumber << std::endl;
+	// 	    << regionNumber << std::endl;
 	// std::cout << "inRegion_crystal_iEta, inRegion_crystal_iPhi (expecting 15x20), regionNumber (expecting 0-5): " << std::endl;
-	// 	  << inRegion_crystal_iEta << ", "
-	// 	  << inRegion_crystal_iPhi << ", "
-	// 	  << regionNumber << std::endl;
-
+	// << inRegion_crystal_iEta << ", "
+	// << inRegion_crystal_iPhi << ", "
+	// << regionNumber << std::endl;
+	  
 	// Access the right region -> link -> crystal and increment the energy
 	if (regionNumber < N_REGIONS_PER_CARD) {
 	  region3x4& myRegion = rctCard.getRegion3x4(regionNumber);
@@ -1923,25 +1926,28 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  // myLink.addCrystalE(inLink_crystal_iEta, inLink_crystal_iPhi, 10);
 	  
 	}
-	
-	std::cout << "Card: " << cc 
-		  << ", hit (Eta, phi, et): "
-		  << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ". "
-		  << "(iEta, iPhi): " 
-		  << getCrystal_iEta(hit.position().eta()) << ", "
-		  << getCrystal_iPhi(hit.position().phi()) << ". "
-		  << "(Crystal eta, phi): "
-		  << getEta_fromCrystaliEta(getCrystal_iEta(hit.position().eta())) << ", "
-		  << getPhi_fromCrystaliPhi(getCrystal_iPhi(hit.position().phi())) << ". "
-		  << "(Go back to iEta, iPhi in card: ) "
-		  << getCrystal_iEta_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iEta, inLink_crystal_iEta) << ", "
-		  << getCrystal_iPhi_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iPhi, inLink_crystal_iPhi) << "."
+
+	if (cc == 28 && regionNumber == 3) {
+	  std::cout << "Card: " << cc 
+		    << ", hit (Eta, phi, et): "
+		    << hit.position().eta() << ", " << hit.position().phi() << ", " << hit.et_uint() << ". "
+		    << "(iEta, iPhi): " 
+		    << getCrystal_iEta(hit.position().eta()) << ", "
+		    << getCrystal_iPhi(hit.position().phi()) << ". "
+		    << "(Crystal eta, phi): "
+		    << getEta_fromCrystaliEta(getCrystal_iEta(hit.position().eta())) << ", "
+		    << getPhi_fromCrystaliPhi(getCrystal_iPhi(hit.position().phi())) << ". "
+		    // << "(Go back to iEta, iPhi in card: ) "
+		    // << getCrystal_iEta_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iEta, inLink_crystal_iEta) << ", "
+		    // << getCrystal_iPhi_fromCardRegionInfo(cc, regionNumber, inRegion_tower_iPhi, inLink_crystal_iPhi) << "."
 		  // << "local_iEta/iPhi: " << local_iEta << ", " << local_iPhi << ", " 
 		  // << "inCard_tower_iEta/iPhi: " << inCard_tower_iEta     << ", " << inCard_tower_iPhi << ", "
 		  // << "region/inRegion_tower_iEta/iPhi: " << regionNumber << ", " << inRegion_tower_iEta << ", "
 		  // << inRegion_tower_iPhi << ", "
 		  // << "inLink crystal iEta/iPhi: " << inLink_crystal_iEta << ", " << inLink_crystal_iPhi 
-		  << std::endl;
+		    << std::endl;
+
+	}
       }      
   } // end of loop over ECAL hits
 
@@ -2130,56 +2136,56 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Write the outputs to the L1 outputs       //
     //-------------------------------------------//
 
-    // // Print the sorted vector
-    // std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
-    // // for (auto & c : sort_clusterIn) {
-    // for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
-    //   Cluster c = sort_clusterIn[jj];
+    // Print the sorted vector
+    std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
+    // for (auto & c : sort_clusterIn) {
+    for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
+      Cluster c = sort_clusterIn[jj];
 
-    //   std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
-    // 		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
-    // 		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
-    // 		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
-    // 		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
-    // 		<< std::endl;
+      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
+    		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
+    		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
+    		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
+    		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
+    		<< std::endl;
       
-    //   // Distribute (up to 12) clusters across 4 links
+      // Distribute (up to 12) clusters across 4 links
 
-    //   energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-    // 	c.clusterEnergy();
-    //   crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
-    // 	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
-    //   towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-    // 	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
+      energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+    	c.clusterEnergy();
+      crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
+    	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
+      towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+    	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
 
       
-    // }
+    }
     
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
-    // // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
-    // // (rotating the negative eta cards so that the endcap region is pointing up)
-    // // while the emulator treats the 4x17 array as always starting in the top left corner if we look
-    // // at the usual RCT diagram.
-    // std::cout << "Sanity check: Card " << cc << ": towers (HCAL + ECAL): ";
-    // for (int i = 0; i < n_towers_cardEta; i++) {
-    //   for (int j = 0; j < n_towers_cardPhi; j++ ) {
+    // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
+    // (rotating the negative eta cards so that the endcap region is pointing up)
+    // while the emulator treats the 4x17 array as always starting in the top left corner if we look
+    // at the usual RCT diagram.
+    std::cout << "Sanity check: Card " << cc << ": towers (HCAL + ECAL): ";
+    for (int i = 0; i < n_towers_cardEta; i++) {
+      for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
-    // 	std::cout << towerSumCard[i][j].et() << " "; 
+    	std::cout << towerSumCard[i][j].et() << " "; 
       
-    // 	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
-    // 	if ((cc % 2) == 1) { // if cc is odd (positive eta)
-    // 	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
-    // 	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
-    // 	}
-    // 	else {  // if cc is even (negative eta), we need to rotate the coordinates
-    // 	  //	  std::cout << "writing to [" << (3-j) << "][" << (16-i) << "] ";
-    // 	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j].et();
-    // 	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j].et();
-    // 	}
-    //   }
-    // }
-    // std::cout << std::endl;
+    	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
+    	if ((cc % 2) == 1) { // if cc is odd (positive eta)
+    	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
+    	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
+    	}
+    	else {  // if cc is even (negative eta), we need to rotate the coordinates
+    	  //	  std::cout << "writing to [" << (3-j) << "][" << (16-i) << "] ";
+    	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j].et();
+    	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j].et();
+    	}
+      }
+    }
+    std::cout << std::endl;
 
 
     ///////////////////////////////////////////////////////////
@@ -2192,7 +2198,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       float realPhi = getPhi_fromCrystaliPhi( getCrystal_iPhi_fromCardRegionInfo(cc, c.region(), c.towerPhi(), c.clusterPhi()) );
       
       std::cout << "Real eta, phi " << " (" << realEta << ", " << realPhi << ") ";
-      reco::Candidate::PolarLorentzVector p4calibrated(c.clusterEnergy(),
+      reco::Candidate::PolarLorentzVector p4calibrated(c.clusterEnergy()/8.0,
 						       realEta,
 						       realPhi,
 						       0.);
@@ -2219,21 +2225,22 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   
   std::cout << "I'm here!" << std::endl;
 
-  // // Write the emulator outputs to a .txt file
-  // ofstream f;
-  // f.open("firmwareEmulatorL1outputs.txt");
-  // // Use optional arguments if you want to print only one card
-  // // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
-  // // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-  // bool printOnlyOneCard = true;
-  // printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", printOnlyOneCard, theCard);
-  // printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", printOnlyOneCard, theCard);
-  // printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)", printOnlyOneCard, theCard);
-  // printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
-  // 			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)", printOnlyOneCard, theCard);
-  // printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
-  // 			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", printOnlyOneCard, theCard);
-  // f.close();
+
+  // Write the emulator outputs to a .txt file
+  ofstream f;
+  f.open("firmwareEmulatorL1outputs.txt");
+  // Use optional arguments if you want to print only one card
+  // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
+  // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
+  bool printOnlyOneCard = false;
+  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
+  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
+  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)");
+  printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
+  			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
+  printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
+  			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
+  f.close();
 }
 
 ////////////////////////////////////////////////////////////////////////// 

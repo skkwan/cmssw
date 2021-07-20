@@ -387,7 +387,44 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       ehit.setPosition(GlobalVector(cell->getPosition().x(), cell->getPosition().y(), cell->getPosition().z()));
       ehit.setEnergy(et);
       ehit.setPt();
-      ecalhits.push_back(ehit);
+
+      // TEMP: Debugging purposes only: only consider ecal hits in Card 28
+      // ecalhits.push_back(ehit);
+
+      // Debugging purposes only: print all ECAL hits in event display
+      int cc = 28;
+      if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
+	  getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
+	  getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
+	  getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
+	
+	// TEMP: only use ECAL hits in Card 28
+	ecalhits.push_back(ehit);
+
+	if ((getCrystal_etaID(ehit.position().eta()) > 29) && (getCrystal_etaID(ehit.position().eta()) < 35)) {
+	  std::cout << "[CARD " << cc << "]: Found ECAL cell/hit with eta/phi "
+		    << ehit.position().eta() << ", "
+		    << ehit.position().phi() << ", and in-detector phiID and etaID "
+		    << getCrystal_phiID(ehit.position().phi()) << ", "
+		    << getCrystal_etaID(ehit.position().eta()) << ", and ET (GeV) " 
+		    << et << std::endl;
+	}
+      }
+
+      // cc = 26;
+      // if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
+      //     getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
+      //     getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
+      //     getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
+      // 	std::cout << "[CARD " << cc << "]: Found ECAL cell/hit with coordinates " << cell->getPosition().x() << ","
+      //             << cell->getPosition().y() << ","
+      //             << cell->getPosition().z() << ", and in-detector phiID and etaID "
+      //             << getCrystal_phiID(ehit.position().phi()) << ", "
+      //             << getCrystal_etaID(ehit.position().eta()) << "and ET (GeV) "
+      //             << et << std::endl;
+
+      // }
+      
     }
   }
 
@@ -671,8 +708,13 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       if (cluster_list[cc][jj].cpt > 0) {
         cluster_list[cc][jj].cpt =
 	  cluster_list[cc][jj].cpt * 1.0;
-	  // calib_(cluster_list[cc][jj].cpt,
-          //          std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
+	  //	  cluster_list[cc][jj].cpt * calib_(cluster_list[cc][jj].cpt,
+	//					    std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
+	// std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
+	// 	  << std::abs(cluster_list[cc][jj].craweta_) << " is: "
+	// 	  << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
+	// 	  << std::endl;
+								   
         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
       }
     }
@@ -1131,7 +1173,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                                             is_iso&& is_ss);
           // Experimental parameters, don't want to bother with hardcoding them in data format
 	  // Print L2 array output
-	  printL1Array_ClusterFloat(f, energy_cluster_L2Card, "energy_cluster_L2Card (float)", printOneCard, theCard);
+	  //	  printL1Array_ClusterFloat(f, energy_cluster_L2Card, "energy_cluster_L2Card (float)", printOneCard, theCard);
 
           std::map<std::string, float> params;
           params["standaloneWP_showerShape"] = is_ss;
