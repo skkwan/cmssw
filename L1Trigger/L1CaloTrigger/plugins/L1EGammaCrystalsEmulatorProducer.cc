@@ -388,43 +388,27 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       ehit.setEnergy(et);
       ehit.setPt();
 
-      // TEMP: Debugging purposes only: only consider ecal hits in Card 28
-      // ecalhits.push_back(ehit);
+      ecalhits.push_back(ehit);
 
-      // Debugging purposes only: print all ECAL hits in event display
-      int cc = 28;
-      if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
-	  getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
-	  getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
-	  getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
-	
-	// TEMP: only use ECAL hits in Card 28
-	ecalhits.push_back(ehit);
-
-	if ((getCrystal_etaID(ehit.position().eta()) > 29) && (getCrystal_etaID(ehit.position().eta()) < 35)) {
-	  std::cout << "[CARD " << cc << "]: Found ECAL cell/hit with eta/phi "
-		    << ehit.position().eta() << ", "
-		    << ehit.position().phi() << ", and in-detector phiID and etaID "
-		    << getCrystal_phiID(ehit.position().phi()) << ", "
-		    << getCrystal_etaID(ehit.position().eta()) << ", and ET (GeV) " 
-		    << et << std::endl;
-	}
-      }
-
-      // cc = 26;
+      // Debugging purposes only: only use ECAL hits in Card 28 to make clusters
+      // int cc = 28;
       // if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
-      //     getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
-      //     getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
-      //     getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
-      // 	std::cout << "[CARD " << cc << "]: Found ECAL cell/hit with coordinates " << cell->getPosition().x() << ","
-      //             << cell->getPosition().y() << ","
-      //             << cell->getPosition().z() << ", and in-detector phiID and etaID "
-      //             << getCrystal_phiID(ehit.position().phi()) << ", "
-      //             << getCrystal_etaID(ehit.position().eta()) << "and ET (GeV) "
-      //             << et << std::endl;
+      // 	  getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
+      // 	  getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
+      // 	  getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
+	
+      // 	// TEMP: only use ECAL hits in Card 28
+      // 	ecalhits.push_back(ehit);
 
+      // 	if ((getCrystal_etaID(ehit.position().eta()) > 29) && (getCrystal_etaID(ehit.position().eta()) < 35)) {
+      // 	  std::cout << "[CARD " << cc << "]: Found ECAL cell/hit with eta/phi "
+      // 		    << ehit.position().eta() << ", "
+      // 		    << ehit.position().phi() << ", and in-detector phiID and etaID "
+      // 		    << getCrystal_phiID(ehit.position().phi()) << ", "
+      // 		    << getCrystal_etaID(ehit.position().eta()) << ", and ET (GeV) " 
+      // 		    << et << std::endl;
+      // 	}
       // }
-      
     }
   }
 
@@ -544,7 +528,9 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
               // Check that the hit is in the good card
               getCrystal_etaID(hit.position().eta()) < getEtaMin_card(cc) + n_crystals_3towers * (nregion + 1) &&
               getCrystal_etaID(hit.position().eta()) >= getEtaMin_card(cc) + n_crystals_3towers * nregion &&
-              !hit.used() && hit.pt() >= 1.0 && hit.pt() > centerhit.pt())  // 3 towers x 5 crystals
+              !hit.used() && hit.pt() > centerhit.pt() 
+	      // && hit.pt() >= 1.0  // TEMP: do not require the highest hit to have pt > 1
+	      )  // 3 towers x 5 crystals
           {
             // Highest hit in good region with pt>1 and not used in any other cluster
             centerhit = hit;

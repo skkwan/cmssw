@@ -1,5 +1,5 @@
 /* 
- * Description: Read crystal-level information
+ * Description: Phase 2 RCT Layer 1 emulator: create ECAL crystal collections
  */
 
 // system include files
@@ -1637,31 +1637,31 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   cluster_tmp.energy = cluster_tmpCenter.energy;
   cluster_tmp.brems = 0;
 
-  // NEW: do not create cluster with a seed that has energy less than 1 GeV
-  if ((cluster_tmpCenter.energy/8.0) <= 1.0) {
-    cluster_tmp.energy = 0;
-    cluster_tmp.phiMax = 0;
-    cluster_tmp.etaMax = 0;
-    returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.phiMax, cluster_tmp.etaMax);
+  // NEW: do not seed cluster with a seed that has energy less than 1 GeV
+  // if ((cluster_tmpCenter.energy/8.0) <= 1.0) {
+  //   cluster_tmp.energy = 0;
+  //   cluster_tmp.phiMax = 0;
+  //   cluster_tmp.etaMax = 0;
+  //   returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.phiMax, cluster_tmp.etaMax);
 
-  }
-  else {
+  // }
+  // else {
 
     // Create a cluster 
 
-    if ((cluster_tmpBneg.energy > cluster_tmpCenter.energy/8) && (cluster_tmpBneg.energy > cluster_tmpBpos.energy)) {    
-      cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBneg.energy);
-      std::cout << "getClusterFromRegion3x4: Brems in negative phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
-      cluster_tmp.brems = 1; }
-    else if(cluster_tmpBpos.energy > cluster_tmpCenter.energy/8) {
-      cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBpos.energy);
-      std::cout << "getClusterFromRegion3x4: Brems in positive phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
-      cluster_tmp.brems = 2; }
-    
-    returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.etaMax, cluster_tmp.phiMax);
-    removeClusterFromCrystal(temp, seed_eta, seed_phi, cluster_tmp.brems);
-  }
+  if ((cluster_tmpBneg.energy > cluster_tmpCenter.energy/8) && (cluster_tmpBneg.energy > cluster_tmpBpos.energy)) {    
+    cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBneg.energy);
+    std::cout << "getClusterFromRegion3x4: Brems in negative phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
+    cluster_tmp.brems = 1; }
+  else if(cluster_tmpBpos.energy > cluster_tmpCenter.energy/8) {
+    cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBpos.energy);
+    std::cout << "getClusterFromRegion3x4: Brems in positive phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
+    cluster_tmp.brems = 2; }
   
+  returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.etaMax, cluster_tmp.phiMax);
+  removeClusterFromCrystal(temp, seed_eta, seed_phi, cluster_tmp.brems);
+  //}
+
   return returnCluster;
   
 }
@@ -1838,25 +1838,27 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*******************************************************************
 
 
-  int theCard = 28;
+  int theCard = 28; // Debugging only
+  
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
-    // TEMP: only do one card
-    if (cc != theCard) continue;
+    // Debugging purposes only: TEMP: only do one card
+    // if (cc != theCard) continue;
     
     // Initialize variables
     card rctCard;
     rctCard.setIdx(cc);
     
-    // TEMP: do not loop over ECAL hits
-    int nHits = 4;
-    int arr_local_iEta[nHits] = {0, 1, 8, 9};
-    int arr_local_iPhi[nHits] = {0, 0, 10, 10};
+    // Debugging only: inject four hits at specific locations
+    // int nHits = 4;
+    // int arr_local_iEta[nHits] = {0, 1, 8, 9};
+    // int arr_local_iPhi[nHits] = {0, 0, 10, 10};
     
     //    for (int j = 0; j < nHits; j++) {
     for (const auto& hit : ecalhits) {
 
-      // TEMP: do not use this block
+      // Debugging only: do not use this block
       //  if (true) {
+
       // Check if the hit is in cards 0-35
       if ((getCrystal_iPhi(hit.position().phi()) <= getCard_iPhiMax(cc)) &&
       	  (getCrystal_iPhi(hit.position().phi()) >= getCard_iPhiMin(cc)) &&
