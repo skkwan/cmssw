@@ -1627,6 +1627,18 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
 
   cluster_tmp = getClusterPosition(ecalRegion);
 
+  // TESTING: Ignore clusters with seed < 1.0 GeV
+  float seedEnergy = cluster_tmp.seedEnergy/8.0;
+  std::cout << "[~~~~] seedEnergy (GeV) " << seedEnergy << ", ";
+  if ((cluster_tmp.seedEnergy/8.0) < 1.0) {
+    std::cout << "less than 1.0 GeV, pack zero'd cluster" << std::endl;
+    cluster_tmp.energy = 0;
+    cluster_tmp.phiMax = 0;
+    cluster_tmp.etaMax = 0;
+    return packCluster(cluster_tmp.energy, cluster_tmp.phiMax, cluster_tmp.etaMax);
+  }
+  std::cout << "greater than 1.0 GeV, continue" << std::endl;
+  
   ap_uint<5> seed_phi = cluster_tmp.phiMax;
   ap_uint<5> seed_eta = cluster_tmp.etaMax;
   
@@ -1637,31 +1649,20 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   cluster_tmp.energy = cluster_tmpCenter.energy;
   cluster_tmp.brems = 0;
 
-  // NEW: do not seed cluster with a seed that has energy less than 1 GeV
-  // if ((cluster_tmpCenter.energy/8.0) <= 1.0) {
-  //   cluster_tmp.energy = 0;
-  //   cluster_tmp.phiMax = 0;
-  //   cluster_tmp.etaMax = 0;
-  //   returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.phiMax, cluster_tmp.etaMax);
-
-  // }
-  // else {
-
-    // Create a cluster 
-
-  if ((cluster_tmpBneg.energy > cluster_tmpCenter.energy/8) && (cluster_tmpBneg.energy > cluster_tmpBpos.energy)) {    
+  // Create a cluster 
+  if ((cluster_tmpBneg.energy > cluster_tmpCenter.energy/8) && (cluster_tmpBneg.energy > cluster_tmpBpos.energy)) {   
     cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBneg.energy);
-    std::cout << "getClusterFromRegion3x4: Brems in negative phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
+    // std::cout << "getClusterFromRegion3x4: Brems in negative phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
     cluster_tmp.brems = 1; }
   else if(cluster_tmpBpos.energy > cluster_tmpCenter.energy/8) {
     cluster_tmp.energy = (cluster_tmpCenter.energy + cluster_tmpBpos.energy);
-    std::cout << "getClusterFromRegion3x4: Brems in positive phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
+    // std::cout << "getClusterFromRegion3x4: Brems in positive phi direction: set cluster ET to " << cluster_tmp.energy << std::endl;
     cluster_tmp.brems = 2; }
   
   returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.etaMax, cluster_tmp.phiMax);
   removeClusterFromCrystal(temp, seed_eta, seed_phi, cluster_tmp.brems);
-  //}
-
+  
+  
   return returnCluster;
   
 }

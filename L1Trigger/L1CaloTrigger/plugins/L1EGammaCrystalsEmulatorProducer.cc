@@ -529,7 +529,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
               getCrystal_etaID(hit.position().eta()) < getEtaMin_card(cc) + n_crystals_3towers * (nregion + 1) &&
               getCrystal_etaID(hit.position().eta()) >= getEtaMin_card(cc) + n_crystals_3towers * nregion &&
               !hit.used() && hit.pt() > centerhit.pt() 
-	      // && hit.pt() >= 1.0  // TEMP: do not require the highest hit to have pt > 1
+	      && hit.pt() >= 1.0  // TEMP: do not require the highest hit to have pt > 1
 	      )  // 3 towers x 5 crystals
           {
             // Highest hit in good region with pt>1 and not used in any other cluster
