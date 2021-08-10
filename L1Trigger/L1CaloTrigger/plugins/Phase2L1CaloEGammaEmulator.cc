@@ -78,6 +78,16 @@ static constexpr float cut_500_MeV = 0.5;
 static constexpr int N_CLUSTERS_PER_REGION = 4;       // number of clusters per ECAL region
 static constexpr int N_REGIONS_PER_CARD = 6;          // number of ECAL regions per card
 
+// absolute IDs range from 0-33
+// 0-16 are iEta -17 to -1
+// 17 to 33 are iEta 1 to 17
+static constexpr int toweriEta_fromAbsoluteID_shift = 16;
+
+// absolute IDs range from 0-71.
+// To align with detector tower IDs (1 - n_towers_Phi)
+// shift all indices by 37 and loop over after 72
+static constexpr int toweriPhi_fromAbsoluteID_shift_lowerHalf = 37;
+static constexpr int toweriPhi_fromAbsoluteID_shift_upperHalf = 35;
 
 // Assert that the card index is within bounds. (Valid cc: 0 to 35, since there are 36 RCT cards)
 bool isValidCard(int cc) {
@@ -164,6 +174,40 @@ int getTower_absPhiID(float phi) {
   float size_cell = 2 * M_PI / n_towers_Phi;
   int phiID = int((phi + M_PI) / size_cell);
   return phiID;
+}
+
+// From the tower absolute ID in eta (0-33), get the tower iEta (-17 to 17)
+// Same as getToweriEta_fromAbsoluteID in previous CMSSW emulator
+int getToweriEta_fromAbsID(int id) {
+  if (id < n_towers_per_link)
+    return id - n_towers_per_link;
+  else
+    return id - toweriEta_fromAbsoluteID_shift;
+}
+
+// From the tower absolute ID in phi (0-71), get the tower iPhi (-36 to 36)
+// Same as getToweriPhi_fromAbsoluteID in previous CMSSW emulator
+int getToweriPhi_fromAbsID(int id) {
+  if (id < n_towers_Phi / 2)
+    return id + toweriPhi_fromAbsoluteID_shift_lowerHalf;
+  else
+    return id - toweriPhi_fromAbsoluteID_shift_upperHalf;
+}
+
+// From the tower absolute ID in eta (0-33), get the real eta of the tower center
+// Same as getTowerEta_fromAbsoluteID in previous CMSSW emulator
+float getTowerEta_fromAbsID(int id) {
+  float size_cell = 2 * ECAL_eta_range / n_towers_Eta;
+  float eta = (id * size_cell) - ECAL_eta_range + 0.5 * size_cell;
+  return eta;
+}
+
+// From the tower absolute ID in phi (0-71), get the real phi of the tower center
+// Same as getTowerPhi_fromAbsoluteID in previous CMSSW emulator
+float getTowerPhi_fromAbsID(int id) {
+  float size_cell = 2 * M_PI / n_towers_Phi;
+  float phi = (id * size_cell) - M_PI + 0.5 * size_cell;
+  return phi;
 }
 
 // Given the RCT card number (0-35), get the TOWER iPhi of the "bottom left" corner (0-71)
@@ -1679,6 +1723,7 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet &
 		 consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP"))),
   calib_(iConfig.getParameter<edm::ParameterSet>("calib")) {
   produces<l1tp2::CaloCrystalClusterCollection>();
+  produces<l1tp2::CaloTowerCollection>();
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -2210,21 +2255,34 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 					c.clusterEnergy()/8.0,
 					0,  // float h over e
 					0,  // float iso
-					0   // DetId seedCrystal 
+					0,  // DetId seedCrystal 
+					0,  // puCorrPt
+					0 // (float) c.brems  // brem
 					);
       
       L1EGXtalClusters->push_back(cluster);
+    }  // end of loop over clusters                                                                                                           
+    // Produce output tower collections
+    for (int ii = 0; ii < n_towers_cardPhi; ++ii) { // 4 towers per card in phi
+      for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta
 
-					
-						       
-    }                                                                                                            
-
+	l1tp2::CaloTower l1CaloTower;
+	l1CaloTower.setEcalTowerEt(ECAL_tower_L1Card[ii][jj][cc]);
+	l1CaloTower.setHcalTowerEt(HCAL_tower_L1Card[ii][jj][cc]);
+	l1CaloTower.setTowerIEta(getToweriEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]));
+        l1CaloTower.setTowerIPhi(getToweriPhi_fromAbsID(iPhi_tower_L1Card[ii][jj][cc]));
+        l1CaloTower.setTowerEta(getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]));
+        l1CaloTower.setTowerPhi(getTowerPhi_fromAbsID(iPhi_tower_L1Card[ii][jj][cc]));
+	
+	L1CaloTowers->push_back(l1CaloTower);
+      }
+    }
 
 
   } // end of loop over cards
 
   iEvent.put(std::move(L1EGXtalClusters));
-  
+  iEvent.put(std::move(L1CaloTowers));
   std::cout << "I'm here!" << std::endl;
 
 
