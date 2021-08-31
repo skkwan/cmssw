@@ -73,6 +73,12 @@ static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one
 
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float half_crystal_size = 0.00873;
+
+static constexpr float a0_80 = 0.85, a1_80 = 0.0080, a0 = 0.21;                        // passes_iso
+static constexpr float b0 = 0.38, b1 = 1.9, b2 = 0.05;                                 // passes_looseTkiso
+static constexpr float c0_ss = 0.94, c1_ss = 0.052, c2_ss = 0.044;                     // passes_ss
+static constexpr float d0 = 0.96, d1 = 0.0003;                                         // passes_photon
+static constexpr float e0_looseTkss = 0.944, e1_looseTkss = 0.65, e2_looseTkss = 0.4;  // passes_looseTkss
 static constexpr float cut_500_MeV = 0.5;
 
 static constexpr int N_CLUSTERS_PER_REGION = 4;       // number of clusters per ECAL region
@@ -378,6 +384,11 @@ public:
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
+  // bool passes_ss(float pt, float ss);
+  // bool passes_photon(float pt, float pss);
+  // bool passes_iso(float pt, float iso);
+  // bool passes_looseTkss(float pt, float ss);
+  // bool passes_looseTkiso(float pt, float iso);
 
   edm::EDGetTokenT<EcalEBTrigPrimDigiCollection> ecalTPEBToken_;
   edm::EDGetTokenT<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcalTPToken_;
@@ -390,6 +401,7 @@ private:
   const CaloSubdetectorGeometry* hbGeometry;
   edm::ESHandle<HcalTopology> hbTopology;
   const HcalTopology* hcTopology_;
+  
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1261,15 +1273,24 @@ class Cluster{
 public:
   ap_uint<28> data;
   int regionIdx;    // newly added: specify the region that the cluster is in (0 through 4 in barrel, 5 if in endcap)
+  ap_uint<2> brems;        // equivalent to clusterInfo.brems
+  ap_uint<15> et5x5;      // equivalent to clusterInfo.et5x5
+  ap_uint<15> et2x5;      // equivalent to clusterInfo.et2x5
 
   Cluster(){
     data = 0;
     regionIdx = -1;
+    brems = 0;
+    et5x5 = 0;
+    et2x5 = 0;
   }
 
   Cluster& operator=(const Cluster& rhs){
-    data = rhs.data;
+    data      = rhs.data;
     regionIdx = rhs.regionIdx;
+    brems     = rhs.brems;
+    et5x5     = rhs.et5x5;
+    et2x5     = rhs.et2x5;
     return *this;
   }
 
@@ -1292,8 +1313,10 @@ public:
   ap_uint<3> satur() {return ((data >> 25) & 0x7);}
   
   operator uint32_t() {return (ap_uint<28>) data;}
-  int region() {return regionIdx;}                       // Newly added
-
+  int region() { return regionIdx; }                       // Newly added
+  int getBrems() { return (int) brems; }              
+  float getEt5x5() { return ((float) et5x5/8.0); }   
+  float getEt2x5() { return ((float) et2x5/8.0); }   
 };
 
 //--------------------------------------------------------// 
@@ -1706,7 +1729,10 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   returnCluster = packCluster(cluster_tmp.energy, cluster_tmp.etaMax, cluster_tmp.phiMax);
   removeClusterFromCrystal(temp, seed_eta, seed_phi, cluster_tmp.brems);
   
-  
+  // Newly added (as part of the emulator): add clusterInfo members to the output cluster members
+  returnCluster.brems = cluster_tmp.brems; 
+  returnCluster.et5x5 = cluster_tmpCenter.et5x5;  // get et5x5 from the center value
+  returnCluster.et2x5 = cluster_tmpCenter.et2x5;  // get et2x5 from the center value
   return returnCluster;
   
 }
@@ -2251,13 +2277,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 						       0.);
       
       // Constructor definition at: https://github.com/cms-l1t-offline/cmssw/blob/l1t-phase2-v3.3.11/DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h#L34
+      std::cout << "[Test:] getEt2x5 and getEt5x5: " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
 					c.clusterEnergy()/8.0,
 					0,  // float h over e
 					0,  // float iso
 					0,  // DetId seedCrystal 
 					0,  // puCorrPt
-					0 // (float) c.brems  // brem
+					c.getBrems(), // 0, 1, or 2, depending on type of brems correction
+					0,            // et2x2 (not calculated)
+					c.getEt2x5(), // et2x5
+					0,            // et3x5 (not calculated)
+					c.getEt5x5()  // et5x5
 					);
       
       L1EGXtalClusters->push_back(cluster);
@@ -2267,8 +2298,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta
 
 	l1tp2::CaloTower l1CaloTower;
-	l1CaloTower.setEcalTowerEt(ECAL_tower_L1Card[ii][jj][cc]);
-	l1CaloTower.setHcalTowerEt(HCAL_tower_L1Card[ii][jj][cc]);
+	// Divide ET by 8.0 to convert to GeV
+	l1CaloTower.setEcalTowerEt(ECAL_tower_L1Card[ii][jj][cc]/8.0);
+	// HCAL TPGs encoded ET: multiply by the LSB (0.5) to convert to GeV
+	float hcalLSB = 0.5;
+	l1CaloTower.setHcalTowerEt(HCAL_tower_L1Card[ii][jj][cc] * hcalLSB);
 	l1CaloTower.setTowerIEta(getToweriEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]));
         l1CaloTower.setTowerIPhi(getToweriPhi_fromAbsID(iPhi_tower_L1Card[ii][jj][cc]));
         l1CaloTower.setTowerEta(getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]));
