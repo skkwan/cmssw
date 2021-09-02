@@ -384,10 +384,10 @@ public:
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
-  // bool passes_ss(float pt, float ss);
+  bool passes_ss(float pt, float ss);
   // bool passes_photon(float pt, float pss);
   // bool passes_iso(float pt, float iso);
-  // bool passes_looseTkss(float pt, float ss);
+  bool passes_looseTkss(float pt, float ss);
   // bool passes_looseTkiso(float pt, float iso);
 
   edm::EDGetTokenT<EcalEBTrigPrimDigiCollection> ecalTPEBToken_;
@@ -2277,18 +2277,34 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 						       0.);
       
       // Constructor definition at: https://github.com/cms-l1t-offline/cmssw/blob/l1t-phase2-v3.3.11/DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h#L34
-      std::cout << "[Test:] getEt2x5 and getEt5x5: " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
+      // showerShape_cluster_L1Card: depends on passes_ss(cpt, 2x5/5x5)
+      // equivalent to cshowershape_. equivalent to showerShape_cluster_L2Card
+      // is_ss
+      bool is_ss = passes_ss(c.clusterEnergy()/8.0,
+			     (c.getEt2x5() / c.getEt5x5()) );
+      // showerShapeLooseTk_cluster_L1Card: depends on passes_looseTkss(cpt, 2x5/5x5)
+      // equivalent to cphotonshowershape_. equivalent to photonShowerShape_cluster_L2Card
+      // is_looseTkss
+      bool is_looseTkss = passes_looseTkss(c.clusterEnergy()/8.0,
+					   (c.getEt2x5() / c.getEt5x5() ));
+      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
-					c.clusterEnergy()/8.0,
+				        c.clusterEnergy()/8.0, // (convert to float)
 					0,  // float h over e
 					0,  // float iso
 					0,  // DetId seedCrystal 
 					0,  // puCorrPt
-					c.getBrems(), // 0, 1, or 2, depending on type of brems correction
+					c.getBrems(), // 0, 1, or 2 (as computed in firmware)
 					0,            // et2x2 (not calculated)
-					c.getEt2x5(), // et2x5
+					c.getEt2x5(), // et2x5 (as computed in firmware, save float)
 					0,            // et3x5 (not calculated)
-					c.getEt5x5()  // et5x5
+					c.getEt5x5(), // et5x5 (as computed in firmware, save float)
+					is_ss, // standalone WP
+					false, // electronWP98
+					false, // photonWP80
+					false, // electronWP90
+					is_looseTkss, // looseL1TkMatchWP
+					false  // stage2effMatch
 					);
       
       L1EGXtalClusters->push_back(cluster);
@@ -2336,6 +2352,21 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
   f.close();
 }
+
+bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
+  bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);
+  if (pt > 130)
+    is_ss = true;
+  return is_ss;
+}
+
+bool Phase2L1CaloEGammaEmulator::passes_looseTkss(float pt, float ss) {
+  bool is_ss = ((e0_looseTkss - e1_looseTkss * std::exp(-e2_looseTkss * pt)) <= ss);
+  if (pt > 130)
+    is_ss = true;
+  return is_ss;
+}
+
 
 ////////////////////////////////////////////////////////////////////////// 
 
