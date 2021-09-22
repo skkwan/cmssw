@@ -14,7 +14,7 @@
 static constexpr int dimPhi = 4;
 static constexpr int dimEta = 17;
 static constexpr int dimCard = 36;
-static constexpr int nClustersPerLink = 3;
+static constexpr int nClustersPerLink = 2;
 
 //--------------------------------------------------------// 
 
@@ -134,7 +134,7 @@ inline void printL1ArrayCompressedEt(ofstream& f, ap_uint<12> array[dimPhi][dimE
 
 //--------------------------------------------------------//                                                                 
 
-// Helper function to print a 4x3x36 int array to a ostream f.                                                              
+// Helper function to print a 4x2x36 int array to a ostream f.                                                              
 
 inline void printL1Array_ClusterInt(ofstream& f, int array[dimPhi][nClustersPerLink][dimCard],
 				    string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {
@@ -155,7 +155,7 @@ inline void printL1Array_ClusterInt(ofstream& f, int array[dimPhi][nClustersPerL
 
 //--------------------------------------------------------//
 
-// Helper function to print a 4x3x36 ap uint array to a ostream f.
+// Helper function to print a 4x2x36 ap uint array to a ostream f.
 
 inline void printL1Array_ClusterUint(ofstream& f, ap_uint<12> array[dimPhi][nClustersPerLink][dimCard],
 				     string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {
@@ -178,7 +178,7 @@ inline void printL1Array_ClusterUint(ofstream& f, ap_uint<12> array[dimPhi][nClu
 
 //--------------------------------------------------------//                                                                  
 
-// Helper function to print a 4x3x36 float array to a ostream f.                                                            
+// Helper function to print a 4x2x36 float array to a ostream f.                                                            
 
 inline void printL1Array_ClusterFloat(ofstream& f, float array[dimPhi][nClustersPerLink][dimCard],
                                      string desc = "", bool printOnlyOneCard = false, int oneCard = -1) {

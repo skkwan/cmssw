@@ -54,10 +54,10 @@ static constexpr int n_crystals_cardEta = (n_towers_Eta * n_towers_cardEta);
 static constexpr int n_crystals_cardPhi = (n_towers_Phi * n_towers_cardPhi);
 
 // outputs
-static constexpr int n_links_card = 4;
-static constexpr int n_clusters_link = 3;
-static constexpr int n_towers_per_link = 17;
-static constexpr int n_clusters_4link = 4 * 3;
+static constexpr int n_links_card = 4;        // 4 links per card
+static constexpr int n_clusters_link = 2;     // 2 clusters sent out in each link
+static constexpr int n_clusters_4link = 8;    // 8 clusters sent out in 4 links
+static constexpr int n_towers_per_link = 17;  
 
 static constexpr int CRYSTALS_IN_TOWER_ETA = 5;
 static constexpr int CRYSTALS_IN_TOWER_PHI = 5;
@@ -1871,17 +1871,30 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*******************************************************************
   //*************** Declare Layer 1 outputs ***************************
   //*******************************************************************
-
-  // Definition of L1 outputs
+  //
+  // L1 Outputs definition (using previous emulator by Cecile) - NOT firmware convention
+  // Firmware convention -> CMSSW indexing conversion is done near the end.
   // 36 L1 cards, each with 4x17 towers. All using CMSSW indexing convention, NOT firmware convention
+  //
   ap_uint<12> ECAL_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
   ap_uint<12> HCAL_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
   int iEta_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];  
   int iPhi_tower_L1Card[n_links_card][n_towers_per_link][n_towers_halfPhi];
-  // 36 L1 cards send each 4 links with 3 clusters (up to 12 per card)
+  // 36 L1 cards with 4 links, each with 2 clusters (up to 8 per card)
   ap_uint<12> energy_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi]; 
   int crystalID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];  // range: [0, 5*5) 
   int towerID_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];    // range: [0, 17*4)
+
+  //
+  // L1 Outputs definition: Arrays that use firmware convention for indexing
+  //
+  tower_t towerHCALCard[n_towers_cardEta][n_towers_cardPhi][n_towers_halfPhi]; // 17x4x36 array (not to be confused with the 12x1 array of ap_uints, towerEtHCAL                                               
+  tower_t towerECALCard[n_towers_cardEta][n_towers_cardPhi][n_towers_halfPhi];
+  // There is one vector of clusters per card (up to 12 clusters before stitching across ECAL regions)
+  std::vector<Cluster> cluster_list[n_towers_halfPhi];
+  // After merging/stitching the clusters, we only take the 8 highest pt per card                      
+  std::vector<Cluster> cluster_list_merged[n_towers_halfPhi];
+
 
   // Zero out the L1 outputs
   for (int ii = 0; ii < n_links_card; ++ii) {
@@ -2109,12 +2122,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     //******* Within each ECAL region, read back the hits ***************
     //******************************************************************* 
 
-    // Cluster sort_clusterIn[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];    // array of clusters per card, to be sorted by ET
-    // Cluster sort_clusterOut[N_CLUSTERS_PER_REGION * N_REGIONS_PER_CARD];   // array of clusters per card, sorted by ET
-    std::vector<Cluster> sort_clusterIn;                  // Vector of clusters in the card
-    tower_t towerSumCard[n_towers_cardEta][n_towers_cardPhi];  // 17x4 array of tower_t structs, representing one card 
-    tower_t towerHCALCard[n_towers_cardEta][n_towers_cardPhi]; // (not to be confused with the 12x1 array of ap_uints, towerEtHCAL
-    tower_t towerECALCard[n_towers_cardEta][n_towers_cardPhi]; 
+    // Dummy for testing
+    std::vector<Cluster> test_cluster;
 
     for (int idxRegion = 0; idxRegion < N_REGIONS_PER_CARD; idxRegion++) {
       
@@ -2163,15 +2172,15 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  }
 	}
 	
-	// Iteratively find four clusters and remove them from 'temporary' as we go, and fill sort_clusterIn
+	// Iteratively find four clusters and remove them from 'temporary' as we go, and fill cluster_list
 	for (int c = 0; c < N_CLUSTERS_PER_REGION; c++) {
-	  Cluster newCluster = getClusterFromRegion3x4(temporary); // iteratively remove energy from 'temporary' 
-	  newCluster.setRegionIdx(idxRegion);                      // add the region number to the cluster
-	  if (newCluster.clusterEnergy() > 0) {                    // only add clusters with >0 energy to the vector 
-	    sort_clusterIn.push_back(newCluster);
+	  Cluster newCluster = getClusterFromRegion3x4(temporary); // remove cluster from 'temporary' 
+	  newCluster.setRegionIdx(idxRegion);                      // add the region number 
+	  if (newCluster.clusterEnergy() > 0) {
+	    cluster_list[cc].push_back(newCluster);                // do not push back 0-energy clusters
 	  }
 	}
-
+	
 	// Create towers using remaining ECAL energy, and the HCAL towers were already calculated in towersEtHCAL[12] 
 	ap_uint<12> towerEtECAL[12];
 	getECALTowersEt(temporary, towerEtECAL);
@@ -2184,54 +2193,125 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  int iEta = (idxRegion * TOWER_IN_ETA) + (i / TOWER_IN_PHI);   
 	  int iPhi = (i % TOWER_IN_PHI);
 	  //	  std::cout << "(" << iEta << "," << iPhi << ")";
-	  towerSumCard[iEta][iPhi]  = tower_t(towerTotalEt, 0, 0);
-	  towerHCALCard[iEta][iPhi] = tower_t(towerEtHCAL[i], 0, 0);
-	  towerECALCard[iEta][iPhi] = tower_t(towerEtECAL[i], 0, 0);
+	  towerHCALCard[iEta][iPhi][cc] = tower_t(towerEtHCAL[i], 0, 0);
+	  towerECALCard[iEta][iPhi][cc] = tower_t(towerEtECAL[i], 0, 0);
 	}
 
       } // end of "if"
 
     } // end of loop over regions
 
+    //-------------------------------------------// 
+    // Stitching code (to be added)              //                                          
+    //-------------------------------------------// 
+
+    //-------------------------------------------//  
+    // Sort the clusters:                        //
+    // Take only the 8 highest ET clusters,      //
+    // add leftover clusters back to ECAL towers //
     //-------------------------------------------//
-    // Sort the clusters                         //
+    std::cout << "Card " << cc << ": unsorted ET: "; 
+    for (int i = 0; i < 12; i++) {
+      Cluster dummy = Cluster((ap_uint<12>) i+5, i%12, i%4, 0, 0, 0);
+      test_cluster.push_back(dummy);
+    }
+    // START HERE: Replace cluster_list[cc] with test_cluster to do a test
+    std::cout << "Up to twelve clusters going in: printing ET and tower (17x4):";
+    if (cluster_list[cc].empty()) {
+      std::cout << "The vector is empty; skip this step" << std::endl;
+    }
+    else {
+      std::cout << "There will be " << cluster_list[cc].size() << " elements to loop over" << std::endl;
+      for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+	std::cout << "Size is " << cluster_list[cc].size() << std::endl;
+	Cluster c = cluster_list[cc][kk];
+	std::cout << cluster_list[cc][kk].clusterEnergy() 
+		  << " (" << cluster_list[cc][kk].towerEta() 
+		  << ", " << cluster_list[cc][kk].towerPhi() << ") "; 
+      }
+      std::cout << std::endl;
+      std::sort(cluster_list[cc].begin(), cluster_list[cc].end(), compareClusterET);
+      std::cout << "NOMINALLY SORTED... ";
+      for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+	std::cout << cluster_list[cc][kk].clusterEnergy() 
+		  << " (" << cluster_list[cc][kk].towerEta()
+		  << ", " << cluster_list[cc][kk].towerPhi() << ") ";
+      }
+
+      std::cout << "----" << std::endl;
+      // If there are more than eight clusters, return the unused energy to the towers
+      for (unsigned int kk = n_clusters_4link; kk < cluster_list[cc].size(); ++kk) {
+	Cluster cExtra = cluster_list[cc][kk];
+	if (cExtra.clusterEnergy() > 0) {
+	  std::cout << "Extra cluster # " << kk << ": energy (GeV) " << cExtra.clusterEnergy()
+		    << std::endl;
+	  // Increment tower ET in towerECALCard[17][4] which uses RCT HLS geometry
+	  // Get tower (eta, phi) (up to (17, 4)) in the RCT card
+	  int whichTowerEtaInCard = ((cExtra.region() * TOWER_IN_ETA) + cExtra.towerEta());
+	  int whichTowerPhiInCard = cExtra.towerPhi(); 
+	  ap_uint<12> oldTowerEt = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].et();
+	  ap_uint<12> newTowerEt = (oldTowerEt + cExtra.clusterEnergy());
+	  ap_uint<3>  hoe        = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].hoe();
+	  ap_uint<4>  satur      = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].satur();
+	  towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc] = tower_t(newTowerEt, hoe, satur);
+	  
+	  std::cout << "... Adding to card eta (0-17) " << whichTowerEtaInCard
+		    << ", card phi (0-4) " << whichTowerPhiInCard
+		    << " old energy : " << oldTowerEt
+		    << " new energy : " << newTowerEt
+		    << std::endl;
+	}
+      }
+      
+      // Build the sorted cluster list IFF there were clusters 
+      std::cout << "Building sorted cluster list: ";
+      if (cluster_list[cc].empty()) {
+	std::cout << "No clusters: do not build sorted cluster list" << std::endl;
+      }
+      else {
+	// Save up to eight clusters: loop over cluster_list
+	for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+	  if (kk >= n_clusters_4link) continue;
+	  if (cluster_list[cc][kk].clusterEnergy() > 0) 
+	    cluster_list_merged[cc].push_back(cluster_list[cc][kk]);
+	}
+	std::cout << "Sorted, up to 8 clusters: ";
+	for (unsigned int kk = 0; kk < cluster_list_merged[cc].size(); ++kk) {
+	  std::cout << cluster_list_merged[cc][kk].clusterEnergy() 
+		    << " (" << cluster_list_merged[cc][kk].towerEta() 
+		    << ", " << cluster_list_merged[cc][kk].towerPhi() << ") ";
+	}
+	std::cout << std::endl;
+      }
+    }
+    // END HERE for str-replace testing
+
     //-------------------------------------------//
-    // std::cout << "card " << cc << ": unsorted ET: ";
-    // for (auto & c : sort_clusterIn) {
-    //   std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";
-    // }
-    // std::cout << std::endl;
+    // Write the L1 outputs                      //
+    //-------------------------------------------//
+
+    std::cout << "Sanity check: Card " << cc << ": SORTED ET: (if >0 clusters exist, print stuff)";
     
-    // Sort the clusters in decreasing ET
-    std::sort(sort_clusterIn.begin(), sort_clusterIn.end(), compareClusterET);
-
-    //-------------------------------------------//
-    // Write the outputs to the L1 outputs       //
-    //-------------------------------------------//
-
-    // Print the sorted vector
-    std::cout << "Sanity check: Card " << cc << ": SORTED ET: ";
-    // for (auto & c : sort_clusterIn) {
-    for (unsigned int jj = 0; jj < unsigned(sort_clusterIn.size()) && (jj < n_clusters_4link); ++jj) {
-      Cluster c = sort_clusterIn[jj];
-
-      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
-    		<< ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
-    		<< jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
-    		<< ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
-    		<< jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
-    		<< std::endl;
-      
-      // Distribute (up to 12) clusters across 4 links
-
-      energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-    	c.clusterEnergy();
-      crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
-    	getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
-      towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
-    	getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
-
-      
+    // If the cluster list isn't empty...
+    if (!cluster_list_merged[cc].empty()) {
+      for (unsigned int jj = 0; jj < cluster_list_merged[cc].size(); ++jj) {
+	Cluster c = cluster_list_merged[cc][jj];
+	
+	std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
+		  << ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
+		  << jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
+		  << ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
+		  << jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
+		  << std::endl;
+	
+	// Distribute (up to 12) clusters across 4 links
+	energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+	  c.clusterEnergy();
+	crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
+	  getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc);
+	towerID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
+	  getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region());
+      }
     }
     
     std::cout << std::endl;
@@ -2240,21 +2320,19 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // (rotating the negative eta cards so that the endcap region is pointing up)
     // while the emulator treats the 4x17 array as always starting in the top left corner if we look
     // at the usual RCT diagram.
-    std::cout << "Sanity check: Card " << cc << ": towers (HCAL + ECAL): ";
+    std::cout << "Re-package towerECALCard into old CMSSW emulator geometry" << std::endl;
     for (int i = 0; i < n_towers_cardEta; i++) {
       for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
-    	std::cout << towerSumCard[i][j].et() << " "; 
-      
-    	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.                       
+    	// n.b. L1 output is 4*17*36, hence [j][i] instead of [i][j] on the L.H.S.    
     	if ((cc % 2) == 1) { // if cc is odd (positive eta)
-    	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j].et();
-    	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j].et();
+    	  ECAL_tower_L1Card[j][i][cc] = towerECALCard[i][j][cc].et();
+    	  HCAL_tower_L1Card[j][i][cc] = towerHCALCard[i][j][cc].et();
     	}
     	else {  // if cc is even (negative eta), we need to rotate the coordinates
     	  //	  std::cout << "writing to [" << (3-j) << "][" << (16-i) << "] ";
-    	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j].et();
-    	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j].et();
+    	  ECAL_tower_L1Card[3-j][16-i][cc] = towerECALCard[i][j][cc].et();
+    	  HCAL_tower_L1Card[3-j][16-i][cc] = towerHCALCard[i][j][cc].et();
     	}
       }
     }
@@ -2264,7 +2342,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     ///////////////////////////////////////////////////////////
     // Produce output collections
     //////////////////////////////////////////////////////////
-    for (auto & c : sort_clusterIn) {                                                      
+    for (auto & c : cluster_list_merged[cc]) {                                                      
       std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";    
 
       float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, c.region(), c.towerEta(), c.clusterEta()) );

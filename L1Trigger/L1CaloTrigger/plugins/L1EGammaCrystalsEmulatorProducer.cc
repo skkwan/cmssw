@@ -806,11 +806,14 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   //  unsigned int precision = 3;
   // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
   // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
+
   printL1ArrayFloat(f, HCAL_tower_L1Card, "HCAL_tower_L1Card", printOneCard, theCard);
   printL1ArrayFloat(f, ECAL_tower_L1Card, "ECAL_tower_L1Card", printOneCard, theCard);
-  printL1Array_ClusterFloat(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)", printOneCard, theCard);
-  printL1Array_ClusterInt(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)", printOneCard, theCard);
-  printL1Array_ClusterInt(f, crystalID_cluster_L1Card, "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", printOneCard, theCard);
+
+  // To-do: change these to support printing 4x3x36 (new emulator uses 4x2x36)
+  // printL1Array_ClusterFloat(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)", printOneCard, theCard);
+  // printL1Array_ClusterInt(f, towerID_cluster_L1Card, "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)", printOneCard, theCard);
+  // printL1Array_ClusterInt(f, crystalID_cluster_L1Card, "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)", printOneCard, theCard);
   f.close();
 
   //*********************************************************
