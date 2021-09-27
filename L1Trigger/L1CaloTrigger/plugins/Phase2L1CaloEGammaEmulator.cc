@@ -505,7 +505,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
 	    ///// Get HCAL tower ET
 	    towerHCAL& myTower = myTowers.getTowerHCAL(iLinkEta, iLinkPhi);
-	    std::cout << "towerEtHCAL element # " << (iLinkEta * TOWER_IN_PHI) + iLinkPhi << ": will fill with Et " << myTower.getEt() << std::endl;
+	    std::cout << "towerEtHCAL: " << myTower.getEt() << ", ";
 	    towerEtHCAL[(iLinkEta * TOWER_IN_PHI) + iLinkPhi] = myTower.getEt();
 	  }
 	}
@@ -754,6 +754,51 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   iEvent.put(std::move(L1EGXtalClusters));
   iEvent.put(std::move(L1CaloTowers));
   std::cout << "Finished producing RCT emulator for this event" << std::endl;
+  
+  //*******************************************************************
+  //*************** Do GCT geometry for inputs ************************
+  //*******************************************************************
+
+  
+
+  // Loop over GCT cards (three of them)
+  GCTcard_t gctCards[N_GCTCARDS];
+  
+  for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
+
+    // Each GCT card encompasses 16 RCT cards, listed in 
+    // GCTcardtoRCTcardnumber[3][16].
+
+    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
+
+    for (int i = 0; i < (N_RCTCARDS_PHI * 2); i++) {
+
+      unsigned int rcc = GCTcardtoRCTcardnumber[gcc][i];
+      std::cout << "... Starting RCT Card: " << rcc << "...";
+
+      // Positive eta? Fist row is in positive eta
+      bool isPositiveEta = (gcc < N_RCTCARDS_PHI);
+      
+      // Check: we can read out the towers from earlier: loop over 17, then 4
+      for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+	for (int iLink = 0; iLink < n_links_card; iLink++) {
+	  
+	  tower_t t = towerECALCard[iTower][iLink][rcc];
+	  // std::cout << t.et() << ", ";
+	  
+
+	}
+      }
+      std::cout << std::endl;
+	   
+      
+      
+    }
+    std::cout << std::endl;
+
+
+  }
+
   
 }
 

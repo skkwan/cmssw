@@ -1,31 +1,5 @@
 #include "Phase2L1GCT.h"
 
-/* For each GCT card (3 of them in total, for barrel + endcap), list the sixteen
- * RCT cards that fall in them. The first eight are in positive eta, the next
- * eight are in negative eta (see figure of one GCT card). The RCT cards themselves
- * run from 0 to 35 (see RCT figure).
- * Hard-coded because the GCT cards wrap around the barrel region.
- * Used only to convert the RCT emulator outputs to the GCT emulator inputs. 
- */
-
-static const unsigned int GCTcardtoRCTcardnumber[N_GCTCARDS][N_RCTCARDS_PHI * 2] =
-  { // GCT Card 0
-    {11, 13, 15, 17, 19, 21, 23, 25,
-     10, 12, 14, 16, 18, 20, 22, 24},
-    
-    // GCT Card 1
-    {23, 25, 27, 29, 31, 33, 35,  1,
-     22, 24, 26, 28, 30, 32, 34,  0},
-    
-    // GCT Card 2
-    {35,  1,  3,  5,  7,  9, 11, 13,
-     34,  0,  2,  4,  6,  8, 10, 12}
-  };
-
-/*
- * Initialize the GCT cards inputs.
- */
-
 
 GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 
