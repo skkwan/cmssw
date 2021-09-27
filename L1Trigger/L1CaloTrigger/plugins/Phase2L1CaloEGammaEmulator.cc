@@ -44,6 +44,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "Phase2L1CaloEGammaEmulator.h"
+#include "Phase2L1GCT.h"
 
 static constexpr int n_towers_Eta = 34;
 static constexpr int n_towers_Phi = 72;
@@ -2292,10 +2293,14 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
     std::cout << "Sanity check: Card " << cc << ": SORTED ET: (if >0 clusters exist, print stuff)";
     
-    // If the cluster list isn't empty...
+    // (May be deprecated:) If the cluster list isn't empty, write out the old CMSSW (by Cecile)
+    // -style arrays energy_cluster_L1Card, crystalID_cluster_L1Card, and towerID_clusterL1Card
+    // which treats (0, 0) as always the top left corner of the RCT card if you look at the
+    // usual RCT diagram. (aka negative eta cards are NOT rotated)
     if (!cluster_list_merged[cc].empty()) {
       for (unsigned int jj = 0; jj < cluster_list_merged[cc].size(); ++jj) {
 	Cluster c = cluster_list_merged[cc][jj];
+	
 	
 	std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
 		  << ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
@@ -2316,9 +2321,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     
     std::cout << std::endl;
 
-    // Do the towers. The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
+    // (May be deprecated:) Fill out ECAL_tower_L1Card and HCAL_tower_L1Card, which is in the style of the old CMSSW (by Cecile). The firmware 17x4 array treats the "bottom left" corner of the card as (0, 0)
     // (rotating the negative eta cards so that the endcap region is pointing up)
-    // while the emulator treats the 4x17 array as always starting in the top left corner if we look
+    // while the old CMSSW (by Cecile) treats the 4x17 array as always starting in the top left corner if we look
     // at the usual RCT diagram.
     std::cout << "Re-package towerECALCard into old CMSSW emulator geometry" << std::endl;
     for (int i = 0; i < n_towers_cardEta; i++) {
@@ -2340,7 +2345,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
 
     ///////////////////////////////////////////////////////////
-    // Produce output collections
+    // Produce output collections for the event display
     //////////////////////////////////////////////////////////
     for (auto & c : cluster_list_merged[cc]) {                                                      
       std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";    
