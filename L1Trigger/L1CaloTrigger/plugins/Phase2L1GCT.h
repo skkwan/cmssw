@@ -4,19 +4,20 @@
 #include <iostream>
 #include <ap_int.h>
 
-#define N_RCTCARDS_PHI 4 
+#define N_RCTCARDS_PHI 8 
 #define N_RCTGCT_FIBERS 4 
 #define N_RCTTOWERS_FIBER 17 
 #define N_RCTCLUSTERS_FIBER 2 
 
-#define N_GCTCORR_FIBERS 24
+#define N_GCTCARDS 3
+#define N_GCTCORR_FIBERS 48
 #define N_GCTTOWERS_FIBER 17 
 #define N_GCTCLUSTERS_FIBER 2 
 
 #define N_GCTINTERNAL_FIBERS 32
-#define N_GCTPOSITIVE_FIBERS 16
+#define N_GCTPOSITIVE_FIBERS 32
 #define N_GCTETA 34
-#define N_GCTPHI 16
+#define N_GCTPHI 32
 
 typedef ap_uint<5> loop;
 using namespace std;
