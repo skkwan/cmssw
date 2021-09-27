@@ -753,24 +753,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
   iEvent.put(std::move(L1EGXtalClusters));
   iEvent.put(std::move(L1CaloTowers));
-  std::cout << "I'm here!" << std::endl;
-
-
-  // Write the emulator outputs to a .txt file
-  ofstream f;
-  f.open("firmwareEmulatorL1outputs.txt");
-  // Use optional arguments if you want to print only one card
-  // printL1ArrayInt(f, iEta_tower_L1Card, "iEta_tower_L1Card");
-  // printL1ArrayInt(f, iPhi_tower_L1Card, "iPhi_tower_L1Card");
-  bool printOnlyOneCard = false;
-  printL1ArrayCompressedEt(f, HCAL_tower_L1Card, "HCAL_tower_L1Card");
-  printL1ArrayEncodedEt(f, ECAL_tower_L1Card, "ECAL_tower_L1Card");
-  printL1Array_ClusterUint(f, energy_cluster_L1Card, "energy_cluster_L1Card (ap_uint<12> as float)");
-  printL1Array_ClusterInt(f, towerID_cluster_L1Card, 
-  			  "towerID_cluster_L1Card (range: [0, 17*4): the tower that a cluster falls in)");
-  printL1Array_ClusterInt(f, crystalID_cluster_L1Card,
-  			  "crystalID_cluster_L1Card (range: [0, 25): the crystal that a cluster falls in (no info on which tower)");
-  f.close();
+  std::cout << "Finished producing RCT emulator for this event" << std::endl;
+  
 }
 
 bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
