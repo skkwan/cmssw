@@ -100,6 +100,33 @@ static const unsigned int GCTcardtoRCTcardnumber[N_GCTCARDS][N_RCTCARDS_PHI * 2]
      34,  0,  2,  4,  6,  8, 10, 12}
   };
 
+/*
+ * Initialize a GCT card so that its clusters and towers have zero energy.
+ */
+void initializeGCTCard(GCTcard_t gctCard){
+  for (int i = 0; i < (N_RCTCARDS_PHI); i++) {  // loop from i = 0 to i = 8 and do pos and neg eta at the same time
+    for (int iLink = 0; iLink < N_RCTGCT_FIBERS; ++iLink) {  // four links per card
+      for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; ++iTower) {  // 17 towers per link
+	RCTtower_t t0;
+	t0.et = 0;
+	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
+	gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
+      }
+      
+      for (int iCluster = 0; iCluster < N_GCTCLUSTERS_FIBER; ++iCluster) { // 2 clusters per link
+	RCTcluster_t c0;
+	c0.et     = 0;
+	c0.towEta = 0;
+	c0.towPhi = 0;
+	c0.crEta  = 0;
+	c0.crPhi  = 0;
+	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
+	gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
+      }
+    }
+  }
+}
+
 //void algo_top(const GCTcard_t& GCTcard, ap_uint<15> cluster[10]);
 void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr) ;
 

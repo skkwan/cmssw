@@ -46,6 +46,7 @@
 #include "Phase2L1CaloEGammaEmulator.h"
 #include "Phase2L1RCT.h"
 #include "Phase2L1GCT.h"
+#include "Phase2L1GCT_algo.h"
 
 
 // Declare the Phase2L1CaloEGammaEmulator class and its methods
@@ -759,48 +760,132 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //*************** Do GCT geometry for inputs ************************
   //*******************************************************************
 
-  
-
   // Loop over GCT cards (three of them)
   GCTcard_t gctCards[N_GCTCARDS];
-  
+
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
+    // Initialize all values to zero to avoid bogus values
+    //    initializeGCTCard(gctCards[gcc]);
 
     // Each GCT card encompasses 16 RCT cards, listed in 
-    // GCTcardtoRCTcardnumber[3][16].
-
+    // GCTcardtoRCTcardnumber[3][16]. 
     std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
-
     for (int i = 0; i < (N_RCTCARDS_PHI * 2); i++) {
 
       unsigned int rcc = GCTcardtoRCTcardnumber[gcc][i];
-      std::cout << "... Starting RCT Card: " << rcc << "...";
+      std::cout << "... Starting RCT Card: " << rcc << "..." << std::endl;
 
       // Positive eta? Fist row is in positive eta
-      bool isPositiveEta = (gcc < N_RCTCARDS_PHI);
+      bool isPositiveEta = (i < N_RCTCARDS_PHI);
       
-      // Check: we can read out the towers from earlier: loop over 17, then 4
-      for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-	for (int iLink = 0; iLink < n_links_card; iLink++) {
-	  
-	  tower_t t = towerECALCard[iTower][iLink][rcc];
-	  // std::cout << t.et() << ", ";
-	  
+      for (int iLink = 0; iLink < n_links_card; iLink++) {
 
+	// Get the towers
+	for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+	  tower_t t0 = towerECALCard[iTower][iLink][rcc];
+	  RCTtower_t t;
+	  t.et = t0.et();
+	  if (isPositiveEta) {  
+	    gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t;
+	  } else {
+	    gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t;
+	  }
+	} // end of loop over 17 towers in one link
+      } // end of loop over 4 links in one card
+      
+      // Get the clusters and distribute them across four links
+      for (size_t iCluster = 0; 
+	   iCluster < cluster_list_merged[rcc].size() && iCluster < (N_RCTGCT_FIBERS * N_RCTCLUSTERS_FIBER);
+	   ++iCluster) {
+	Cluster c0 = cluster_list_merged[rcc][iCluster];
+	RCTcluster_t c;
+	c.et     = c0.clusterEnergy();
+	c.towEta = c0.towerEta();
+	c.towPhi = c0.towerPhi();
+	c.crEta  = c0.clusterEta();
+	c.crPhi  = c0.clusterPhi();
+	
+	unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;
+	unsigned int iLinkC = iCluster % N_RCTGCT_FIBERS;
+	unsigned int iPosC  = iCluster / N_RCTGCT_FIBERS;
+	std::cout << c.et << ", "
+		  << "accessing link " << iCluster % N_RCTGCT_FIBERS << " "
+		  << "and position "   << iCluster / N_RCTGCT_FIBERS << " "
+		  << "isPositiveEta "  << isPositiveEta << " " 
+		  << "with iIdxInGCT " << iIdxInGCT << std::endl;
+	
+	if (isPositiveEta) {
+	  gctCards[gcc].RCTcardEtaPos[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = c;
+	} else {
+	  gctCards[gcc].RCTcardEtaNeg[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = c;
+	}
+      }
+      // If there were fewer than eight clusters, make sure the remaining fiber clusters are zero'd out.
+      for (size_t iZeroCluster = cluster_list_merged[rcc].size();
+	   iZeroCluster < (N_RCTGCT_FIBERS * N_RCTCLUSTERS_FIBER);
+	   iZeroCluster++) {
+	unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;
+        unsigned int iLinkC = iZeroCluster % N_RCTGCT_FIBERS;
+        unsigned int iPosC  = iZeroCluster / N_RCTGCT_FIBERS;
+
+	RCTcluster_t cZero;
+        cZero.et     = 0;
+        cZero.towEta = 0;
+        cZero.towPhi = 0;
+        cZero.crEta  = 0;
+        cZero.crPhi  = 0;
+	if (isPositiveEta) {
+          gctCards[gcc].RCTcardEtaPos[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = cZero;
+        } else {
+          gctCards[gcc].RCTcardEtaNeg[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = cZero;
+        }
+      }
+    }
+  } // end of loop over initializing GCT cards
+	
+  // Sanity check: go back into the GCT card and see if we get values
+  for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
+    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
+    
+    for (int i = 0; i < (N_RCTCARDS_PHI); i++) {
+      std::cout << "Inside GCT: card (out of 8 in the positive side) " << i << std::endl;
+
+      for (int iLink = 0; iLink < n_links_card; iLink++) {
+	for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+	  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
 	}
       }
       std::cout << std::endl;
-	   
-      
-      
+      std::cout << "Clusters: ";
+      for (int iLink = 0; iLink < n_links_card; iLink++) {
+	for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
+	  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
+	}
+      }
     }
     std::cout << std::endl;
-
-
-  }
-
+    for (int i = N_RCTCARDS_PHI; i < (N_RCTCARDS_PHI * 2); i++) {
+      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
+	for (int iLink = 0; iLink < n_links_card; iLink++) {
+	  for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+	    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
+	  }
+	}
+	std::cout << std::endl;
+	std::cout << "Clusters: ";
+	for (int iLink = 0; iLink < n_links_card; iLink++) {
+	  for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
+	    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
+	  }
+	}
+      }
+    
+    std::cout << std::endl;
+  }	   
+  std::cout << std::endl;
   
-}
+
+} 
 
 bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
   bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);

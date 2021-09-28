@@ -1,5 +1,7 @@
 #include "Phase2L1GCT.h"
 
+#ifndef _PHASE_2_L1_GCT_ALGO_H_
+#define _PHASE_2_L1_GCT_ALGO_H_
 
 GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 
@@ -360,3 +362,5 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr){
   */
   //end
 }
+
+#endif
