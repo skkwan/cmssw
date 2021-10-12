@@ -309,8 +309,13 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr){
   // remove overlap region, we send out 24 fibers: 12 pos/12 neg
   // all phi now decreases by 4
   // this we send to Correlator
-  for(int i=4; i<N_GCTPOSITIVE_FIBERS; i++){
+  // For the full GCT card (eight RCT cards wide in phi), skip the overlap region, i.e. SKIP i = 0, 1, 2, 3,
+  // and i = 28, 29, 30, 31.
+  for(int i=4; i<(N_GCTPOSITIVE_FIBERS-N_RCTGCT_FIBERS); i++){
     for(int k=0; k<N_GCTCLUSTERS_FIBER; k++){
+      std::cout << "Accessing positive eta: GCTCorrfiber " << i-4 
+		<< " , GCTclusters " << k 
+		<< " , energy " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et << std::endl;
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].et  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et   ;
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].towEtaNeg  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg  ;
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].towEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta ;
@@ -319,20 +324,30 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr){
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].crPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crPhi ;
     }
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
+      std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
+	       << " , GCTtowers " << k 
+	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et << std::endl;
       GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
     }
   }
-  for(int i=N_GCTPOSITIVE_FIBERS+4; i<N_GCTINTERNAL_FIBERS; i++){
+  // In negative eta, skip the overlap region, i.e. SKIP i = 32, 33, 34, 35, and 61, 62, 63, 64.
+  for(int i=(N_GCTPOSITIVE_FIBERS+N_RCTGCT_FIBERS); i<(N_GCTINTERNAL_FIBERS-N_RCTGCT_FIBERS); i++){
     for(int k=0; k<N_GCTCLUSTERS_FIBER; k++){
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].et  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et   ;
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].towEtaNeg  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg  ;
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].towEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta ;
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].towPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towPhi-4 ;
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].crEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crEta ;
-      GCTtoCorr.GCTCorrfiber[i-8].GCTclusters[k].crPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crPhi ;
+      std::cout << "Accessing negative eta: GCTCorrfiber " << i-12
+                << " , GCTclusters " << k 
+                << " , energy " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et << std::endl;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].et  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et   ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towEtaNeg  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg  ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towPhi-4 ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].crEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crEta ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].crPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crPhi ;
     }
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-      GCTtoCorr.GCTCorrfiber[i-8].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
+      std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
+	       << " , GCTtowers " << k
+	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et << std::endl;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
     }
   }
   

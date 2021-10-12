@@ -762,11 +762,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
   // Loop over GCT cards (three of them)
   GCTcard_t gctCards[N_GCTCARDS];
+  GCTtoCorr_t gctToCorr[N_GCTCARDS];
 
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
-    // Initialize all values to zero to avoid bogus values
-    //    initializeGCTCard(gctCards[gcc]);
-
     // Each GCT card encompasses 16 RCT cards, listed in 
     // GCTcardtoRCTcardnumber[3][16]. 
     std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
@@ -883,7 +881,15 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     std::cout << std::endl;
   }	   
   std::cout << std::endl;
-  
+
+  // Apply the GCT firmware code to each GCT
+  for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
+    // getClustersTowers
+    // getClustersCombined
+    // getFullTowers
+    // algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr)
+    algo_top(gctCards[gcc], gctToCorr[gcc]);
+  }
 
 } 
 

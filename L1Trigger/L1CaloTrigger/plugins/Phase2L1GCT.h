@@ -14,7 +14,7 @@ static constexpr int N_GCTCORR_FIBERS = 48;
 static constexpr int N_GCTTOWERS_FIBER = 17; 
 static constexpr int N_GCTCLUSTERS_FIBER = 2; 
 
-static constexpr int N_GCTINTERNAL_FIBERS = 32;
+static constexpr int N_GCTINTERNAL_FIBERS = 64; // was 32
 static constexpr int N_GCTPOSITIVE_FIBERS = 32;
 static constexpr int N_GCTETA = 34;
 static constexpr int N_GCTPHI = 32;
