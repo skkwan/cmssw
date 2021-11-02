@@ -87,8 +87,11 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet &
     hcalTPToken_(
 		 consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP"))),
   calib_(iConfig.getParameter<edm::ParameterSet>("calib")) {
-  produces<l1tp2::CaloCrystalClusterCollection>();
-  produces<l1tp2::CaloTowerCollection>();
+  produces<l1tp2::CaloCrystalClusterCollection>( "RCT" );
+  produces<l1tp2::CaloCrystalClusterCollection>( "GCT" );
+  produces<l1tp2::CaloTowerCollection>( "RCT" );
+  produces<l1tp2::CaloTowerCollection>( "GCT" );
+  
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -473,7 +476,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	region3x4& myRegion = rctCard.getRegion3x4(idxRegion);
 	towers3x4& myTowers = rctCard.getTowers3x4(idxRegion);
 
-	std::cout << std::endl << "[----] DOING CARD " << cc << " AND REGION IDX " << myRegion.getIdx() << std::endl;
+	//	std::cout << std::endl << "[----] DOING CARD " << cc << " AND REGION IDX " << myRegion.getIdx() << std::endl;
 
 	// In each 3x4 region, loop through the links (one link per tower)
 	for (int iLinkEta = 0; iLinkEta < TOWER_IN_ETA; iLinkEta++) {
@@ -506,7 +509,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
 	    ///// Get HCAL tower ET
 	    towerHCAL& myTower = myTowers.getTowerHCAL(iLinkEta, iLinkPhi);
-	    std::cout << "towerEtHCAL: " << myTower.getEt() << ", ";
+	    //  std::cout << "towerEtHCAL: " << myTower.getEt() << ", ";
 	    towerEtHCAL[(iLinkEta * TOWER_IN_PHI) + iLinkPhi] = myTower.getEt();
 	  }
 	}
@@ -560,30 +563,29 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       std::cout << "The vector is empty; skip this step" << std::endl;
     }
     else {
-      std::cout << "There will be " << cluster_list[cc].size() << " elements to loop over" << std::endl;
+      //      std::cout << "There will be " << cluster_list[cc].size() << " elements to loop over" << std::endl;
       for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-	std::cout << "Size is " << cluster_list[cc].size() << std::endl;
+	// std::cout << "Size is " << cluster_list[cc].size() << std::endl;
 	Cluster c = cluster_list[cc][kk];
-	std::cout << cluster_list[cc][kk].clusterEnergy() 
-		  << " (" << cluster_list[cc][kk].towerEta() 
-		  << ", " << cluster_list[cc][kk].towerPhi() << ") "; 
+	// std::cout << cluster_list[cc][kk].clusterEnergy() 
+	// 	  << " (" << cluster_list[cc][kk].towerEta() 
+	// 	  << ", " << cluster_list[cc][kk].towerPhi() << ") "; 
       }
       std::cout << std::endl;
       std::sort(cluster_list[cc].begin(), cluster_list[cc].end(), compareClusterET);
-      std::cout << "NOMINALLY SORTED... ";
-      for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-	std::cout << cluster_list[cc][kk].clusterEnergy() 
-		  << " (" << cluster_list[cc][kk].towerEta()
-		  << ", " << cluster_list[cc][kk].towerPhi() << ") ";
-      }
+      // std::cout << "NOMINALLY SORTED... ";
+      // for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+      // 	// std::cout << cluster_list[cc][kk].clusterEnergy() 
+      // 	// 	  << " (" << cluster_list[cc][kk].towerEta()
+      // 	// 	  << ", " << cluster_list[cc][kk].towerPhi() << ") ";
+      // }
 
-      std::cout << "----" << std::endl;
       // If there are more than eight clusters, return the unused energy to the towers
       for (unsigned int kk = n_clusters_4link; kk < cluster_list[cc].size(); ++kk) {
 	Cluster cExtra = cluster_list[cc][kk];
 	if (cExtra.clusterEnergy() > 0) {
-	  std::cout << "Extra cluster # " << kk << ": energy (GeV) " << cExtra.clusterEnergy()
-		    << std::endl;
+	  //	  std::cout << "Extra cluster # " << kk << ": energy (GeV) " << cExtra.clusterEnergy()
+	  //		    << std::endl;
 	  // Increment tower ET in towerECALCard[17][4] which uses RCT HLS geometry
 	  // Get tower (eta, phi) (up to (17, 4)) in the RCT card
 	  int whichTowerEtaInCard = ((cExtra.region() * TOWER_IN_ETA) + cExtra.towerEta());
@@ -594,18 +596,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  ap_uint<4>  satur      = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].satur();
 	  towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc] = tower_t(newTowerEt, hoe, satur);
 	  
-	  std::cout << "... Adding to card eta (0-17) " << whichTowerEtaInCard
-		    << ", card phi (0-4) " << whichTowerPhiInCard
-		    << " old energy : " << oldTowerEt
-		    << " new energy : " << newTowerEt
-		    << std::endl;
+	  // std::cout << "... Adding to card eta (0-17) " << whichTowerEtaInCard
+	  // 	    << ", card phi (0-4) " << whichTowerPhiInCard
+	  // 	    << " old energy : " << oldTowerEt
+	  // 	    << " new energy : " << newTowerEt
+	  // 	    << std::endl;
 	}
       }
       
       // Build the sorted cluster list IFF there were clusters 
       std::cout << "Building sorted cluster list: ";
       if (cluster_list[cc].empty()) {
-	std::cout << "No clusters: do not build sorted cluster list" << std::endl;
+	//	std::cout << "No clusters: do not build sorted cluster list" << std::endl;
       }
       else {
 	// Save up to eight clusters: loop over cluster_list
@@ -614,12 +616,12 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  if (cluster_list[cc][kk].clusterEnergy() > 0) 
 	    cluster_list_merged[cc].push_back(cluster_list[cc][kk]);
 	}
-	std::cout << "Sorted, up to 8 clusters: ";
-	for (unsigned int kk = 0; kk < cluster_list_merged[cc].size(); ++kk) {
-	  std::cout << cluster_list_merged[cc][kk].clusterEnergy() 
-		    << " (" << cluster_list_merged[cc][kk].towerEta() 
-		    << ", " << cluster_list_merged[cc][kk].towerPhi() << ") ";
-	}
+	// std::cout << "Sorted, up to 8 clusters: ";
+	// for (unsigned int kk = 0; kk < cluster_list_merged[cc].size(); ++kk) {
+	//   std::cout << cluster_list_merged[cc][kk].clusterEnergy() 
+	// 	    << " (" << cluster_list_merged[cc][kk].towerEta() 
+	// 	    << ", " << cluster_list_merged[cc][kk].towerPhi() << ") ";
+	// }
 	std::cout << std::endl;
       }
     }
@@ -640,12 +642,12 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	Cluster c = cluster_list_merged[cc][jj];
 	
 	
-	std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
-		  << ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
-		  << jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
-		  << ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
-		  << jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
-		  << std::endl;
+	// std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
+	// 	  << ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
+	// 	  << jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
+	// 	  << ", setting towerID_cluster_L1Card[" << jj % n_links_card << "]["
+	// 	  << jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
+	// 	  << std::endl;
 	
 	// Distribute (up to 12) clusters across 4 links
 	energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
@@ -663,7 +665,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // (rotating the negative eta cards so that the endcap region is pointing up)
     // while the old CMSSW (by Cecile) treats the 4x17 array as always starting in the top left corner if we look
     // at the usual RCT diagram.
-    std::cout << "Re-package towerECALCard into old CMSSW emulator geometry" << std::endl;
+    //    std::cout << "Re-package towerECALCard into old CMSSW emulator geometry" << std::endl;
     for (int i = 0; i < n_towers_cardEta; i++) {
       for (int j = 0; j < n_towers_cardPhi; j++ ) {
         
@@ -686,7 +688,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Produce output collections for the event display
     //////////////////////////////////////////////////////////
     for (auto & c : cluster_list_merged[cc]) {                                                      
-      std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";    
+      std::cout << c.clusterEnergy() 
+		<< " c.region: " << c.region() << "," 
+		<< " c.towerEta and Phi:  (" << c.towerEta() << ", " << c.towerPhi() << "), "
+		<< " c.clusterEta and Phi: (" << c.clusterEta() << ", " << c.clusterPhi() << ") ";    
 
       float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, c.region(), c.towerEta(), c.clusterEta()) );
       float realPhi = getPhi_fromCrystaliPhi( getCrystal_iPhi_fromCardRegionInfo(cc, c.region(), c.towerPhi(), c.clusterPhi()) );
@@ -708,7 +713,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       // is_looseTkss
       bool is_looseTkss = passes_looseTkss(c.clusterEnergy()/8.0,
 					   (c.getEt2x5() / c.getEt5x5() ));
-      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
+      //      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
 				        c.clusterEnergy()/8.0, // (convert to float)
 					0,  // float h over e
@@ -752,8 +757,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
   } // end of loop over cards
 
-  iEvent.put(std::move(L1EGXtalClusters));
-  iEvent.put(std::move(L1CaloTowers));
+  iEvent.put(std::move(L1EGXtalClusters), "RCT");
+  iEvent.put(std::move(L1CaloTowers),     "RCT");
   std::cout << "Finished producing RCT emulator for this event" << std::endl;
   
   //*******************************************************************
@@ -767,11 +772,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
     // Each GCT card encompasses 16 RCT cards, listed in 
     // GCTcardtoRCTcardnumber[3][16]. 
-    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
+    //    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
     for (int i = 0; i < (N_RCTCARDS_PHI * 2); i++) {
 
       unsigned int rcc = GCTcardtoRCTcardnumber[gcc][i];
-      std::cout << "... Starting RCT Card: " << rcc << "..." << std::endl;
+      //      std::cout << "... Starting RCT Card: " << rcc << "..." << std::endl;
 
       // Positive eta? Fist row is in positive eta
       bool isPositiveEta = (i < N_RCTCARDS_PHI);
@@ -791,14 +796,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	} // end of loop over 17 towers in one link
       } // end of loop over 4 links in one card
       
-      // Get the clusters and distribute them across four links
+      // Get the RCT clusters, and distribute them across four links, ensuring that all values are
+      // correctly converted to their GCT equivalents.
       for (size_t iCluster = 0; 
 	   iCluster < cluster_list_merged[rcc].size() && iCluster < (N_RCTGCT_FIBERS * N_RCTCLUSTERS_FIBER);
 	   ++iCluster) {
 	Cluster c0 = cluster_list_merged[rcc][iCluster];
 	RCTcluster_t c;
 	c.et     = c0.clusterEnergy();
-	c.towEta = c0.towerEta();
+	c.towEta = (c0.region() * TOWER_IN_ETA) + c0.towerEta();     
+	// towerEta is unusual because the class 'Cluster' stores the region number (region())
+	// and towerEta refers to the tower iEta INSIDE the region, but RCTTcluster_t stores no
+	// information about the region number and assumes tower iEta goes from 0 to 17.
 	c.towPhi = c0.towerPhi();
 	c.crEta  = c0.clusterEta();
 	c.crPhi  = c0.clusterPhi();
@@ -843,37 +852,37 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	
   // Sanity check: go back into the GCT card and see if we get values
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
-    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
+    //    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
     
     for (int i = 0; i < (N_RCTCARDS_PHI); i++) {
-      std::cout << "Inside GCT: card (out of 8 in the positive side) " << i << std::endl;
+      //       std::cout << "Inside GCT: card (out of 8 in the positive side) " << i << std::endl;
 
       for (int iLink = 0; iLink < n_links_card; iLink++) {
 	for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-	  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
+	  //  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
 	}
       }
-      std::cout << std::endl;
-      std::cout << "Clusters: ";
+      // std::cout << std::endl;
+      //      std::cout << "Clusters: ";
       for (int iLink = 0; iLink < n_links_card; iLink++) {
 	for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
-	  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
+	  // std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
 	}
       }
     }
     std::cout << std::endl;
     for (int i = N_RCTCARDS_PHI; i < (N_RCTCARDS_PHI * 2); i++) {
-      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
+      //      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
 	for (int iLink = 0; iLink < n_links_card; iLink++) {
 	  for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-	    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
+	    //    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
 	  }
 	}
-	std::cout << std::endl;
-	std::cout << "Clusters: ";
+	//	std::cout << std::endl;
+	//	std::cout << "Clusters: ";
 	for (int iLink = 0; iLink < n_links_card; iLink++) {
 	  for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
-	    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
+	    //  std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
 	  }
 	}
       }
@@ -882,15 +891,29 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   }	   
   std::cout << std::endl;
 
+  //----------------------------------------------------
+  // Declare the output collections for the GCT emulator
+  //----------------------------------------------------   
+  auto L1GCTClusters = std::make_unique<l1tp2::CaloCrystalClusterCollection>();
+  auto L1GCTTowers   = std::make_unique<l1tp2::CaloTowerCollection>();
+
   // Apply the GCT firmware code to each GCT
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
     // getClustersTowers
     // getClustersCombined
     // getFullTowers
-    // algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr)
-    algo_top(gctCards[gcc], gctToCorr[gcc]);
+    algo_top(gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers);
   }
 
+  // Check that L1GCTClusters has stuff in it
+  std::cout << "Checking that the output collections and stuff in them..." << std::endl;
+  for (auto const& c: *L1GCTClusters ) {
+
+    std::cout << "GCT cluster energy " << c.pt() << std::endl;
+  }
+  
+  iEvent.put(std::move(L1GCTClusters), "GCT");
+  iEvent.put(std::move(L1GCTTowers),   "GCT");
 } 
 
 bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {

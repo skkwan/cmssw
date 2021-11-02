@@ -1103,10 +1103,10 @@ crystalMax getPeakBin15N(const etaStripPeak_t& etaStrip){
   x.etaMax = bestOf15.eta ;
   x.phiMax = bestOf15.phi ;
 
-  std::cout << "[---] getPeakBin15N: bestOf15.energy, bestOf15.etaMax, bestOf15.phiMax: " 
-        << bestOf15.energy << ", " 
-        << bestOf15.eta    << ", "
-	    << bestOf15.phi    << std::endl;
+  /* std::cout << "[---] getPeakBin15N: bestOf15.energy, bestOf15.etaMax, bestOf15.phiMax: "  */
+  /*       << bestOf15.energy << ", "  */
+  /*       << bestOf15.eta    << ", " */
+  /* 	    << bestOf15.phi    << std::endl; */
   // << x.energy << ", "                                                                                            
   // << x.etaMax    << ", "                                                                                            
   // << x.phiMax    << std::endl;     
@@ -1150,11 +1150,11 @@ void getECALTowersEt(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_uint<12> 
   towerEt[10]= towerEtN[2][2][0] + towerEtN[2][2][1] + towerEtN[2][2][2] + towerEtN[2][2][3] + towerEtN[2][2][4] ;
   towerEt[11]= towerEtN[2][3][0] + towerEtN[2][3][1] + towerEtN[2][3][2] + towerEtN[2][3][3] + towerEtN[2][3][4] ;
 
-  std::cout << "getECALTowersEt (after subtracting clusters): ";
+  //  std::cout << "getECALTowersEt (after subtracting clusters): ";
   for (int i = 0; i < 12; i++) {
-    std::cout << towerEt[i] << " ";
+    //    std::cout << towerEt[i] << " ";
   }
-  std::cout << std::endl;
+  //  std::cout << std::endl;
     
 }
 
@@ -1231,7 +1231,7 @@ class Cluster{
   void setRegionIdx(int regIdx) { regionIdx = regIdx; }  // Newly added
 
   ap_uint<12> clusterEnergy() {return (data & 0xFFF);}
-  ap_uint<5> towerEta() {return ((data >> 12) & 0x37);}
+  ap_uint<5> towerEta() {return ((data >> 12) & 0x37);}  // goes from 0 to 3 (need region for full info)
   ap_uint<2> towerPhi() {return ((data >> 17) & 0x3);}
   ap_uint<3> clusterEta() {return ((data >> 19) & 0x7);}
   ap_uint<3> clusterPhi() {return ((data >> 22) & 0x7);}
@@ -1293,7 +1293,7 @@ clusterInfo getClusterPosition(const ecalRegion_t& ecalRegion){
 Cluster packCluster(ap_uint<15>& clusterEt, ap_uint<5>& etaMax_t, ap_uint<5>& phiMax_t){
   
 
-  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", eta and phi: " << etaMax_t << ", " << phiMax_t << std::endl;
+  //  std::cout << "[-->] packCluster: clusterEt " << clusterEt << ", eta and phi: " << etaMax_t << ", " << phiMax_t << std::endl;
   
   ap_uint<12> peggedEt;
   Cluster pack;
@@ -1307,10 +1307,10 @@ Cluster packCluster(ap_uint<15>& clusterEt, ap_uint<5>& etaMax_t, ap_uint<5>& ph
 
   
   pack = Cluster(peggedEt, towerEta, towerPhi, clusterEta, clusterPhi, 0);
-  std::cout << "[-->] packCluster: clusterEt " << clusterEt 
-        << ", towerEta and Phi: "   << towerEta   << ", " << towerPhi
-        << ", clusterEta and Phi: " << clusterEta << ", " << clusterPhi 
-	    << std::endl;
+  /* std::cout << "[-->] packCluster: clusterEt " << clusterEt  */
+  /*       << ", towerEta and Phi: "   << towerEta   << ", " << towerPhi */
+  /*       << ", clusterEta and Phi: " << clusterEta << ", " << clusterPhi  */
+  /* 	    << std::endl; */
 
   return pack;
 }
@@ -1621,15 +1621,15 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
 
   // TESTING: Ignore clusters with seed < 1.0 GeV
   float seedEnergy = cluster_tmp.seedEnergy/8.0;
-  std::cout << "[~~~~] seedEnergy (GeV) " << seedEnergy << ", ";
+  //  std::cout << "[~~~~] seedEnergy (GeV) " << seedEnergy << ", ";
   if ((cluster_tmp.seedEnergy/8.0) < 1.0) {
-    std::cout << "less than 1.0 GeV, pack zero'd cluster" << std::endl;
+    // std::cout << "less than 1.0 GeV, pack zero'd cluster" << std::endl;
     cluster_tmp.energy = 0;
     cluster_tmp.phiMax = 0;
     cluster_tmp.etaMax = 0;
     return packCluster(cluster_tmp.energy, cluster_tmp.phiMax, cluster_tmp.etaMax);
   }
-  std::cout << "greater than 1.0 GeV, continue" << std::endl;
+  // std::cout << "greater than 1.0 GeV, continue" << std::endl;
   
   ap_uint<5> seed_phi = cluster_tmp.phiMax;
   ap_uint<5> seed_eta = cluster_tmp.etaMax;

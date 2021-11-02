@@ -24,8 +24,8 @@ using namespace std;
 
 typedef struct {
   ap_uint<12> et ;
-  ap_uint<5> towEta ;
-  ap_uint<2> towPhi ;
+  ap_uint<5> towEta ;    // goes from 0 to 17 (vs. class Cluster in the RCT emulator)
+  ap_uint<2> towPhi ;   
   ap_uint<3> crEta ;
   ap_uint<3> crPhi ;
 } RCTcluster_t ;
