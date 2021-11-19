@@ -110,16 +110,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   HcalTrigTowerGeometry theTrigTowerGeometry(hcTopology_);
   iSetup.get<CaloTPGRecord>().get(decoder_);
 
-  /////////////////////////////////////////////////////
-  // Declare output collections
-  ///////////////////////////////////////////////////// 
+  //***************************************************// 
+  // Declare RCT output collections
+  //***************************************************// 
 
   auto L1EGXtalClusters = std::make_unique<l1tp2::CaloCrystalClusterCollection>();
   auto L1CaloTowers = std::make_unique<l1tp2::CaloTowerCollection>();
 
-  /////////////////////////////////////////////////////
-  // Get all the ECAL hits
-  /////////////////////////////////////////////////////
+  //***************************************************//
+  // Get the ECAL hits
+  //***************************************************// 
   edm::Handle<EcalEBTrigPrimDigiCollection> pcalohits;   // from l.354
   iEvent.getByToken(ecalTPEBToken_, pcalohits);
 
@@ -155,7 +155,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       }
   }
 
-  // Get all the HCAL hits
+  //***************************************************// 
+  // Get the HCAL hits
+  //***************************************************// 
   std::vector<SimpleCaloHit> hcalhits;
   edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hbhecoll;
   iEvent.getByToken(hcalTPToken_, hbhecoll);
@@ -210,9 +212,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     hcalhits.push_back(hhit);
   }
 
-  //*******************************************************************
-  //*************** Declare Layer 1 outputs ***************************
-  //*******************************************************************
+  //***************************************************// 
+  // Declare old-CMSSW outputs
+  //***************************************************// 
   //
   // L1 Outputs definition (using previous emulator by Cecile) - NOT firmware convention
   // Firmware convention -> CMSSW indexing conversion is done near the end.
@@ -260,11 +262,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       }
     }
   }
-  //*******************************************************************
-  //*************** Do RCT geometry (ECAL)  ***************************
-  //*******************************************************************
 
-
+  //***************************************************// 
+  // Fill RCT emulator with ECAL hits
+  //***************************************************// 
   int theCard = 28; // Debugging only
   
   for (int cc = 0; cc < n_towers_halfPhi; ++cc) {  // Loop over 36 L1 cards
@@ -400,9 +401,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     }
     
 
-    //*******************************************************************
-    //************* Do RCT geometry (HCAL) ******************************
-    //*******************************************************************
+    //***************************************************// 
+    // Build RCT towers from HCAL
+    //***************************************************// 
 
     // Same idea as the ECAL RCT geometry, except we only care about the ET in towers 
 
@@ -460,9 +461,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       }
     } // end of loop over hcal hits
 
-    //*******************************************************************    
-    //******* Within each ECAL region, read back the hits ***************
-    //******************************************************************* 
+    //***************************************************// 
+    // In each ECAL region, perform clustering
+    //***************************************************// 
 
     // Dummy for testing
     std::vector<Cluster> test_cluster;
@@ -547,16 +548,26 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Stitching code (to be added)              //                                          
     //-------------------------------------------// 
 
+    //-------------------------------------------// 
+    // Calibration
+    //-------------------------------------------// 
+
+    
+
     //-------------------------------------------//  
     // Sort the clusters:                        //
     // Take only the 8 highest ET clusters,      //
     // add leftover clusters back to ECAL towers //
     //-------------------------------------------//
     std::cout << "Card " << cc << ": unsorted ET: "; 
-    for (int i = 0; i < 12; i++) {
+    
+    // TESTING ONLY: use dummy clusters
+    /*
+      for (int i = 0; i < 12; i++) {
       Cluster dummy = Cluster((ap_uint<12>) i+5, i%12, i%4, 0, 0, 0);
       test_cluster.push_back(dummy);
     }
+    */ 
     // START HERE: Replace cluster_list[cc] with test_cluster to do a test
     std::cout << "Up to twelve clusters going in: printing ET and tower (17x4):";
     if (cluster_list[cc].empty()) {
@@ -565,7 +576,6 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     else {
       //      std::cout << "There will be " << cluster_list[cc].size() << " elements to loop over" << std::endl;
       for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-	// std::cout << "Size is " << cluster_list[cc].size() << std::endl;
 	Cluster c = cluster_list[cc][kk];
 	// std::cout << cluster_list[cc][kk].clusterEnergy() 
 	// 	  << " (" << cluster_list[cc][kk].towerEta() 
@@ -573,12 +583,6 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       }
       std::cout << std::endl;
       std::sort(cluster_list[cc].begin(), cluster_list[cc].end(), compareClusterET);
-      // std::cout << "NOMINALLY SORTED... ";
-      // for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-      // 	// std::cout << cluster_list[cc][kk].clusterEnergy() 
-      // 	// 	  << " (" << cluster_list[cc][kk].towerEta()
-      // 	// 	  << ", " << cluster_list[cc][kk].towerPhi() << ") ";
-      // }
 
       // If there are more than eight clusters, return the unused energy to the towers
       for (unsigned int kk = n_clusters_4link; kk < cluster_list[cc].size(); ++kk) {
@@ -627,9 +631,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     }
     // END HERE for str-replace testing
 
-    //-------------------------------------------//
-    // Write the L1 outputs                      //
-    //-------------------------------------------//
+    //-------------------------------------------------------------------------------//
+    // Write the L1 outputs in the style of previous CMSSW
+    //-------------------------------------------------------------------------------//
 
     std::cout << "Sanity check: Card " << cc << ": SORTED ET: (if >0 clusters exist, print stuff)";
     
@@ -639,9 +643,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // usual RCT diagram. (aka negative eta cards are NOT rotated)
     if (!cluster_list_merged[cc].empty()) {
       for (unsigned int jj = 0; jj < cluster_list_merged[cc].size(); ++jj) {
+	
 	Cluster c = cluster_list_merged[cc][jj];
-	
-	
 	// std::cout << c.clusterEnergy() << " (" << c.clusterEta() << ", " << c.clusterPhi() << ") "
 	// 	  << ", setting crystalID_cluster_L1Card[" << jj % n_links_card << "]["
 	// 	  << jj / n_links_card << "][" << cc << "] = " << getCrystalIDInTower_emulator(c.clusterEta(), c.clusterPhi(), cc) 
@@ -684,9 +687,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     std::cout << std::endl;
 
 
-    ///////////////////////////////////////////////////////////
-    // Produce output collections for the event display
-    //////////////////////////////////////////////////////////
+    //-----------------------------------------------------------//
+    // Produce output collections for event display and analyzer
+    //-----------------------------------------------------------//
     for (auto & c : cluster_list_merged[cc]) {                                                      
       std::cout << c.clusterEnergy() 
 		<< " c.region: " << c.region() << "," 
@@ -773,6 +776,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Each GCT card encompasses 16 RCT cards, listed in 
     // GCTcardtoRCTcardnumber[3][16]. 
     //    std::cout << "GCT: Starting Card " << gcc << "..." << std::endl;
+    // i goes from 0 to <16
     for (int i = 0; i < (N_RCTCARDS_PHI * 2); i++) {
 
       unsigned int rcc = GCTcardtoRCTcardnumber[gcc][i];
@@ -798,9 +802,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       
       // Get the RCT clusters, and distribute them across four links, ensuring that all values are
       // correctly converted to their GCT equivalents.
+      // There are at most eight clusters per card
       for (size_t iCluster = 0; 
-	   iCluster < cluster_list_merged[rcc].size() && iCluster < (N_RCTGCT_FIBERS * N_RCTCLUSTERS_FIBER);
-	   ++iCluster) {
+	   (iCluster < cluster_list_merged[rcc].size()) && 
+	     (iCluster < (N_RCTGCT_FIBERS * N_RCTCLUSTERS_FIBER));
+	   iCluster++) {
 	Cluster c0 = cluster_list_merged[rcc][iCluster];
 	RCTcluster_t c;
 	c.et     = c0.clusterEnergy();
@@ -812,7 +818,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	c.crEta  = c0.clusterEta();
 	c.crPhi  = c0.clusterPhi();
 	
-	unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;
+	unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;  
 	unsigned int iLinkC = iCluster % N_RCTGCT_FIBERS;
 	unsigned int iPosC  = iCluster / N_RCTGCT_FIBERS;
 	std::cout << c.et << ", "
@@ -906,11 +912,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   }
 
   // Check that L1GCTClusters has stuff in it
-  std::cout << "Checking that the output collections and stuff in them..." << std::endl;
-  for (auto const& c: *L1GCTClusters ) {
+  // std::cout << "Checking that the output collections and stuff in them..." << std::endl;
+  // for (auto const& c: *L1GCTClusters ) {
 
-    std::cout << "GCT cluster energy " << c.pt() << std::endl;
-  }
+  //   std::cout << "GCT cluster energy " << c.pt() << std::endl;
+  // }
   
   iEvent.put(std::move(L1GCTClusters), "GCT");
   iEvent.put(std::move(L1GCTTowers),   "GCT");
