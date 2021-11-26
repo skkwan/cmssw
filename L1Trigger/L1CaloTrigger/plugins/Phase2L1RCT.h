@@ -1198,6 +1198,7 @@ class Cluster{
  public:
   ap_uint<28> data;
   int regionIdx;    // newly added: specify the region that the cluster is in (0 through 4 in barrel, 5 if in endcap)
+  float calib;     // newly added: calibration factor
   ap_uint<2> brems;        // equivalent to clusterInfo.brems
   ap_uint<15> et5x5;      // equivalent to clusterInfo.et5x5
   ap_uint<15> et2x5;      // equivalent to clusterInfo.et2x5
@@ -1205,6 +1206,7 @@ class Cluster{
   Cluster(){
     data = 0;
     regionIdx = -1;
+    calib = 1.0;
     brems = 0;
     et5x5 = 0;
     et2x5 = 0;
@@ -1213,6 +1215,7 @@ class Cluster{
   Cluster& operator=(const Cluster& rhs){
     data      = rhs.data;
     regionIdx = rhs.regionIdx;
+    calib     = rhs.calib;
     brems     = rhs.brems;
     et5x5     = rhs.et5x5;
     et2x5     = rhs.et2x5;
@@ -1240,8 +1243,24 @@ class Cluster{
   operator uint32_t() {return (ap_uint<28>) data;}
   int region() { return regionIdx; }                       // Newly added
   int getBrems() { return (int) brems; }              
-  float getEt5x5() { return ((float) et5x5/8.0); }   
-  float getEt2x5() { return ((float) et2x5/8.0); }   
+  float getCalib() { return (float) calib; }                    
+  float getPt()    { return ((float) clusterEnergy() / 8.0); }   // Return pT as a float
+  float getEt5x5() { return ((float) et5x5 / 8.0); }   
+  float getEt2x5() { return ((float) et2x5 / 8.0); }   
+
+  void applyCalibration(float factor) {  
+    std::cout << "   old: " << (int) data << std::endl;
+    // Get the new pT as a float
+    float newPt = getPt() * factor;
+    // Convert the new pT to an unsigned int
+    ap_uint<12> newPt_uint = (ap_uint<12>) (int) (newPt * 8.0);
+    std::cout << "   newPt_uint: " << (int) newPt_uint << std::endl;
+    // Modify 'data'
+    ap_uint<28> bitMask = 0xFFFF000;  // last twelve digits are zero
+    data = (data & bitMask);                 // zero out the last twelve digits
+    data = (data | newPt_uint);              // write in the new ET
+    std::cout << "   new: " << (int) data << std::endl;
+  }
 };
 
 //--------------------------------------------------------// 

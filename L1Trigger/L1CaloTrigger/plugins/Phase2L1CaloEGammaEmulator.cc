@@ -548,12 +548,6 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Stitching code (to be added)              //                                          
     //-------------------------------------------// 
 
-    //-------------------------------------------// 
-    // Calibration
-    //-------------------------------------------// 
-
-    
-
     //-------------------------------------------//  
     // Sort the clusters:                        //
     // Take only the 8 highest ET clusters,      //
@@ -631,6 +625,33 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     }
     // END HERE for str-replace testing
 
+    //-------------------------------------------//                          
+    // Calibration:                                                                                    
+    //   - Applied to the cluster_list_merged                                 
+    //     (calib_(cluster_list[cc][jj].cpt, std::abs(cluster_list[cc][jj].craweta_)))     
+    //   - Also applied to the ECAL hits that were not clustered, that go into ECAL_tower_L1Card
+    //     (calib_(0, std::abs(hit.position().eta()))                           
+    //-------------------------------------------//   
+    
+    for (auto & c : cluster_list_merged[cc]) {
+      float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, 
+										 c.region(),
+										 c.towerEta(),
+										 c.clusterEta()));
+      
+      c.calib = calib_(c.getPt(), std::abs(realEta));
+      std::cout << "Calib with pT " << c.getPt() << " and eta " << realEta << ": " 
+                << c.getCalib() << std::endl;
+      std::cout << ">>> Old pT: "
+		<< c.getPt() << " (uint:" <<c.clusterEnergy() << ")" << std::endl;
+      c.applyCalibration(c.calib);
+
+      std::cout << ">>> New pT after c.applyCalibration: " 
+		<< c.getPt() << " (uint:" << c.clusterEnergy() << ")" << std::endl;
+      
+    }
+
+					      
     //-------------------------------------------------------------------------------//
     // Write the L1 outputs in the style of previous CMSSW
     //-------------------------------------------------------------------------------//
@@ -652,7 +673,6 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	// 	  << jj / n_links_card << "][" << cc << "] = " << getTowerID_emulator(c.towerEta(), c.towerPhi(), cc, c.region())
 	// 	  << std::endl;
 	
-	// Distribute (up to 12) clusters across 4 links
 	energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] =
 	  c.clusterEnergy();
 	crystalID_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 
@@ -700,7 +720,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       float realPhi = getPhi_fromCrystaliPhi( getCrystal_iPhi_fromCardRegionInfo(cc, c.region(), c.towerPhi(), c.clusterPhi()) );
       
       std::cout << "Real eta, phi " << " (" << realEta << ", " << realPhi << ") ";
-      reco::Candidate::PolarLorentzVector p4calibrated(c.clusterEnergy()/8.0,
+      c.calib = calib_(c.clusterEnergy()/8.0, std::abs(realEta));
+      std::cout << "Calib with pT " << c.getPt() << " and eta " << realEta << ": "
+		<< c.getCalib() << std::endl;
+      reco::Candidate::PolarLorentzVector p4calibrated(c.getPt(), // use float
 						       realEta,
 						       realPhi,
 						       0.);
@@ -709,16 +732,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       // showerShape_cluster_L1Card: depends on passes_ss(cpt, 2x5/5x5)
       // equivalent to cshowershape_. equivalent to showerShape_cluster_L2Card
       // is_ss
-      bool is_ss = passes_ss(c.clusterEnergy()/8.0,
+      bool is_ss = passes_ss(c.getPt(),
 			     (c.getEt2x5() / c.getEt5x5()) );
       // showerShapeLooseTk_cluster_L1Card: depends on passes_looseTkss(cpt, 2x5/5x5)
       // equivalent to cphotonshowershape_. equivalent to photonShowerShape_cluster_L2Card
       // is_looseTkss
-      bool is_looseTkss = passes_looseTkss(c.clusterEnergy()/8.0,
-					   (c.getEt2x5() / c.getEt5x5() ));
+      bool is_looseTkss = passes_looseTkss(c.getPt(), 
+					   (c.getEt2x5() / c.getEt5x5() ));  // calibration cancels
       //      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
-				        c.clusterEnergy()/8.0, // (convert to float)
+				        c.getPt(), // use float
 					0,  // float h over e
 					0,  // float iso
 					0,  // DetId seedCrystal 
@@ -744,7 +767,14 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
 	l1tp2::CaloTower l1CaloTower;
 	// Divide ET by 8.0 to convert to GeV
-	l1CaloTower.setEcalTowerEt(ECAL_tower_L1Card[ii][jj][cc]/8.0);
+	// Calibration
+	// First get the tower's eta
+	float tRealEta = getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]);
+	
+	double tCalib = calib_(0, tRealEta);
+	std::cout << "ECAL tower calibration with real eta " << tRealEta << ": " 
+		  << tCalib << std::endl;
+	l1CaloTower.setEcalTowerEt(tCalib * ECAL_tower_L1Card[ii][jj][cc]/8.0);
 	// HCAL TPGs encoded ET: multiply by the LSB (0.5) to convert to GeV
 	float hcalLSB = 0.5;
 	l1CaloTower.setHcalTowerEt(HCAL_tower_L1Card[ii][jj][cc] * hcalLSB);
@@ -810,6 +840,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	Cluster c0 = cluster_list_merged[rcc][iCluster];
 	RCTcluster_t c;
 	c.et     = c0.clusterEnergy();
+	
 	c.towEta = (c0.region() * TOWER_IN_ETA) + c0.towerEta();     
 	// towerEta is unusual because the class 'Cluster' stores the region number (region())
 	// and towerEta refers to the tower iEta INSIDE the region, but RCTTcluster_t stores no
