@@ -1266,17 +1266,17 @@ class Cluster{
   float getEt2x5() { return ((float) et2x5 / 8.0); }   
 
   void applyCalibration(float factor) {  
-    std::cout << "   old: " << (int) data << std::endl;
+    // std::cout << "   old: " << (int) data << std::endl;
     // Get the new pT as a float
     float newPt = getPt() * factor;
     // Convert the new pT to an unsigned int
     ap_uint<12> newPt_uint = (ap_uint<12>) (int) (newPt * 8.0);
-    std::cout << "   newPt_uint: " << (int) newPt_uint << std::endl;
+    // std::cout << "   newPt_uint: " << (int) newPt_uint << std::endl;
     // Modify 'data'
     ap_uint<28> bitMask = 0xFFFF000;  // last twelve digits are zero
     data = (data & bitMask);                 // zero out the last twelve digits
     data = (data | newPt_uint);              // write in the new ET
-    std::cout << "   new: " << (int) data << std::endl;
+    // std::cout << "   new: " << (int) data << std::endl;
   }
 };
 
