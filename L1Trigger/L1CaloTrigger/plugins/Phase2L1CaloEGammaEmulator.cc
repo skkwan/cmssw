@@ -633,6 +633,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     //     (calib_(0, std::abs(hit.position().eta()))                           
     //-------------------------------------------//   
     
+    // Calibrate clusters
     for (auto & c : cluster_list_merged[cc]) {
       float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, 
 										 c.region(),
@@ -650,6 +651,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 		<< c.getPt() << " (uint:" << c.clusterEnergy() << ")" << std::endl;
       
     }
+
+    // Calibrate ECAL tower ET
+    // Access towerECALCard[17][4] (array of tower_t) which uses RCT HLS geometry
+    for (int ii = 0; ii < n_towers_cardPhi; ++ii) { // 4 towers per card in phi
+      for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta
+	float tRealEta = getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]);  // real eta of center of tower
+	double tCalib = calib_(0, tRealEta);                                    // calibration factor
+	towerECALCard[jj][ii][cc].applyCalibration(tCalib);
+	
+      }
+    }
+    
 
 					      
     //-------------------------------------------------------------------------------//
@@ -766,15 +779,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta
 
 	l1tp2::CaloTower l1CaloTower;
-	// Divide ET by 8.0 to convert to GeV
-	// Calibration
-	// First get the tower's eta
-	float tRealEta = getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]);
-	
-	double tCalib = calib_(0, tRealEta);
-	std::cout << "ECAL tower calibration with real eta " << tRealEta << ": " 
-		  << tCalib << std::endl;
-	l1CaloTower.setEcalTowerEt(tCalib * ECAL_tower_L1Card[ii][jj][cc]/8.0);
+	// Divide by 8.0 to get ET as float (GeV)
+	l1CaloTower.setEcalTowerEt(ECAL_tower_L1Card[ii][jj][cc]/8.0);
 	// HCAL TPGs encoded ET: multiply by the LSB (0.5) to convert to GeV
 	float hcalLSB = 0.5;
 	l1CaloTower.setHcalTowerEt(HCAL_tower_L1Card[ii][jj][cc] * hcalLSB);

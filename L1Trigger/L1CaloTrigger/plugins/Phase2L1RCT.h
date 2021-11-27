@@ -697,9 +697,26 @@ class tower_t {
   ap_uint<12> et() {return (data & 0xFFF);}
   ap_uint<3> hoe() {return ((data >> 12) & 0x7);}
   ap_uint<1> satur() {return ((data >> 15) & 0x2);}
+
+  float getEt() { return (float) et() / 8.0; }
   
   operator uint16_t() {return (uint16_t) data;}
-
+  
+  // Only for ECAL towers!
+  void applyCalibration(float factor) {  
+    std::cout << "   old: " << (int) data << std::endl;
+    // Get the new pT as a float
+    float newEt = getEt() * factor;
+    // Convert the new pT to an unsigned int
+    ap_uint<12> newEt_uint = (ap_uint<12>) (int) (newEt * 8.0);
+    // std::cout << "   newEt_uint: " << (int) newEt_uint << std::endl;
+    // Modify 'data'
+    ap_uint<16> bitMask = 0xF000;  // last twelve digits are zero
+    data = (data & bitMask);                 // zero out the last twelve digits
+    data = (data | newEt_uint);              // write in the new ET
+    // std::cout << "   new: " << (int) data << std::endl;
+  }
+  
 };
 
 
