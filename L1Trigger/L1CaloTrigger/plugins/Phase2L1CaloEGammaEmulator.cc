@@ -568,14 +568,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // }
     // START HERE: Replace cluster_list[cc] with test_cluster to do a test  
 
-    //    std::cout << "Card " << cc << ": BEFORE stitching: " << std::endl;
+       std::cout << "Card " << cc << ": BEFORE stitching: " << std::endl;
     
-    // for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-    //   Cluster c = cluster_list[cc][kk];
-    //   std::cout << cluster_list[cc][kk].clusterEnergy()
-    // 		<< " (" << cluster_list[cc][kk].towerEtaInCard()
-    // 		<< ", " << cluster_list[cc][kk].towerPhi() << ") ";
-    // }
+    for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+      Cluster c = cluster_list[cc][kk];
+      std::cout << cluster_list[cc][kk].clusterEnergy()
+    		<< " (" << cluster_list[cc][kk].towerEtaInCard()
+    		<< ", " << cluster_list[cc][kk].towerPhi() << ") "
+		<< " (" << cluster_list[cc][kk].clusterEta() 
+		<< ", " << cluster_list[cc][kk].clusterPhi() << ") ";
+    }
     int nRegionBoundariesEta = (N_REGIONS_PER_CARD - 1); // 6 regions -> 5 boundaries to check
     int towerEtaBoundaries[nRegionBoundariesEta][2] = 
       {	{15, 14},
@@ -596,7 +598,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       Cluster c = cluster_list[cc][kk];
       std::cout << cluster_list[cc][kk].clusterEnergy()
 		<< " (" << cluster_list[cc][kk].towerEtaInCard()
-		<< ", " << cluster_list[cc][kk].towerPhi() << ") ";
+		<< ", " << cluster_list[cc][kk].towerPhi() << ")" 
+		<< " (" << cluster_list[cc][kk].clusterEta()
+		<< ", " << cluster_list[cc][kk].clusterPhi() <<") ";
     }
 
     //-------------------------------------------//  
