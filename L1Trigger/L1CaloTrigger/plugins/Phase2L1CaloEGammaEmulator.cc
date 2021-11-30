@@ -545,8 +545,60 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     } // end of loop over regions
 
     //-------------------------------------------// 
-    // Stitching code (to be added)              //                                          
+    // Stitching across ECAL regions             //
     //-------------------------------------------// 
+    
+    // TESTING ONLY: use dummy clusters                                                                                          
+    
+    // for (int i = 0; i < 12; i++) {                                                                                            
+    //   Cluster dummy = Cluster((ap_uint<12>) i+5, i%12, i%4, 0, 0, 0);                                                            
+    //   test_cluster.push_back(dummy);                                                                                         
+    // }                    
+
+    // Put two fake clusters on either side of a boundary: e.g. tower eta 15, tower phi 1, crystal eta 0, crystal phi 3
+    // and the other directly below it in eta, but either 0 or 1 away in crystal phi (first try with same phi)
+    for (int i = 0; i < 5; i++) {
+      int dummyTowerPhi = (i % 4);
+      int dummyCrystalPhi = (i % 5);
+      Cluster dummy1 = Cluster((ap_uint<12>) 25, 0, dummyTowerPhi, 0, dummyCrystalPhi, 0);
+      dummy1.regionIdx = (i+1);
+      Cluster dummy2 = Cluster((ap_uint<12>) 20, 2, dummyTowerPhi, 4, dummyCrystalPhi + 1, 1); 
+      dummy2.regionIdx = i;
+      test_cluster.push_back(dummy1);
+      test_cluster.push_back(dummy2);
+    }
+    // START HERE: Replace cluster_list[cc] with test_cluster to do a test  
+
+    std::cout << "Card " << cc << ": BEFORE stitching: " << std::endl;
+    
+    for (unsigned int kk = 0; kk < test_cluster.size(); ++kk) {
+      Cluster c = test_cluster[kk];
+      std::cout << test_cluster[kk].clusterEnergy()
+		<< " (" << test_cluster[kk].towerEtaInCard()
+		<< ", " << test_cluster[kk].towerPhi() << ") ";
+    }
+    int nRegionBoundariesEta = (N_REGIONS_PER_CARD - 1); // 6 regions -> 5 boundaries to check
+    int towerEtaBoundaries[nRegionBoundariesEta][2] = 
+      {	{15, 14},
+	{12, 11},
+	{9, 8},
+	{6, 5},
+	{3, 2}      };
+
+    for (int iBound = 0; iBound < nRegionBoundariesEta; iBound++) {
+      std::cout << "   Will check for stitching along " << towerEtaBoundaries[iBound][0]
+		<< " and " << towerEtaBoundaries[iBound][1] << std::endl;
+      // First number in the tuple is the upper boundary, second number is the lower boundary
+      stitchClusterOverRegionBoundary(test_cluster, towerEtaBoundaries[iBound][0], towerEtaBoundaries[iBound][1]);
+    }
+    
+    std::cout << "Card " << cc << ": AFTER stitching:" << std::endl;
+    for (unsigned int kk = 0; kk < test_cluster.size(); ++kk) {
+      Cluster c = test_cluster[kk];
+      std::cout << test_cluster[kk].clusterEnergy()
+		<< " (" << test_cluster[kk].towerEtaInCard()
+		<< ", " << test_cluster[kk].towerPhi() << ") ";
+    }
 
     //-------------------------------------------//  
     // Sort the clusters:                        //
@@ -555,32 +607,24 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     //-------------------------------------------//
     std::cout << "Card " << cc << ": unsorted ET: "; 
     
-    // TESTING ONLY: use dummy clusters
-    /*
-      for (int i = 0; i < 12; i++) {
-      Cluster dummy = Cluster((ap_uint<12>) i+5, i%12, i%4, 0, 0, 0);
-      test_cluster.push_back(dummy);
-    }
-    */ 
-    // START HERE: Replace cluster_list[cc] with test_cluster to do a test
     std::cout << "Up to twelve clusters going in: printing ET and tower (17x4):";
-    if (cluster_list[cc].empty()) {
+    if (test_cluster.empty()) {
       std::cout << "The vector is empty; skip this step" << std::endl;
     }
     else {
-      //      std::cout << "There will be " << cluster_list[cc].size() << " elements to loop over" << std::endl;
-      for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
-	Cluster c = cluster_list[cc][kk];
-	// std::cout << cluster_list[cc][kk].clusterEnergy() 
-	// 	  << " (" << cluster_list[cc][kk].towerEta() 
-	// 	  << ", " << cluster_list[cc][kk].towerPhi() << ") "; 
+      //      std::cout << "There will be " << test_cluster.size() << " elements to loop over" << std::endl;
+      for (unsigned int kk = 0; kk < test_cluster.size(); ++kk) {
+	Cluster c = test_cluster[kk];
+	std::cout << test_cluster[kk].clusterEnergy() 
+		  << " (" << test_cluster[kk].towerEta() 
+		  << ", " << test_cluster[kk].towerPhi() << ") "; 
       }
       std::cout << std::endl;
-      std::sort(cluster_list[cc].begin(), cluster_list[cc].end(), compareClusterET);
+      std::sort(test_cluster.begin(), test_cluster.end(), compareClusterET);
 
       // If there are more than eight clusters, return the unused energy to the towers
-      for (unsigned int kk = n_clusters_4link; kk < cluster_list[cc].size(); ++kk) {
-	Cluster cExtra = cluster_list[cc][kk];
+      for (unsigned int kk = n_clusters_4link; kk < test_cluster.size(); ++kk) {
+	Cluster cExtra = test_cluster[kk];
 	if (cExtra.clusterEnergy() > 0) {
 	  //	  std::cout << "Extra cluster # " << kk << ": energy (GeV) " << cExtra.clusterEnergy()
 	  //		    << std::endl;
@@ -604,22 +648,22 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       
       // Build the sorted cluster list IFF there were clusters 
       std::cout << "Building sorted cluster list: ";
-      if (cluster_list[cc].empty()) {
+      if (test_cluster.empty()) {
 	//	std::cout << "No clusters: do not build sorted cluster list" << std::endl;
       }
       else {
 	// Save up to eight clusters: loop over cluster_list
-	for (unsigned int kk = 0; kk < cluster_list[cc].size(); ++kk) {
+	for (unsigned int kk = 0; kk < test_cluster.size(); ++kk) {
 	  if (kk >= n_clusters_4link) continue;
-	  if (cluster_list[cc][kk].clusterEnergy() > 0) 
-	    cluster_list_merged[cc].push_back(cluster_list[cc][kk]);
+	  if (test_cluster[kk].clusterEnergy() > 0) 
+	    cluster_list_merged[cc].push_back(test_cluster[kk]);
 	}
-	// std::cout << "Sorted, up to 8 clusters: ";
-	// for (unsigned int kk = 0; kk < cluster_list_merged[cc].size(); ++kk) {
-	//   std::cout << cluster_list_merged[cc][kk].clusterEnergy() 
-	// 	    << " (" << cluster_list_merged[cc][kk].towerEta() 
-	// 	    << ", " << cluster_list_merged[cc][kk].towerPhi() << ") ";
-	// }
+	std::cout << "Sorted, up to 8 clusters: ";
+	for (unsigned int kk = 0; kk < cluster_list_merged[cc].size(); ++kk) {
+	  std::cout << cluster_list_merged[cc][kk].clusterEnergy() 
+		    << " (" << cluster_list_merged[cc][kk].towerEtaInCard() 
+		    << ", " << cluster_list_merged[cc][kk].towerPhi() << ") ";
+	}
 	std::cout << std::endl;
       }
     }

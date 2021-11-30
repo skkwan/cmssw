@@ -704,7 +704,7 @@ class tower_t {
   
   // Only for ECAL towers!
   void applyCalibration(float factor) {  
-    std::cout << "   old: " << (int) data << std::endl;
+    // std::cout << "   old: " << (int) data << std::endl;
     // Get the new pT as a float
     float newEt = getEt() * factor;
     // Convert the new pT to an unsigned int
@@ -1229,6 +1229,8 @@ class Cluster{
     et2x5 = 0;
   }
 
+  
+
   Cluster& operator=(const Cluster& rhs){
     data      = rhs.data;
     regionIdx = rhs.regionIdx;
@@ -1248,6 +1250,20 @@ class Cluster{
       (((ap_uint<32>) satur)       << 25);
   }
 
+  // Temporary: will replace this with the ap_uint<60> Cluster 
+  Cluster(ap_uint<12> clusterEnergy, ap_uint<5> towerEta, ap_uint<2> towerPhi, ap_uint<3> clusterEta, ap_uint<3> clusterPhi, ap_uint<3> satur, ap_uint<15> et5x5, ap_uint<15> et2x5, ap_uint<2> brems) {
+    data = (clusterEnergy) |
+      (((ap_uint<32>) towerEta)  << 12) |
+      (((ap_uint<32>) towerPhi)  << 17) |
+      (((ap_uint<32>) clusterEta)  << 19) |
+      (((ap_uint<32>) clusterPhi) << 22) |
+      (((ap_uint<32>) satur)       << 25);
+    et5x5 = et5x5;
+    et2x5 = et2x5;
+    brems = brems;
+
+  }
+
   void setRegionIdx(int regIdx) { regionIdx = regIdx; }  // Newly added
 
   ap_uint<12> clusterEnergy() {return (data & 0xFFF);}
@@ -1262,8 +1278,10 @@ class Cluster{
   int getBrems() { return (int) brems; }              
   float getCalib() { return (float) calib; }                    
   float getPt()    { return ((float) clusterEnergy() / 8.0); }   // Return pT as a float
-  float getEt5x5() { return ((float) et5x5 / 8.0); }   
-  float getEt2x5() { return ((float) et2x5 / 8.0); }   
+  float getEt5x5() { return ((float) et5x5 / 8.0); }             // Return ET5x5 as a float
+  float getEt2x5() { return ((float) et2x5 / 8.0); }             // Return ET2x5 as a float
+  
+  int towerEtaInCard() { return ((int) (region() * TOWER_IN_ETA) + towerEta() ); } 
 
   void applyCalibration(float factor) {  
     // std::cout << "   old: " << (int) data << std::endl;
@@ -1697,6 +1715,90 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   return returnCluster;
   
 }
+
+//--------------------------------------------------------// 
+
+// Takes a vector of Clusters and stitches it across the boundary specified by 
+// towerEtaUpper and towerEtaLower (using RCT card notation). Modifies the input vector
+// (passed by reference). If two clusters are combined, modify the higher-energy cluster and
+// zero out the energy of the smaller-energy cluster.
+// Returns 1.
+
+int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, 
+				    int towerEtaUpper, int towerEtaLower) {
+
+  int crystalEtaUpper = 0;
+  int crystalEtaLower = 4;
+
+  std::cout << "Comparing for towerEta boundaries " << towerEtaUpper << " and " << towerEtaLower << std::endl;
+  for (int i = 0; i < (int) cluster_list.size(); i++) {
+    for (int j = 0; j < (int) cluster_list.size(); j++) {
+      
+      // Do not double-count
+      if (i == j) continue; 
+      
+      // std::cout << "  (" << i << ", " << j << ")";
+
+      // Use the .towerEtaInCard() method to get the tower eta in the entire RCT card
+      if( cluster_list[i].clusterEnergy() > 0 && cluster_list[i].towerEtaInCard() == towerEtaUpper &&
+	  cluster_list[i].clusterEta() == crystalEtaUpper) {
+	if(cluster_list[j].clusterEnergy() > 0 && cluster_list[j].towerEtaInCard() == towerEtaLower &&
+	   cluster_list[j].clusterEta() == crystalEtaLower){
+	  std::cout << "  Found two clusters along eta border (not checked if near in phi): "
+		    << " upper has energy "     << cluster_list[i].clusterEnergy()
+		    << " and lower has energy " << cluster_list[j].clusterEnergy() << std::endl;
+
+	  ap_uint<5> phi1 = cluster_list[i].towerPhi()*5 + cluster_list[i].clusterPhi();
+          ap_uint<5> phi2 = cluster_list[j].towerPhi()*5 + cluster_list[j].clusterPhi();
+          ap_uint<5> dPhi; 
+	  dPhi = (phi1 > phi2)?(phi1-phi2):(phi2-phi1);
+	  
+	  if( dPhi < 2 ) {
+	    std::cout << "  The two clusters are next to each other in phi " << std::endl;
+	    ap_uint<12> one = cluster_list[i].clusterEnergy();
+	    ap_uint<12> two = cluster_list[j].clusterEnergy();
+	    ap_uint<12> sum = (one + two);
+	    // When we finalize the firmware ap_uint size, switch .et5x5 and .et2x5 to et5x5() and et2x5() methods
+	    ap_uint<15> et5x5 = (cluster_list[i].et5x5 + cluster_list[j].et5x5); 
+	    ap_uint<15> et2x5 = (cluster_list[i].et2x5 + cluster_list[j].et2x5); 
+	    int one_regionIdx = cluster_list[i].region();
+	    int two_regionIdx = cluster_list[j].region();
+	    // When we finalize the firmware ap_uint size, switch .brems to brems() method
+	    // When we finalize the firmware ap_uint size, switch Cluster() initializer 
+	    if (one > two){
+	      // Initialize a cluster with the larger cluster's position and total energy
+	      cluster_list[i] = Cluster(sum, cluster_list[i].towerEta(), cluster_list[i].towerPhi(), cluster_list[i].clusterEta(), cluster_list[i].clusterPhi(), cluster_list[i].satur(), et5x5, et2x5, cluster_list[i].brems);
+	      // Also carry over the larger cluster's region #
+	      cluster_list[i].regionIdx = one_regionIdx;
+	      // cluster_list[j] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
+	      cluster_list[j] = Cluster(0, 0, 0, 0, 0, 0);
+	    }
+	    else {
+	      // Analogous to above portion
+	      cluster_list[j] = Cluster(sum, cluster_list[j].towerEta(), cluster_list[j].towerPhi(), cluster_list[j].clusterEta(), cluster_list[j].clusterPhi(), cluster_list[j].satur(), et5x5, et2x5, cluster_list[j].brems);
+	      cluster_list[j].regionIdx = two_regionIdx;
+	      // cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
+	      cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0);
+	    }
+	  
+	  }
+	  
+	}
+	
+      }
+      
+    }
+  }
+  std::cout << std::endl;
+
+  return 1;
+
+}
+
+
+
+
+//--------------------------------------------------------// 
 
 
 #endif
