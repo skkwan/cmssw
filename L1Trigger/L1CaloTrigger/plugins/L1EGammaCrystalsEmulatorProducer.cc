@@ -692,14 +692,12 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
         }
       }
       if (cluster_list[cc][jj].cpt > 0) {
-        cluster_list[cc][jj].cpt =
-	  cluster_list[cc][jj].cpt * 1.0;
-	  //	  cluster_list[cc][jj].cpt * calib_(cluster_list[cc][jj].cpt,
-	//					    std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
-	// std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
-	// 	  << std::abs(cluster_list[cc][jj].craweta_) << " is: "
-	// 	  << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
-	// 	  << std::endl;
+        cluster_list[cc][jj].cpt = cluster_list[cc][jj].cpt * calib_(cluster_list[cc][jj].cpt,
+								     std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
+	std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
+		  << std::abs(cluster_list[cc][jj].craweta_) << " is: "
+		  << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
+		  << std::endl;
 								   
         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
       }
@@ -745,8 +743,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
             for (int ii = 0; ii < n_towers_per_link; ++ii) {
               //Apply Mark's calibration at the same time (row of the lowest pT, as a function of eta)
               if ((getCrystal_etaID(hit.position().eta()) / n_crystals_towerEta) % n_towers_per_link == ii) {
-		// TEMP: comment out calibration
-		ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * 1.0; //calib_(0, std::abs(hit.position().eta()));
+		ECAL_tower_L1Card[jj][ii][cc] += hit.pt() * calib_(0, std::abs(hit.position().eta()));
 		ECAL_tower_L1Card[jj][ii][cc] += hit.pt();
                 iEta_tower_L1Card[jj][ii][cc] = getTower_absoluteEtaID(hit.position().eta());  //hit.id().ieta();
                 iPhi_tower_L1Card[jj][ii][cc] = getTower_absolutePhiID(hit.position().phi());  //hit.id().iphi();
