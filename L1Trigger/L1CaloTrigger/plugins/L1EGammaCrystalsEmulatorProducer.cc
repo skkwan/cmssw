@@ -882,6 +882,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                     crystalID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] % 5 -
                     5 * (towerID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left]) % n_towers_per_link -
                     crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] % 5) < 2) {
+
+	      std::cout << "Merging along phi edges..." << std::endl;
               if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] >
                   energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right]) {
                 energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] +=
@@ -926,6 +928,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                 if (towerID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] < n_towers_per_link &&
                     std::abs(5 + crystalID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] / 5 -
                              (crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] / 5)) <= 5) {
+		  std::cout<< "Merging along phi edges for BREMS CORRECTIONS..."<< std::endl;
                   if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] >
                           energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] &&
                       energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] >
@@ -969,6 +972,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                   crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] / 5 -
                   5 * (towerID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_top] / n_towers_per_link) -
                   crystalID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_top] / 5) < 2) {
+	    std::cout<< "Merging along eta edges..."<< std::endl;
             if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] >
                 energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_bottom]) {
               energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] +=
