@@ -1429,8 +1429,15 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Read the energies of the input crystal tempX into the slightly larger array temp, with an offset so temp is tempX
   // except shifted +1 in eta, and -3 in phi. 
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
-    for (int j = 0; j < (CRYSTAL_IN_PHI); j++) {
+    for (int j = 5; j < (CRYSTAL_IN_PHI); j++) {
+      // std::cout << "getBremsValuesPos: i, j " << i << ", " << j << ", [i+1][j-3]: " << i+1 << ", " << j-3 << std::endl;
       temp[i+1][j-3] = tempX[i][j].energy;   
+      if (tempX[i][j].energy > 0) {
+	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
+		  << "getBremsValuesPos: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy
+		  << ", temp[" << i+1 << "][" << j-3 << "]" << temp[i+1][j-3] << std::endl;
+      }
+
     }}
   
   ap_uint<6> seed_eta1, seed_phi1;
@@ -1445,18 +1452,28 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
       for (int k = 0; k < CRYSTAL_IN_PHI; k++) {
 	if (k == seed_phi1) {
 	  // Same eta as the seed, read next five crystals in phi
+	  std::cout << "j, k = " << j << ", " << k << std::endl;
+	  
 	  phi0eta[0] = temp[j][k];
 	  phi1eta[0] = temp[j][k+1];
 	  phi2eta[0] = temp[j][k+2];
 	  phi3eta[0] = temp[j][k+3];
 	  phi4eta[0] = temp[j][k+4];
-	    
+
+	  for (int kk = k; kk < (k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[0]:" << temp[j][kk] << std::endl;
+	  }
+
 	  // +1 eta from the seed, read next five crystals in phi
 	  phi0eta[1] = temp[j+1][k];
 	  phi1eta[1] = temp[j+1][k+1];
 	  phi2eta[1] = temp[j+1][k+2];
 	  phi3eta[1] = temp[j+1][k+3];
 	  phi4eta[1] = temp[j+1][k+4];
+
+	  for (int kk =k; kk <(k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[1]:"<< temp[j+1][kk] << std::endl;
+          }
                         
 	  // +2 eta from the seed, read next five crystals in phi
 	  phi0eta[2] = temp[j+2][k];
@@ -1464,6 +1481,10 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
 	  phi2eta[2] = temp[j+2][k+2];
 	  phi3eta[2] = temp[j+2][k+3];
 	  phi4eta[2] = temp[j+2][k+4];
+
+	  for (int kk =k; kk <(k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[2]:"<< temp[j+2][kk] << std::endl;
+          }
 	    
 	  continue;
 	}}
@@ -1472,10 +1493,12 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Add up the energies in this 3x5 of crystals, initialize a cluster_tmp, and return it
   for (int i = 0; i < 3; i++) { 
     eta_slice[i] = phi0eta[i] + phi1eta[i] + phi2eta[i] + phi3eta[i] + phi4eta[i];
+    std::cout << ">>> i = " << i << ": "
+	      << phi0eta[i] << " " << phi1eta[i] << " " << phi2eta[i] << " " << phi3eta[i] << " " << phi4eta[i] << std::endl;
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
 
-  //  std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   return cluster_tmp;
 
 }
@@ -1505,6 +1528,10 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
     for (int j = 0; j < (CRYSTAL_IN_PHI - 5); j++) {
       temp[i+1][j+7] = tempX[i][j].energy;
+      if (tempX[i][j].energy > 0) {
+	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
+		  << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
+      }
     }}
 
   ap_uint<6> seed_eta1, seed_phi1;
@@ -1548,7 +1575,7 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
   
-  //  std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   
   return cluster_tmp;
   

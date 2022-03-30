@@ -97,7 +97,7 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 		ap_uint<15> dPhi ; dPhi=((5 - phi1) + phi2) ;    
 	        ap_uint<15> dEta ; dEta=(eta1 > eta2)?(eta1-eta2):(eta2-eta1) ;
 		// if( dEta < 2 ) {
-		if( (dPhi < 5) && (dEta < 2) ) {  
+		if( (dPhi <= 5) && (dEta < 2) ) {  
 		  ap_uint<12> one = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et ;
 		  ap_uint<12> two = GCTcard.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
 		  if (one > two){ 
@@ -133,7 +133,7 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 	      if(GCTcard.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].towPhi == 0) {  
 		ap_uint<15> dPhi ; dPhi=((5 - phi1) + phi2) ; 
 		ap_uint<15> dEta ; dEta=(eta1 > eta2)?(eta1-eta2):(eta2-eta1) ;
-		if( (dPhi < 5) && (dEta < 2) ) {         
+		if( (dPhi <= 5) && (dEta < 2) ) {         
 		  ap_uint<12> one = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et ;
 		  ap_uint<12> two = GCTcard.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
 		  if (one > two){ 
@@ -169,7 +169,7 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 	      if(GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].towPhi == 3) {
 		ap_uint<15> dPhi ; dPhi=((5 - phi2) + phi1) ;  // reversed for negative eta
 		ap_uint<15> dEta ; dEta=(eta1 > eta2)?(eta1-eta2):(eta2-eta1) ;
-		if( (dPhi < 5) && (dEta < 2) ) {    
+		if( (dPhi <= 5) && (dEta < 2) ) {    
 		  ap_uint<12> one = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et ;
 		  ap_uint<12> two = GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
 		  if (one > two){ 
@@ -205,7 +205,7 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 	      if( GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].towPhi == 3 ) {
 		ap_uint<15> dPhi ; dPhi=((5 - phi2) + phi1) ; // reversed compared to positive eta
 		ap_uint<15> dEta ; dEta=(eta1 > eta2)?(eta1-eta2):(eta2-eta1) ;
-		if( (dPhi < 5) && (dEta < 2) ) {        
+		if( (dPhi <= 5) && (dEta < 2) ) {        
 		  ap_uint<12> one = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et ;
 		  ap_uint<12> two = GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
 		  if (one > two){ 
