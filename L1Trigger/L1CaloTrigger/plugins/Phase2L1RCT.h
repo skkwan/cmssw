@@ -1219,6 +1219,8 @@ class Cluster{
   ap_uint<2> brems;        // equivalent to clusterInfo.brems
   ap_uint<15> et5x5;      // equivalent to clusterInfo.et5x5
   ap_uint<15> et2x5;      // equivalent to clusterInfo.et2x5
+  bool is_ss;
+  bool is_looseTkss; 
 
   Cluster(){
     data = 0;
@@ -1227,6 +1229,8 @@ class Cluster{
     brems = 0;
     et5x5 = 0;
     et2x5 = 0;
+    is_ss = false;
+    is_looseTkss = false;
   }
 
   
@@ -1238,6 +1242,8 @@ class Cluster{
     brems     = rhs.brems;
     et5x5     = rhs.et5x5;
     et2x5     = rhs.et2x5;
+    is_ss     = rhs.is_ss;
+    is_looseTkss = rhs.is_looseTkss;
     return *this;
   }
 
@@ -1251,7 +1257,7 @@ class Cluster{
   }
 
   // Temporary: will replace this with the ap_uint<60> Cluster 
-  Cluster(ap_uint<12> clusterEnergy, ap_uint<5> towerEta, ap_uint<2> towerPhi, ap_uint<3> clusterEta, ap_uint<3> clusterPhi, ap_uint<3> satur, ap_uint<15> et5x5, ap_uint<15> et2x5, ap_uint<2> brems) {
+  Cluster(ap_uint<12> clusterEnergy, ap_uint<5> towerEta, ap_uint<2> towerPhi, ap_uint<3> clusterEta, ap_uint<3> clusterPhi, ap_uint<3> satur, ap_uint<15> et5x5, ap_uint<15> et2x5, ap_uint<2> brems, bool is_ss, bool is_looseTkss) {
     data = (clusterEnergy) |
       (((ap_uint<32>) towerEta)  << 12) |
       (((ap_uint<32>) towerPhi)  << 17) |
@@ -1261,7 +1267,8 @@ class Cluster{
     et5x5 = et5x5;
     et2x5 = et2x5;
     brems = brems;
-
+    is_ss = is_ss;
+    is_looseTkss = is_looseTkss;
   }
 
   void setRegionIdx(int regIdx) { regionIdx = regIdx; }  // Newly added
@@ -1272,6 +1279,8 @@ class Cluster{
   ap_uint<3> clusterEta() {return ((data >> 19) & 0x7);}
   ap_uint<3> clusterPhi() {return ((data >> 22) & 0x7);}
   ap_uint<3> satur() {return ((data >> 25) & 0x7);}
+  ap_uint<15> uint_et2x5(){ return et2x5; }
+  ap_uint<15> uint_et5x5(){ return et5x5; }
   
   operator uint32_t() {return (ap_uint<28>) data;}
   int region() { return regionIdx; }                       // Newly added
@@ -1283,6 +1292,10 @@ class Cluster{
   
   int towerEtaInCard() { return ((int) (region() * TOWER_IN_ETA) + towerEta() ); } 
 
+  bool getIsSS() { return is_ss; }
+  bool getIsLooseTkss() { return is_looseTkss; }
+
+  // Apply calibration (float) to the pT, returning it as an unsigned int.
   void applyCalibration(float factor) {  
     // std::cout << "   old: " << (int) data << std::endl;
     // Get the new pT as a float
@@ -1794,7 +1807,8 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list,
 	    // When we finalize the firmware ap_uint size, switch Cluster() initializer 
 	    if (one > two){
 	      // Initialize a cluster with the larger cluster's position and total energy
-	      cluster_list[i] = Cluster(sum, cluster_list[i].towerEta(), cluster_list[i].towerPhi(), cluster_list[i].clusterEta(), cluster_list[i].clusterPhi(), cluster_list[i].satur(), et5x5, et2x5, cluster_list[i].brems);
+	      cluster_list[i] = Cluster(sum, cluster_list[i].towerEta(), cluster_list[i].towerPhi(), cluster_list[i].clusterEta(), cluster_list[i].clusterPhi(), cluster_list[i].satur(), et5x5, et2x5, cluster_list[i].brems,
+					false, false);
 	      // Also carry over the larger cluster's region #
 	      cluster_list[i].regionIdx = one_regionIdx;
 	      // cluster_list[j] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -1802,7 +1816,8 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list,
 	    }
 	    else {
 	      // Analogous to above portion
-	      cluster_list[j] = Cluster(sum, cluster_list[j].towerEta(), cluster_list[j].towerPhi(), cluster_list[j].clusterEta(), cluster_list[j].clusterPhi(), cluster_list[j].satur(), et5x5, et2x5, cluster_list[j].brems);
+	      cluster_list[j] = Cluster(sum, cluster_list[j].towerEta(), cluster_list[j].towerPhi(), cluster_list[j].clusterEta(), cluster_list[j].clusterPhi(), cluster_list[j].satur(), et5x5, et2x5, cluster_list[j].brems,
+					false, false);
 	      cluster_list[j].regionIdx = two_regionIdx;
 	      // cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
 	      cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0);

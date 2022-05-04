@@ -794,12 +794,19 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       // is_ss
       bool is_ss = passes_ss(c.getPt(),
 			     (c.getEt2x5() / c.getEt5x5()) );
+      c.is_ss        = is_ss;
+      
       // showerShapeLooseTk_cluster_L1Card: depends on passes_looseTkss(cpt, 2x5/5x5)
       // equivalent to cphotonshowershape_. equivalent to photonShowerShape_cluster_L2Card
       // is_looseTkss
       bool is_looseTkss = passes_looseTkss(c.getPt(), 
 					   (c.getEt2x5() / c.getEt5x5() ));  // calibration cancels
       //      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
+      c.is_looseTkss = is_looseTkss;
+
+      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
+      std::cout << "c.getIsSS(): " << c.getIsSS() << ", c.getIsLooseTkss(): " << c.getIsLooseTkss() << std::endl;
+      
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
 				        c.getPt(), // use float
 					0,  // float h over e
@@ -811,11 +818,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 					c.getEt2x5(), // et2x5 (as computed in firmware, save float)
 					0,            // et3x5 (not calculated)
 					c.getEt5x5(), // et5x5 (as computed in firmware, save float)
-					is_ss, // standalone WP
+					c.getIsSS(), // standalone WP
 					false, // electronWP98
 					false, // photonWP80
 					false, // electronWP90
-					is_looseTkss, // looseL1TkMatchWP
+					c.getIsLooseTkss(), // looseL1TkMatchWP
 					false  // stage2effMatch
 					);
       
@@ -901,6 +908,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	c.towPhi = c0.towerPhi();
 	c.crEta  = c0.clusterEta();
 	c.crPhi  = c0.clusterPhi();
+	c.et5x5  = c0.uint_et5x5();  // newly added
+	c.et2x5  = c0.uint_et2x5();  // newly added
+	c.is_ss        = c0.getIsSS();        // newly added
+	c.is_looseTkss = c0.getIsLooseTkss(); // newly added
 	
 	unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;  
 	unsigned int iLinkC = iCluster % N_RCTGCT_FIBERS;
@@ -909,7 +920,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 		  << "accessing link " << iCluster % N_RCTGCT_FIBERS << " "
 		  << "and position "   << iCluster / N_RCTGCT_FIBERS << " "
 		  << "isPositiveEta "  << isPositiveEta << " " 
-		  << "with iIdxInGCT " << iIdxInGCT << std::endl;
+		  << "with iIdxInGCT " << iIdxInGCT << " " 
+		  << "with uint et5x5, et2x5 " << c.et5x5 << ", " << c.et2x5 << " " 
+		  << "with shower shape flags ss/looseTkss " << c.is_ss << ", " << c.is_looseTkss << std::endl;
 	
 	if (isPositiveEta) {
 	  gctCards[gcc].RCTcardEtaPos[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = c;
@@ -931,6 +944,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
         cZero.towPhi = 0;
         cZero.crEta  = 0;
         cZero.crPhi  = 0;
+	cZero.et5x5  = 0;
+	cZero.et2x5  = 0;
+	cZero.is_ss  = false;
+	cZero.is_looseTkss = false;
 	if (isPositiveEta) {
           gctCards[gcc].RCTcardEtaPos[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = cZero;
         } else {
@@ -996,11 +1013,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   }
 
   // Check that L1GCTClusters has stuff in it
-  // std::cout << "Checking that the output collections and stuff in them..." << std::endl;
-  // for (auto const& c: *L1GCTClusters ) {
+  std::cout << "Checking that the GCT output collections has stuff in them..." << std::endl;
+  for (auto const& c: *L1GCTClusters ) {
 
-  //   std::cout << "GCT cluster energy " << c.pt() << std::endl;
-  // }
+    std::cout << "GCT cluster energy " << c.pt() << std::endl;
+  }
   
   iEvent.put(std::move(L1GCTClusters), "GCT");
   iEvent.put(std::move(L1GCTTowers),   "GCT");
