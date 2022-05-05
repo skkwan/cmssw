@@ -1442,9 +1442,9 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Read the energies of the input crystal tempX into the slightly larger array temp, with an offset so temp is tempX
   // except shifted +1 in eta, and -3 in phi. 
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
-    for (int j = 5; j < (CRYSTAL_IN_PHI); j++) {
+    for (int j = 0; j < (CRYSTAL_IN_PHI-3); j++){
       // std::cout << "getBremsValuesPos: i, j " << i << ", " << j << ", [i+1][j-3]: " << i+1 << ", " << j-3 << std::endl;
-      temp[i+1][j-3] = tempX[i][j].energy;   
+      temp[i+1][j] = tempX[i][j+3].energy ;
       if (tempX[i][j].energy > 0) {
 	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
 		  << "getBremsValuesPos: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy
@@ -1539,8 +1539,8 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Read the energies of the input crystal tempX into the slightly larger array temp, with an offset so temp is tempX
   // except shifted in +1 in eta and +7 in phi
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
-    for (int j = 0; j < (CRYSTAL_IN_PHI - 5); j++) {
-      temp[i+1][j+7] = tempX[i][j].energy;
+    for (int j = 0; j < (CRYSTAL_IN_PHI - 1); j++) {
+      temp[i+1][j+5] = tempX[i][j].energy;
       if (tempX[i][j].energy > 0) {
 	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
 		  << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
