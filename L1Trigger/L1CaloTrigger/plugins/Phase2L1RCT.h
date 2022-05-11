@@ -1539,8 +1539,11 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Read the energies of the input crystal tempX into the slightly larger array temp, with an offset so temp is tempX
   // except shifted in +1 in eta and +7 in phi
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
-    for (int j = 0; j < (CRYSTAL_IN_PHI - 1); j++) {
-      temp[i+1][j+5] = tempX[i][j].energy;
+    // for (int j = 0; j < (CRYSTAL_IN_PHI - 1); j++) {
+    //   temp[i+1][j+5] = tempX[i][j].energy;
+    for (int j = 0; j < (CRYSTAL_IN_PHI - 3); j++) {
+      temp[i+1][j+7] = tempX[i][j].energy;
+    
       if (tempX[i][j].energy > 0) {
 	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
 		  << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
@@ -1563,6 +1566,10 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
 	  phi2eta[0] = temp[j][k+2];
 	  phi3eta[0] = temp[j][k+3];
 	  phi4eta[0] = temp[j][k+4];
+	  
+	  for (int kk = k; kk < (k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[0]:" << temp[j][kk] << std::endl;
+          }
 	      
 	  // +1 eta from the seed, read next five crystals in phi
 	  phi0eta[1] = temp[j+1][k];
@@ -1570,6 +1577,10 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
 	  phi2eta[1] = temp[j+1][k+2];
 	  phi3eta[1] = temp[j+1][k+3];
 	  phi4eta[1] = temp[j+1][k+4];
+
+	  for (int kk =k; kk <(k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[1]:"<< temp[j+1][kk] << std::endl;
+          }
                         
 	  // +2 eta from the seed, read next five crystals in phi
 	  phi0eta[2] = temp[j+2][k];
@@ -1577,7 +1588,11 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
 	  phi2eta[2] = temp[j+2][k+2];
 	  phi3eta[2] = temp[j+2][k+3];
 	  phi4eta[2] = temp[j+2][k+4];
-	      
+	   
+	  for (int kk =k; kk <(k+5); kk++) {
+	    std::cout << "--> phi{0-4}eta[2]:"<< temp[j+2][kk] << std::endl;
+          }
+
 	  continue;
 	}}
     }}
