@@ -39,7 +39,9 @@ int getCluster_global_iEta(unsigned int nGCTCard, GCTcluster_t c) {
 
 // Get GCT cluster c's iPhi (global convention).
 // Use with getPhi_fromCrystaliPhi from Phase2L1RCT.h to convert from GCT cluster to real phi.
-int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c) {
+// If returnGlobalGCTiPhi is true (Default value) then return the iPhi in the entire GCT barrel. Otherwise
+// just return the iPhi in the current GCT card.
+int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
   
   // First get the "iEta/iPhi" in the GCT card. i.e. in the diagram where the barrel
   // is split up into three GCT cards, (iEta, iPhi) = (0, 0) is the top left corner
@@ -53,12 +55,17 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c) {
   // of the GCT card in the phi direction, and modulo with the total number of crystals in the barrel
   // in the phi direction, since it wraps around.
   assert(nGCTCard <= 2);  // Make sure the card number is valid
-  int iPhi_card_offset;
-  if      (nGCTCard == 0) iPhi_card_offset = 20 * 5;  // tower #20, and five crystals per tower
-  else if (nGCTCard == 1) iPhi_card_offset = 44 * 5;   
-  else if (nGCTCard == 2) iPhi_card_offset = 68 * 5;
+  int iPhi_card_offset = 0;
 
-  int iPhi_in_barrel = (iPhi_card_offset + iPhi_in_gctCard) % (72 * 5); // detector wraps around in phi
+  // (default behavior) If we should return the global GCT iPhi, get the iPhi offset due to the number of the GCT card
+  if (returnGlobalGCTiPhi) {
+    if      (nGCTCard == 0) iPhi_card_offset = 20 * 5;  // tower #20, and five crystals per tower
+    else if (nGCTCard == 1) iPhi_card_offset = 44 * 5;   
+    else if (nGCTCard == 2) iPhi_card_offset = 68 * 5;
+  }
+  // Else, treat it as no offset due to GCT card number
+
+  int iPhi_in_barrel = (iPhi_card_offset + iPhi_in_gctCard) % (72 * 5); // detector wraps around in phi 
 
   return iPhi_in_barrel;
 }
