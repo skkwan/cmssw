@@ -530,10 +530,10 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towPhi-4 ;
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].crEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crEta ;
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].crPhi  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].crPhi ;
-      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].et2x5  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et2x5 ; // new                                                                                     
-      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].et5x5  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5 ; // new                                                                                    
-      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_ss  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss ; // new                                                                                  
-      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_looseTkss = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss ; // new    
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].et2x5  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et2x5 ; // new                                                           
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].et5x5  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5 ; // new                                                             
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].is_ss  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss ; // new                                                 
+      GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].is_looseTkss = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss ; // new    
 
       // Get the real eta, phi using two helper functions
       int globaliEta = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[i].GCTclusters[k]);
