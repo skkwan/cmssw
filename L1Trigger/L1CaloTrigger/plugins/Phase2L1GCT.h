@@ -19,6 +19,8 @@ static constexpr int N_GCTPOSITIVE_FIBERS = 32;
 static constexpr int N_GCTETA = 34;
 static constexpr int N_GCTPHI = 32;
 
+static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 7; 
+
 typedef ap_uint<5> loop;
 using namespace std;
 

@@ -97,7 +97,7 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
 	GCTcombinedClusters.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].is_looseTkss = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].is_looseTkss ;
       }}}
 
-  // we will store new et in the GCTcombinedClusters, 0'ing lower clusters after stiching, dont need to care about other variables they stay the 
+  // we will store new et in the GCTcombinedClusters, 0'ing lower clusters after stiching, dont need to care about other variabls they stay the 
   // same as input for now at least
   // we combine even phi boudaries positive eta, when combined the lowest et is set to 0
   
@@ -441,83 +441,100 @@ void compute_isolation_for_one_cluster(GCTinternal_t& GCTinternal, int i, int k,
 	    << toweriEta_in_GCT_card << ","
 	    << toweriPhi_in_GCT_card << std::endl;
 
-  // If the cluster is in the overlap region of two GCT cards, do not compute the isolation
+  // Is the cluster in a RCT card which overlaps with other GCT cards?
   bool inOverlapWithAnotherGCTCard = ( ((toweriPhi_in_GCT_card >= 0) && (toweriPhi_in_GCT_card < 4)) || ((toweriPhi_in_GCT_card >= 28) && (toweriPhi_in_GCT_card < 32)) );
       
-  // If not in the overlap, compute isolation
-  if (!inOverlapWithAnotherGCTCard) {
-    // Size 7x7 in towers: include the overlap-region-between-GCT-cards-if-applicable
-    // in eta direction, the min and max towers (inclusive!) are:
-    int isoWindow_toweriEta_in_GCT_card_min = std::max(0, toweriEta_in_GCT_card - 3);
-    int isoWindow_toweriEta_in_GCT_card_max = std::min(toweriEta_in_GCT_card + 3, N_GCTETA - 1);  // N_GCTETA = 34
-    // e.g. if our window is centered at tower_iEta = 5, we want to sum towers_iEta 2, 3, 4, (5), 6, 7, 8, inclusive 
-    // e.g. if our window is near the boundary, tower_iEta = 31, we want to sum towers_iEta 28, 29, 30, (31), 32, 33
-    // inclusive (but there are only N_GCTETA = 34 towers, so we stop at tower_iEta = 33)
+  // If cluster is in the overlap region, do not compute isolation 
+  if (inOverlapWithAnotherGCTCard) {
+    GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso = 0;
+    return;
+  }
 
-    // in phi direction, the min and max towers (inclusive!) are:
-    int isoWindow_toweriPhi_in_GCT_card_min = std::max(0, toweriPhi_in_GCT_card - 3);
-    int isoWindow_toweriPhi_in_GCT_card_max = std::min(toweriPhi_in_GCT_card + 3, N_GCTPHI - 1);  
-
-
-    /* std::cout << ">>> window min/max eta: "  */
-    /*   << isoWindow_toweriEta_in_GCT_card_min << ", " << isoWindow_toweriEta_in_GCT_card_max */
-    /*   << std::endl; */
-    /* std::cout << ">>> window min/max phi: "  */
-    /*   << isoWindow_toweriPhi_in_GCT_card_min << ", " << isoWindow_toweriPhi_in_GCT_card_max  */
-    /*   << std::endl; */
-
-    // Sanity check: print all towers
-    for (int iFiber = 0; iFiber < 64; iFiber++) {
-      std::cout << "(fiber " << iFiber << "): ";
-      for (int iTower = 0; iTower < 17; iTower++) {
-	std::cout << GCTinternal.GCTCorrfiber[iFiber].GCTtowers[iTower].et << ", " ;
-      }
-      std::cout << std::endl;
+  // Size 7x7 in towers: include the overlap-region-between-GCT-cards-if-applicable
+  // in eta direction, the min and max towers (inclusive!) are:
+  int isoWindow_toweriEta_in_GCT_card_min = std::max(0, toweriEta_in_GCT_card - 3);
+  int isoWindow_toweriEta_in_GCT_card_max = std::min(toweriEta_in_GCT_card + 3, N_GCTETA - 1);  // N_GCTETA = 34
+  // e.g. if our window is centered at tower_iEta = 5, we want to sum towers_iEta 2, 3, 4, (5), 6, 7, 8, inclusive 
+  // e.g. if our window is near the boundary, tower_iEta = 31, we want to sum towers_iEta 28, 29, 30, (31), 32, 33
+  // inclusive (but there are only N_GCTETA = 34 towers, so we stop at tower_iEta = 33)
+  
+  // in phi direction, the min and max towers (inclusive!) are:
+  int isoWindow_toweriPhi_in_GCT_card_min = std::max(0, toweriPhi_in_GCT_card - 3);
+  int isoWindow_toweriPhi_in_GCT_card_max = std::min(toweriPhi_in_GCT_card + 3, N_GCTPHI - 1);  
+  
+  
+  /* std::cout << ">>> window min/max eta: "  */
+  /*   << isoWindow_toweriEta_in_GCT_card_min << ", " << isoWindow_toweriEta_in_GCT_card_max */
+  /*   << std::endl; */
+  /* std::cout << ">>> window min/max phi: "  */
+  /*   << isoWindow_toweriPhi_in_GCT_card_min << ", " << isoWindow_toweriPhi_in_GCT_card_max  */
+  /*   << std::endl; */
+  
+  // Sanity check: print all towers
+  for (int iFiber = 0; iFiber < 64; iFiber++) {
+    std::cout << "(fiber " << iFiber << "): ";
+    for (int iTower = 0; iTower < 17; iTower++) {
+      std::cout << GCTinternal.GCTCorrfiber[iFiber].GCTtowers[iTower].et << ", " ;
     }
     std::cout << std::endl;
+  }
+  std::cout << std::endl;
+  
+  // Translate this "tower index in GCT card" into something sensible for accessing the tower Ets
 
-    // Translate this "tower index in GCT card" into something sensible for accessing the tower Ets
-    // For each tower we need....
-    for (int iEta = isoWindow_toweriEta_in_GCT_card_min; 
-	 iEta <= isoWindow_toweriEta_in_GCT_card_max;
-	 iEta++) {
-        
-      for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min;
-	   iPhi <= isoWindow_toweriPhi_in_GCT_card_max;
-	   iPhi++) {
-
-	// std::cout << "(iEta, iPhi): " << iEta << ", " << iPhi << std::endl;
-
-	// Declare indices for accessing the tower Et
-	int myIndexIntoGCT_64Fibers;
-	int myIndexIntoGCT_Fiber_17Towers; 
-	    
-	bool isTowerInPositiveEta = (iEta > N_GCTTOWERS_FIBER); 
-	if (isTowerInPositiveEta) { myIndexIntoGCT_64Fibers = iPhi; } // positive eta: phi index is simple
-	// pos eta: e.g. if real phi = +80 degrees, iPhi in GCT = 31
-	else                      { myIndexIntoGCT_64Fibers = (iPhi + N_GCTPOSITIVE_FIBERS); } // neg eta: add offset
-	// neg eta: e.g. if real phi = +80 degrees, iPhi in GCT = 31, and my index into GCT fibers 31 + 32 = 63
-
-	if (isTowerInPositiveEta) { myIndexIntoGCT_Fiber_17Towers = (iEta % 17); } // pos eta: if real eta = 1.47, iEta in GCT card = 33. If real eta = 0.0, iEta in GCT = 17, so iEta in fiber = 17%17 = 0.
-	else                      { myIndexIntoGCT_Fiber_17Towers = (16 - iEta); }  // neg eta: if real eta = 0, iEta in GCT card = 16, i.e. our index into the GCT fiber is 16-16 = 0
-
-	// std::cout << "... myIndexIntoGCT_64Fibers: " << myIndexIntoGCT_64Fibers << std::endl;
-	// std::cout << "... myIndexIntoGCT_Fiber_17Towers: " << myIndexIntoGCT_Fiber_17Towers << std::endl;
-
-	// Increment uint_isolation 
-	ap_uint<12> myTowerEt = GCTinternal.GCTCorrfiber[myIndexIntoGCT_64Fibers].GCTtowers[myIndexIntoGCT_Fiber_17Towers].et;
-	if (myTowerEt != 0) { 
-	  std::cout << "... myTowerEt (as float, non-zero): " << myTowerEt/8.0 << ", "
-		    << "for 'tower-index-in-GCT-card' " << iEta << "," << iPhi << ", " 
-		    << "and myindexes " << myIndexIntoGCT_64Fibers << "(fiber) and " 
-		    << myIndexIntoGCT_Fiber_17Towers << "(tower-in-fiber)" 
-		    << std::endl; 
-	  uint_isolation = (uint_isolation + myTowerEt);
-	}
-
+  // Keep track of the number of towers we summed over
+  int nTowersSummed = 0;
+  
+  // For each tower we need....
+  for (int iEta = isoWindow_toweriEta_in_GCT_card_min; 
+       iEta <= isoWindow_toweriEta_in_GCT_card_max;
+       iEta++) {
+    
+    for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min;
+	 iPhi <= isoWindow_toweriPhi_in_GCT_card_max;
+	 iPhi++) {
+      
+      nTowersSummed++;
+      
+      // std::cout << "(iEta, iPhi): " << iEta << ", " << iPhi << std::endl;
+      
+      // Declare indices for accessing the tower Et
+      int myIndexIntoGCT_64Fibers;
+      int myIndexIntoGCT_Fiber_17Towers; 
+      
+      bool isTowerInPositiveEta = (iEta > N_GCTTOWERS_FIBER); 
+      if (isTowerInPositiveEta) { myIndexIntoGCT_64Fibers = iPhi; } // positive eta: phi index is simple
+      // pos eta: e.g. if real phi = +80 degrees, iPhi in GCT = 31
+      else                      { myIndexIntoGCT_64Fibers = (iPhi + N_GCTPOSITIVE_FIBERS); } // neg eta: add offset
+      // neg eta: e.g. if real phi = +80 degrees, iPhi in GCT = 31, and my index into GCT fibers 31 + 32 = 63
+      
+      if (isTowerInPositiveEta) { myIndexIntoGCT_Fiber_17Towers = (iEta % 17); } // pos eta: if real eta = 1.47, iEta in GCT card = 33. If real eta = 0.0, iEta in GCT = 17, so iEta in fiber = 17%17 = 0.
+      else                      { myIndexIntoGCT_Fiber_17Towers = (16 - iEta); }  // neg eta: if real eta = 0, iEta in GCT card = 16, i.e. our index into the GCT fiber is 16-16 = 0
+      
+      // std::cout << "... myIndexIntoGCT_64Fibers: " << myIndexIntoGCT_64Fibers << std::endl;
+      // std::cout << "... myIndexIntoGCT_Fiber_17Towers: " << myIndexIntoGCT_Fiber_17Towers << std::endl;
+      
+      // Increment uint_isolation 
+      ap_uint<12> myTowerEt = GCTinternal.GCTCorrfiber[myIndexIntoGCT_64Fibers].GCTtowers[myIndexIntoGCT_Fiber_17Towers].et;
+      if (myTowerEt != 0) { 
+	std::cout << "... myTowerEt (as float, non-zero): " << myTowerEt/8.0 << ", "
+		  << "for 'tower-index-in-GCT-card' " << iEta << "," << iPhi << ", " 
+		  << "and myindexes " << myIndexIntoGCT_64Fibers << "(fiber) and " 
+		  << myIndexIntoGCT_Fiber_17Towers << "(tower-in-fiber)" 
+		  << std::endl; 
+	uint_isolation += myTowerEt;
       }
+      
     }
   }
+  
+  // If we summed fewer than (7x7) = 49 towers because the cluster was at the edge of the permissible region,
+  // scale up the isolation sum.
+  float scaleFactor = ((float) (N_GCTTOWERS_CLUSTER_ISO_ONESIDE * N_GCTTOWERS_CLUSTER_ISO_ONESIDE) / (float) nTowersSummed);
+  std::cout << "--> Summed over " << nTowersSummed << " towers: scaling iso " << uint_isolation 
+	    << " by " << scaleFactor << " to get " << (uint_isolation * scaleFactor)
+	    << std::endl;
+  uint_isolation = (ap_uint<12>) (((float) uint_isolation) * scaleFactor);
   
   // Set the iso in the cluster
   GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso = uint_isolation;
