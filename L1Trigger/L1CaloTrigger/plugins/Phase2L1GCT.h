@@ -30,6 +30,7 @@ typedef struct {
   ap_uint<3> crPhi ;
 
   // newly added compared to firmware
+  ap_uint<12> iso ;     
   ap_uint<15> et2x5;
   ap_uint<15> et5x5;
   bool is_ss;
@@ -62,6 +63,7 @@ typedef struct {
   ap_uint<7> towPhi ;
   ap_uint<3> crEta ;
   ap_uint<3> crPhi ;
+  ap_uint<12> iso ;   // new
   ap_uint<15> et2x5 ; // new
   ap_uint<15> et5x5 ; // new
   bool is_ss;         // new
@@ -133,6 +135,7 @@ void initializeGCTCard(GCTcard_t gctCard){
 	c0.crPhi  = 0;
 	c0.et2x5  = 0;
 	c0.et5x5  = 0;
+	c0.iso    = 0;
 	c0.is_ss  = false;
 	c0.is_looseTkss = false;
 	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
