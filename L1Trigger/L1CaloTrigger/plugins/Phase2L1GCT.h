@@ -19,6 +19,8 @@ static constexpr int N_GCTPOSITIVE_FIBERS = 32;
 static constexpr int N_GCTETA = 34;
 static constexpr int N_GCTPHI = 32;
 
+static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 7; 
+
 typedef ap_uint<5> loop;
 using namespace std;
 
@@ -30,6 +32,7 @@ typedef struct {
   ap_uint<3> crPhi ;
 
   // newly added compared to firmware
+  ap_uint<12> iso ;     
   ap_uint<15> et2x5;
   ap_uint<15> et5x5;
   bool is_ss;
@@ -62,6 +65,7 @@ typedef struct {
   ap_uint<7> towPhi ;
   ap_uint<3> crEta ;
   ap_uint<3> crPhi ;
+  ap_uint<12> iso ;   // new
   ap_uint<15> et2x5 ; // new
   ap_uint<15> et5x5 ; // new
   bool is_ss;         // new
@@ -133,6 +137,7 @@ void initializeGCTCard(GCTcard_t gctCard){
 	c0.crPhi  = 0;
 	c0.et2x5  = 0;
 	c0.et5x5  = 0;
+	c0.iso    = 0;
 	c0.is_ss  = false;
 	c0.is_looseTkss = false;
 	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
