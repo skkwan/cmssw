@@ -1540,7 +1540,7 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // except shifted in +1 in eta and +7 in phi
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++) {
     for (int j = 0; j < (CRYSTAL_IN_PHI - 1); j++) {
-      temp[i+1][j+5] = tempX[i][j].energy;
+      temp[i+1][j+7] = tempX[i][j].energy; // fixed from firmware
       if (tempX[i][j].energy > 0) {
 	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
 		  << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
