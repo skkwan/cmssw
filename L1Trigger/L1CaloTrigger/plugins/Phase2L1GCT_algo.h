@@ -648,6 +648,11 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       // 
       // Compute isolation 
       compute_isolation_for_one_cluster(GCTinternal, i, k, nGCTCard);
+      // Compute isolation flags (inputs are floats)
+      bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0 );
+      bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0 ); 
+      GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso        = is_iso;
+      GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso = is_looseTkiso;
 
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].et  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et   ;
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].towEtaNeg  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg  ;
@@ -660,6 +665,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].et5x5  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5 ; // new
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_ss  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss ; // new
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_looseTkss = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss ; // new
+      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_iso = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso ; // new
+      GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].is_looseTkiso = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso; // new
       // Get the real eta, phi using two helper functions
       int crystaliEta_in_barrel = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[i].GCTclusters[k]);
       int crystaliPhi_in_barrel = getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[i].GCTclusters[k]);
@@ -681,13 +688,22 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
                                         GCTinternal.GCTCorrfiber[i].GCTclusters[k].et2x5/8.0,  // et2x5 (as computed in firmware, save float)           
                                         0,  // et3x5 (not calculated)                             
                                         GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5/8.0,   // et5x5 (as computed in firmware, save float)  
-					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss,  // standalone WP
-					false, // electronWP98: not computed
-					false, // photonWP80: not computed
-					false, // electronWP90: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss,  // standalone WP: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss, // electronWP98: not computed 
+					false, // is_photon in Cecile's emulator, photonWP80: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss, // electronWP90: not computed
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss, // looseL1TkMatchWP
-					false  // stage2effMatch: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss  // stage2effMatch: not computed
                                         );
+
+      // Experimental parameters
+      std::map<std::string, float> params;
+      params["standaloneWP_showerShape"] = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss;
+      params["standaloneWP_isolation"]   = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso;
+      params["trkMatchWP_showerShape"]   = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss;
+      params["trkMatchWP_isolation"]     = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso;
+      cluster.setExperimentalParams(params);
+
       if (cluster.pt() > 0.0) {
 	gctClusters->push_back(cluster);
 	std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
@@ -712,7 +728,9 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 		  << "et2x5: "   << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et2x5/8.0 << ", "
 		  << "et5x5: "   << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5/8.0 << ", "
 		  << "is_ss: "   << GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss << ", "
-		  << "is_looseTkss" << GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss << std::endl;
+		  << "is_looseTkss" << GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss << ", "
+		  << "is_iso: " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso << ", "
+		  << "is_looseTkiso: " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso << std::endl;
 	
 	
       }

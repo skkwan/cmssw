@@ -58,10 +58,10 @@ public:
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
-  bool passes_ss(float pt, float ss);
+  // bool passes_ss(float pt, float ss);
   // bool passes_photon(float pt, float pss);
   // bool passes_iso(float pt, float iso);
-  bool passes_looseTkss(float pt, float ss);
+  // bool passes_looseTkss(float pt, float ss);
   // bool passes_looseTkiso(float pt, float iso);
 
   edm::EDGetTokenT<EcalEBTrigPrimDigiCollection> ecalTPEBToken_;
@@ -804,9 +804,11 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       //      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
       c.is_looseTkss = is_looseTkss;
 
-      std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
-      std::cout << "c.getIsSS(): " << c.getIsSS() << ", c.getIsLooseTkss(): " << c.getIsLooseTkss() << std::endl;
+      // std::cout << "is_ss: " << is_ss << ", is_looseTkss: " << is_looseTkss << std::endl;
+      // std::cout << "c.getIsSS(): " << c.getIsSS() << ", c.getIsLooseTkss(): " << c.getIsLooseTkss() << std::endl;
       
+      // Using some dummy/stand-in variables for the flags, see params[] for flags instead
+      // isolation is not computed at this stage 
       l1tp2::CaloCrystalCluster cluster(p4calibrated,
 				        c.getPt(), // use float
 					0,  // float h over e
@@ -819,12 +821,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 					0,            // et3x5 (not calculated)
 					c.getEt5x5(), // et5x5 (as computed in firmware, save float)
 					c.getIsSS(), // standalone WP
-					false, // electronWP98
+					c.getIsSS(), // electronWP98
 					false, // photonWP80
-					false, // electronWP90
+					c.getIsSS(), // electronWP90
 					c.getIsLooseTkss(), // looseL1TkMatchWP
-					false  // stage2effMatch
+					c.getIsSS()  // stage2effMatch
 					);
+
+      // RCT flags
+      std::map<std::string, float> params;
+      params["standaloneWP_showerShape"] = is_ss;
+      params["trkMatchWP_showerShape"]   = is_looseTkss;
+      cluster.setExperimentalParams(params);
       
       L1EGXtalClusters->push_back(cluster);
     }  // end of loop over clusters                                                                                                           
@@ -1023,19 +1031,43 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   iEvent.put(std::move(L1GCTTowers),   "GCT");
 } 
 
-bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
-  bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);
-  if (pt > 130)
-    is_ss = true;
-  return is_ss;
-}
 
-bool Phase2L1CaloEGammaEmulator::passes_looseTkss(float pt, float ss) {
-  bool is_ss = ((e0_looseTkss - e1_looseTkss * std::exp(-e2_looseTkss * pt)) <= ss);
-  if (pt > 130)
-    is_ss = true;
-  return is_ss;
-}
+// Flags moved to Phase2RCT.h
+
+// bool Phase2L1CaloEGammaEmulator::passes_iso(float pt, float iso) {
+//   bool is_iso = true;
+//   if (pt < slideIsoPtThreshold) {
+//     if (!((a0_80 - a1_80 * pt) > iso))
+//       is_iso = false;
+//   } else {
+//     if (iso > a0)
+//       is_iso = false;
+//   }
+//   if (pt > 130)
+//     is_iso = true;
+//   return is_iso;
+// }
+
+// bool Phase2L1CaloEGammaEmulator::passes_looseTkiso(float pt, float iso) {
+//   bool is_iso = (b0 + b1 * std::exp(-b2 * pt) > iso);
+//   if (pt > 130)
+//     is_iso = true;
+//   return is_iso;
+// }
+
+// bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
+//   bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);
+//   if (pt > 130)
+//     is_ss = true;
+//   return is_ss;
+// }
+
+// bool Phase2L1CaloEGammaEmulator::passes_looseTkss(float pt, float ss) {
+//   bool is_ss = ((e0_looseTkss - e1_looseTkss * std::exp(-e2_looseTkss * pt)) <= ss);
+//   if (pt > 130)
+//     is_ss = true;
+//   return is_ss;
+// }
 
 
 ////////////////////////////////////////////////////////////////////////// 

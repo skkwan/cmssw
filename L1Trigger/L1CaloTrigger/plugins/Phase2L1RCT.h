@@ -31,6 +31,7 @@ static constexpr int CRYSTAL_IN_PHI = 20;   // number of crystals in phi, in one
 static constexpr float ECAL_eta_range = 1.4841;
 static constexpr float half_crystal_size = 0.00873;
 
+static constexpr float slideIsoPtThreshold = 80;
 static constexpr float a0_80 = 0.85, a1_80 = 0.0080, a0 = 0.21;                        // passes_iso
 static constexpr float b0 = 0.38, b1 = 1.9, b2 = 0.05;                                 // passes_looseTkiso
 static constexpr float c0_ss = 0.94, c1_ss = 0.052, c2_ss = 0.044;                     // passes_ss
@@ -51,6 +52,10 @@ static constexpr int toweriEta_fromAbsoluteID_shift = 16;
 // shift all indices by 37 and loop over after 72
 static constexpr int toweriPhi_fromAbsoluteID_shift_lowerHalf = 37;
 static constexpr int toweriPhi_fromAbsoluteID_shift_upperHalf = 35;
+
+////////////////////////////////////////////////////////////////////////// 
+// Card indexing helper functions
+////////////////////////////////////////////////////////////////////////// 
 
 // Assert that the card index is within bounds. (Valid cc: 0 to 35, since there are 36 RCT cards)
 bool isValidCard(int cc) {
@@ -275,7 +280,6 @@ int getCrystalIDInTower_emulator(int crystalEta, int crystalPhi, int card) {
 // where we "unwrapped" the 4*17 tower array. This serves the same purpose as getTowerID in the CMSSW emulator which
 // starts with the crystal index in the entire card.
 
-// TO-DO: account for negative eta cards
 int getTowerID_emulator(int towerEtaInRegion, int towerPhiInRegion, int card, int region) {
  
   if ((card % 2) == 1) { 
@@ -330,10 +334,50 @@ int getCrystal_iPhi_fromCardRegionInfo(int cc, int regionIdx, int towerPhi_in_re
   }
 }
 
+////////////////////////////////////////////////////////////////////////// 
+// Cluster flags: taken from previous emulator
+//  https://github.com/skkwan/cmssw/blob/devel-Phase2RCTCluster/L1Trigger/L1CaloTrigger/plugins/L1EGammaCrystalsEmulatorProducer.cc#L1240-L1280
+////////////////////////////////////////////////////////////////////////// 
+
+bool passes_iso(float pt, float iso) {
+  bool is_iso = true;
+  if (pt < slideIsoPtThreshold) {
+    if (!((a0_80 - a1_80 * pt) > iso))
+      is_iso = false;
+  } else {
+    if (iso > a0)
+      is_iso = false;
+  }
+  if (pt > 130)
+    is_iso = true;
+  return is_iso;
+}
+
+bool passes_looseTkiso(float pt, float iso) {
+  bool is_iso = (b0 + b1 * std::exp(-b2 * pt) > iso);
+  if (pt > 130)
+    is_iso = true;
+  return is_iso;
+}
+
+bool passes_ss(float pt, float ss) {
+  bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);
+  if (pt > 130)
+    is_ss = true;
+  return is_ss;
+}
+
+bool passes_looseTkss(float pt, float ss) {
+  bool is_ss = ((e0_looseTkss - e1_looseTkss * std::exp(-e2_looseTkss * pt)) <= ss);
+  if (pt > 130)
+    is_ss = true;
+  return is_ss;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////  
-
-// Helper functions
-
+// Other emulator helper functions
 //////////////////////////////////////////////////////////////////////////
 
 /*

@@ -37,6 +37,8 @@ typedef struct {
   ap_uint<15> et5x5;
   bool is_ss;
   bool is_looseTkss;
+  bool is_iso;
+  bool is_looseTkiso;
 
 } RCTcluster_t ;
 
@@ -70,6 +72,9 @@ typedef struct {
   ap_uint<15> et5x5 ; // new
   bool is_ss;         // new
   bool is_looseTkss;  // new
+  bool is_iso;    // new 
+  bool is_looseTkiso;  // new
+
 } GCTcluster_t ;
 
 typedef struct {
@@ -140,6 +145,8 @@ void initializeGCTCard(GCTcard_t gctCard){
 	c0.iso    = 0;
 	c0.is_ss  = false;
 	c0.is_looseTkss = false;
+	c0.is_iso = false;
+	c0.is_looseTkiso = false;
 	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
 	gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
       }
