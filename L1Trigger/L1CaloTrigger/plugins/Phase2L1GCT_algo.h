@@ -50,6 +50,9 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
   // Luckily, in the GCT algo convention and the global convention, iPhi always increases from the
   // top of the page to the bottom of page in the barrel diagram.
   int iPhi_in_gctCard = ((c.towPhi * 5) + c.crPhi);
+  /* std::cout << ">>>>>>> getCluster_global_iPhi: invoked with inputs nGCTCard " << nGCTCard << ", cluster c.towPhi: " << c.towPhi << ", c.crPhi: "  */
+  /* 	    << c.crPhi << std::endl; */
+  /* std::cout << ">>>>>>> (contd.) iPhi_in_gctCard: " << iPhi_in_gctCard << std::endl; */
 
   // Last, convert to the global iEta/iPhi in the barrel region. For phi, we need to add the offset
   // of the GCT card in the phi direction, and modulo with the total number of crystals in the barrel
@@ -64,8 +67,11 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
     else if (nGCTCard == 2) iPhi_card_offset = 68 * 5;
   }
   // Else, treat it as no offset due to GCT card number
+  // std::cout << ">>>>>>> (contd.) returnGlobalGCTiPhi? " << returnGlobalGCTiPhi << ", giving iPhi_card_offset " << iPhi_card_offset << std::endl;
+    
 
   int iPhi_in_barrel = (iPhi_card_offset + iPhi_in_gctCard) % (72 * 5); // detector wraps around in phi 
+  // std::cout << ">>>>>>> (contd.) total with offset (even if offset is 0): " << iPhi_card_offset + iPhi_in_gctCard << ", returning " << iPhi_in_barrel  << std::endl;
 
   return iPhi_in_barrel;
 }
@@ -486,8 +492,18 @@ void compute_isolation_for_one_cluster(GCTinternal_t& GCTinternal, int i, int k,
   std::cout << ">>> Calculating isolation..." << std::endl;
   ap_uint<12> uint_isolation = 0;
 
+  /* std::cout << ">>> In iso calculation: GCTinternal.GCTCorrfiber[i].GCTclusters[k]: "  */
+  /* 	    << "c.towEta: "  */
+  /* 	    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta << ", "  */
+  /* 	    << "c.crEta: "  */
+  /* 	    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].crEta << ", "  */
+  /* 	    << "c.towPhi: "  */
+  /* 	    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towPhi << ", " */
+  /* 	    << "c.crPhi: "  */
+  /* 	    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].crPhi << std::endl; */
+
   bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set, so we remain in the
-  // gct card iEta/iPhi
+  // gct local card iEta/iPhi
   int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[i].GCTclusters[k]);
   int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[i].GCTclusters[k], getGlobal_iPhi );
       
@@ -562,7 +578,7 @@ void compute_isolation_for_one_cluster(GCTinternal_t& GCTinternal, int i, int k,
       int myIndexIntoGCT_64Fibers;
       int myIndexIntoGCT_Fiber_17Towers; 
       
-      bool isTowerInPositiveEta = (iEta > N_GCTTOWERS_FIBER); 
+      bool isTowerInPositiveEta = (iEta >= N_GCTTOWERS_FIBER); 
       if (isTowerInPositiveEta) { myIndexIntoGCT_64Fibers = iPhi; } // positive eta: phi index is simple
       // pos eta: e.g. if real phi = +80 degrees, iPhi in GCT = 31
       else                      { myIndexIntoGCT_64Fibers = (iPhi + N_GCTPOSITIVE_FIBERS); } // neg eta: add offset
@@ -648,9 +664,20 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       // 
       // Compute isolation 
       compute_isolation_for_one_cluster(GCTinternal, i, k, nGCTCard);
-      // Compute isolation flags (inputs are floats)
-      bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0 );
-      bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0 ); 
+      // Compute isolation flags (inputs are: et (as float), and then relative isolation (iso/et))
+      float relative_iso;
+      if (GCTinternal.GCTCorrfiber[i].GCTclusters[k].et > 0) {
+	relative_iso = ( ((float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso / 8 ) / ( (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et / 8 ) );
+	std::cout << "relative iso is " << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8 
+		  << " divided by "     << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8
+		  << " giving " << relative_iso << std::endl;
+      }
+      else {
+	// std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
+	relative_iso = 0;
+      }
+      bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
+      bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
       GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso        = is_iso;
       GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso = is_looseTkiso;
 
@@ -680,7 +707,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       l1tp2::CaloCrystalCluster cluster(p4cluster, 
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0,   // convert to float
 					0,  // float h over e                              
-                                        GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0,  // float iso                                       
+					relative_iso,		   // for consistency with the old emulator, in this field save (iso energy sum)/(cluster energy)
                                         0,  // DetId seedCrystal                              
                                         0,  // puCorrPt                                           
                                         0,  // 0, 1, or 2 (as computed in firmware)                
@@ -717,6 +744,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 		  << "," 
 		  << realPhi
 		  << ")"
+		  << " with relative isolation " << relative_iso
 	          << std::endl;
 	std::cout << "    with the GCTinternal values: " 
 		  << "towEtaNeg: " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg << ", "
@@ -752,6 +780,24 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       // Compute isolation
       compute_isolation_for_one_cluster(GCTinternal, i, k, nGCTCard);
 
+      // Compute isolation flags (inputs are: et (as float), and then relative isolation (iso/et))                                                               
+      float relative_iso;
+      if (GCTinternal.GCTCorrfiber[i].GCTclusters[k].et > 0) {
+        relative_iso = ( ((float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso / 8 ) / ( (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et / 8 ) );
+	std::cout << "relative iso is "<< (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8
+                  << " divided by "     << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8
+                  << " giving " << relative_iso << std::endl;
+      }
+      else {
+	// std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
+        relative_iso = 0;
+      }
+      
+      bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
+      bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
+      GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso        = is_iso;
+      GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso = is_looseTkiso;
+
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].et  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].et   ;
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towEtaNeg  = GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg  ;
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towEta  =  GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta ;
@@ -777,7 +823,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       l1tp2::CaloCrystalCluster cluster(p4cluster, 
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, // conver to float
 					0,  // float h over e                              
-					GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8.0,  // float iso   
+					relative_iso, // follow old emulator's convention: save relative iso in this field
                                         0,  // DetId seedCrystal                              
                                         0,  // puCorrPt                                           
                                         0,  // 0, 1, or 2 (as computed in firmware)                
@@ -786,12 +832,21 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
                                         0,  // et3x5 (not calculated)                             
                                         GCTinternal.GCTCorrfiber[i].GCTclusters[k].et5x5/8.0,   // et5x5 (as computed in firmware, save float)  
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss,  // standalone WP
-					false, // electronWP98: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss, // electronWP98: not computed 
 					false, // photonWP80: not computed
-					false, // electronWP90: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss, // electronWP90: not computed
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss, // looseL1TkMatchWP
-					false  // stage2effMatch: not computed
+					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss  // stage2effMatch: not computed
                                         );
+
+      // Experimental parameters
+      std::map<std::string, float> params;
+      params["standaloneWP_showerShape"] = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss;
+      params["standaloneWP_isolation"]   = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso;
+      params["trkMatchWP_showerShape"]   = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkss;
+      params["trkMatchWP_isolation"]     = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso;
+      cluster.setExperimentalParams(params);
+
       if (cluster.pt() > 0.0) {
 	gctClusters->push_back(cluster);
 	std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
@@ -805,6 +860,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 		  << "," 
 		  << realPhi
 		  << ")"
+		  << " with relative isolation " 
+		  << relative_iso
 		  << std::endl;
 	std::cout << "    with the GCTinternal values: "
                   << "towEtaNeg: " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg << ", "

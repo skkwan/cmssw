@@ -1491,8 +1491,8 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
       temp[i+1][j] = tempX[i][j+3].energy ;
       if (tempX[i][j].energy > 0) {
 	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
-		  << "getBremsValuesPos: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy
-		  << ", temp[" << i+1 << "][" << j-3 << "]" << temp[i+1][j-3] << std::endl;
+		  << "getBremsValuesPos: tempX[" << i << "][" << j+3 << "].energy: " << tempX[i][j+3].energy
+		  << ", temp[" << i+1 << "][" << j << "]" << temp[i+1][j] << std::endl;
       }
 
     }}
