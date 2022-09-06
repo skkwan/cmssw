@@ -529,10 +529,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	ap_uint<12> towerEtECAL[12];
 	getECALTowersEt(temporary, towerEtECAL);
 	
-	// Add the towerETHCAL and towerETECAL arrays, and fill the 17x4 array of towerEt 
+	// Fill in towerHCALCard and towerECALCard arrays (for whole detector)
 	for (int i = 0; i < 12; i++) {
-	  
-	  ap_uint<12> towerTotalEt = towerEtHCAL[i] + towerEtECAL[i];
 	  // Get the tower's indices in a (17x4) card
 	  int iEta = (idxRegion * TOWER_IN_ETA) + (i / TOWER_IN_PHI);   
 	  int iPhi = (i % TOWER_IN_PHI);
@@ -899,11 +897,16 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       
       for (int iLink = 0; iLink < n_links_card; iLink++) {
 
-	// Get the towers
+	// Get the towers (to-do: H/E has been calculated at this point already in the towerECALCard array)
+	// Add the tower ECAL and tower HCAL energies!
+	// std::cout << "Adding ECAL and HCAL towers.. ";
 	for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-	  tower_t t0 = towerECALCard[iTower][iLink][rcc];
+	  tower_t t0_ecal = towerECALCard[iTower][iLink][rcc];
+	  tower_t t0_hcal = towerHCALCard[iTower][iLink][rcc];
 	  RCTtower_t t;
-	  t.et = t0.et();
+	  t.et = t0_ecal.et() + convertHcalETtoEcalET(t0_hcal.et());
+	  // std::cout << t.et << " ";
+	  // TO-DO: Add HoE to RCTtower_t struct
 	  if (isPositiveEta) {  
 	    gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t;
 	  } else {
