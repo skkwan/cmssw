@@ -423,7 +423,9 @@ GCTinternal_t getClustersTowers(const GCTcard_t& GCTcard){
       }
       for(int k=0; k<N_RCTTOWERS_FIBER; k++){
 	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].et  = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
+	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].hoe = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ;
 	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].et  = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
+	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].hoe = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ; 
       }
     }}
   return GCTout ;
@@ -765,10 +767,12 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 
     }
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-      /* std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4 */
-      /* 	       << " , GCTtowers " << k  */
-      /* 	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et << std::endl; */
+      std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
+      	       << " , GCTtowers " << k
+      	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et
+	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe << std::endl;
       GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
+      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hoe = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ; 
     }
   }
   // In negative eta, skip the overlap region, i.e. SKIP i = 32, 33, 34, 35, and 61, 62, 63, 64.
@@ -879,10 +883,13 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       
     }
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-      /* std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4 */
-      /* 	       << " , GCTtowers " << k */
-      /* 	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et << std::endl; */
+      std::cout<< "Accessing negative eta: GCTCorrfiber " << i-4
+      	       << " , GCTtowers " << k
+      	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et 
+	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe << std::endl;
       GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].hoe = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ;
+      
     }
   }
 
