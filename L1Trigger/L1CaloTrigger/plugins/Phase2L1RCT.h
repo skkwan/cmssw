@@ -53,6 +53,14 @@ static constexpr int toweriEta_fromAbsoluteID_shift = 16;
 static constexpr int toweriPhi_fromAbsoluteID_shift_lowerHalf = 37;
 static constexpr int toweriPhi_fromAbsoluteID_shift_upperHalf = 35;
 
+
+// Convert HCAL ET to ECAL ET convention 
+ap_uint<12> convertHcalETtoEcalET(ap_uint<12> HCAL) {
+  float hcalLSB = 0.5;
+  float hcalEtAsFloat = HCAL * hcalLSB;
+  return (ap_uint<12> (hcalEtAsFloat * 8));
+}
+
 ////////////////////////////////////////////////////////////////////////// 
 // Card indexing helper functions
 ////////////////////////////////////////////////////////////////////////// 
@@ -746,7 +754,7 @@ class tower_t {
   
   operator uint16_t() {return (uint16_t) data;}
   
-  // Only for ECAL towers!
+  // Only for ECAL towers! Apply calibration and modify the et() value.
   void applyCalibration(float factor) {  
     // std::cout << "   old: " << (int) data << std::endl;
     // Get the new pT as a float
@@ -759,6 +767,47 @@ class tower_t {
     data = (data & bitMask);                 // zero out the last twelve digits
     data = (data | newEt_uint);              // write in the new ET
     // std::cout << "   new: " << (int) data << std::endl;
+  }
+
+  // For towers: Calculate H/E ratio given the ECAL and HCAL energies and modify the hoe() value.
+  void getHoverE(ap_uint<12> ECAL, ap_uint<12> HCAL_inHcalConvention){
+    // Convert HCAL ET to ECAL ET convention 
+    ap_uint<12> HCAL = convertHcalETtoEcalET(HCAL_inHcalConvention);
+
+    // std::cout << " getHoverE with ECAL (int) " << (int) ECAL << ", HCAL (int) " << (int) HCAL_inHcalConvention
+    //           << " (which, in ECAL ET convention, is): " << (int) HCAL << std::endl;
+    // std::cout << " old data as int: " << (int) data << std::endl;      
+    ap_uint<3> hoeOut ;
+    ap_uint<1> hoeLSB = 0 ;
+    ap_uint<3> hoe = 0 ;
+    ap_uint<12> A;
+    ap_uint<12> B;
+
+    A = (ECAL > HCAL)?ECAL:HCAL;
+    B = (ECAL > HCAL)?HCAL:ECAL;
+ 
+    if( ECAL == 0 || HCAL == 0 || HCAL >= ECAL) hoeLSB = 0 ;
+    else hoeLSB = 1 ;
+    if( A > B ){
+      if(A > 128*B) hoe = 7 ;
+      else if(A > 64*B) hoe = 6 ;
+      else if(A > 32*B) hoe = 5 ;
+      else if(A > 16*B) hoe = 4 ;
+      else if(A > 8*B) hoe = 3 ;
+      else if(A > 4*B) hoe = 2 ;
+      else if(A > 2*B) hoe = 1 ;
+    }
+    hoeOut = hoeLSB | ((ap_uint<3>) hoe) << 1 ;
+    
+    // std::cout << "  hoeOut as int: " << (int) hoeOut << std::endl;
+    ap_uint<16> hoeOutLong = ( ( ((ap_uint<16>) hoeOut) << 12 ) | 0x0000 ) ;  // e.g. 0b 0___ 0000 0000 0000 where ___ are the hoe digits
+    // std::cout << "   hoeOutLong as int: " << (int) hoeOutLong << std::endl;
+
+    // Take the logical OR to preserve the saturation and tower ET bits
+    ap_uint<16> bitMask = 0x8FFF;  // 1000 1111 1111 1111 : zero-out the HoE bits
+    data = (data & bitMask);       // zero-out the HoE bits
+    data = (data | hoeOutLong);    // write in the new HoE bits
+    // std::cout << "    new data as int: " << (int) data << std::endl;
   }
   
 };
@@ -1353,6 +1402,8 @@ class Cluster{
     data = (data | newPt_uint);              // write in the new ET
     // std::cout << "   new: " << (int) data << std::endl;
   }
+
+
 };
 
 //--------------------------------------------------------// 
@@ -1882,9 +1933,6 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list,
 }
 
 
-
-
-//--------------------------------------------------------// 
-
+//--------------------------------------------------------//  
 
 #endif

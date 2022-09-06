@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 // #include <cstdint>
+#include <cstdlib> // for rand
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -709,8 +710,21 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	
       }
     }
-    
 
+    // Compute HoE for towers
+    std::cout << "Computing HoE for towers: " << std::endl;
+    for (int ii = 0; ii < n_towers_cardPhi; ++ii) { // 4 towers per card in phi                                                                            
+      for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta   
+	// std::cout << (int) towerECALCard[jj][ii][cc].hoe();
+	ap_uint<12> ecalEt = towerECALCard[jj][ii][cc].et();
+	ap_uint<12> hcalEt = towerHCALCard[jj][ii][cc].et();
+	towerECALCard[jj][ii][cc].getHoverE(ecalEt, hcalEt); 
+	// DUMMY TEST
+	// towerECALCard[jj][ii][cc].getHoverE(rand() % 100 + 1, rand() % 100 + 1);
+	// std::cout << " -> " << (int) towerECALCard[jj][ii][cc].hoe() << ", ";
+      }
+    }
+    std::cout << std::endl;
 					      
     //-------------------------------------------------------------------------------//
     // Write the L1 outputs in the style of previous CMSSW
