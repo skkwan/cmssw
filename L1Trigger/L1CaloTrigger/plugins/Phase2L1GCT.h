@@ -19,6 +19,11 @@ static constexpr int N_GCTPOSITIVE_FIBERS = 32;
 static constexpr int N_GCTETA = 34;
 static constexpr int N_GCTPHI = 32;
 
+static constexpr int GCTCARD_0_TOWER_IPHI_OFFSET = 20;  // for emulator: "top" of the GCT card in phi is tower idx 20, for GCT card #0
+static constexpr int GCTCARD_1_TOWER_IPHI_OFFSET = 44;  // same but for GCT card #1 (card #1 wraps around phi = 180 degrees)
+static constexpr int GCTCARD_2_TOWER_IPHI_OFFSET = 68;  // same for GCT card #2 (card #2 also wraps around phi = 180 degrees)
+
+
 static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 7; 
 
 typedef ap_uint<5> loop;

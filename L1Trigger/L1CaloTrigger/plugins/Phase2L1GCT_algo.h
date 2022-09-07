@@ -62,19 +62,71 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
 
   // (default behavior) If we should return the global GCT iPhi, get the iPhi offset due to the number of the GCT card
   if (returnGlobalGCTiPhi) {
-    if      (nGCTCard == 0) iPhi_card_offset = 20 * 5;  // tower #20, and five crystals per tower
-    else if (nGCTCard == 1) iPhi_card_offset = 44 * 5;   
-    else if (nGCTCard == 2) iPhi_card_offset = 68 * 5;
+    if      (nGCTCard == 0) iPhi_card_offset = GCTCARD_0_TOWER_IPHI_OFFSET * 5;  // tower #20, and five crystals per tower
+    else if (nGCTCard == 1) iPhi_card_offset = GCTCARD_1_TOWER_IPHI_OFFSET * 5;   
+    else if (nGCTCard == 2) iPhi_card_offset = GCTCARD_2_TOWER_IPHI_OFFSET * 5;
   }
   // Else, treat it as no offset due to GCT card number
   // std::cout << ">>>>>>> (contd.) returnGlobalGCTiPhi? " << returnGlobalGCTiPhi << ", giving iPhi_card_offset " << iPhi_card_offset << std::endl;
     
 
-  int iPhi_in_barrel = (iPhi_card_offset + iPhi_in_gctCard) % (72 * 5); // detector wraps around in phi 
+  int iPhi_in_barrel = (iPhi_card_offset + iPhi_in_gctCard) % (n_towers_Phi * 5); // detector wraps around in phi: n_towers_Phi = 72
   // std::cout << ">>>>>>> (contd.) total with offset (even if offset is 0): " << iPhi_card_offset + iPhi_in_gctCard << ", returning " << iPhi_in_barrel  << std::endl;
 
   return iPhi_in_barrel;
 }
+
+/*
+ * Get tower's global (iEta) from the GCTCorrFiber index [0, 64) and the tower's postion in the fiber [0, 17).
+ * Recall that GCTCorrFiber is [0, 32) for negative eta and [32, 64) for positive eta. The tower's position in the fiber [0, 17)
+ * always counts outwards from real eta = 0.
+ * Use in conjunction with (float) getTowerEta_fromAbsID(int id) from Phase2L1RCT.h to get a tower's real eta.
+ */ 
+int getTower_global_toweriEta(unsigned int nGCTCard, unsigned int gctCorrFiberIdx, unsigned int posInFiber) {
+
+  (void) nGCTCard; // not needed
+
+  int global_toweriEta; 
+  
+  bool isTowerInPositiveEta = (gctCorrFiberIdx < N_GCTPOSITIVE_FIBERS); // N_GCTPOSITIVE_FIBERS = 32
+  
+  if (isTowerInPositiveEta) {  
+    // e.g. For positive eta, posInFiber = 0 is at real eta = 0, so global tower iEta is 0 + 17 = 17
+    global_toweriEta = (N_GCTTOWERS_FIBER + posInFiber); // N_GCTTOWERS_FIBER = 17
+  } else {
+    // e.g. For negative eta, posInFiber = 0 is at real eta = 0, and global tower iEta is 17 - 1 - 0 = 16
+    // posInFiber = 16 is at real eta = -1.4841, and global tower iEta is 17 - 1 - 16 = 0.
+    global_toweriEta = (N_GCTTOWERS_FIBER - 1 - posInFiber); 
+  }
+  return global_toweriEta;
+}
+
+/*
+ * Get tower's global (iPhi) from the GCT card number (0, 1, 2), and the GCTCorrFiber index [0, 64).
+ * Recall that GCTCorrFiber is [0, 32) for negative eta and [32, 64) for positive eta. In the phi direction, fiber index #0 has the same phi 
+ * as fiber index #32, so only the (fiber index modulo 32) matters for the phi direction. 
+ * The tower's position in the fiber doesn't matter; in each fiber the phi is the same. 
+ * Use in conjunction with (float) getTowerPhi_fromAbsID(int id) from Phase2L1RCT.h to get a tower's real phi.
+ */
+int getTower_global_toweriPhi(unsigned int nGCTCard, unsigned int gctCorrFiberIdx, unsigned int posInFiber) {
+
+  (void) posInFiber; // not needed
+
+  int global_toweriPhi;
+  
+  unsigned int effectiveFiberIdx = (gctCorrFiberIdx % N_GCTPOSITIVE_FIBERS);  // N_GCTPOSITIVE_FIBERS = 32
+
+  assert(nGCTCard <= 2);  // Make sure the card number is valid
+  int toweriPhi_card_offset = 0;   
+  if      (nGCTCard == 0) toweriPhi_card_offset = GCTCARD_0_TOWER_IPHI_OFFSET;
+  else if (nGCTCard == 1) toweriPhi_card_offset = GCTCARD_1_TOWER_IPHI_OFFSET;
+  else if (nGCTCard == 2) toweriPhi_card_offset = GCTCARD_2_TOWER_IPHI_OFFSET;
+
+  global_toweriPhi = (toweriPhi_card_offset + effectiveFiberIdx) % (n_towers_Phi);  //  as explained above, effectiveFiberIdx is [0, 32). n_towers_Phi = 72
+
+  return global_toweriPhi;
+}
+
 
 
 GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
@@ -770,6 +822,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       }
 
     }
+    // Positive eta: towers : also push back to CMSSW collection
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
       std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
       	       << " , GCTtowers " << k
@@ -782,6 +835,19 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hoe    = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ; 
       GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].ecalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt ; 
       GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hcalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt ; 
+
+      l1tp2::CaloTower l1CaloTower;
+      l1CaloTower.setEcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt/8.0); // float: ECAL divide by 8.0
+      float hcalLSB = 0.5;
+      l1CaloTower.setHcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt * hcalLSB);  // float: HCAL multiply by LSB 
+      int global_toweriEta = getTower_global_toweriEta( nGCTCard, i, k );
+      int global_toweriPhi = getTower_global_toweriPhi( nGCTCard, i, k );
+      l1CaloTower.setTowerIEta( global_toweriEta );
+      l1CaloTower.setTowerIPhi( global_toweriPhi );
+      l1CaloTower.setTowerEta( getTowerEta_fromAbsID( global_toweriEta ) );
+      l1CaloTower.setTowerPhi( getTowerPhi_fromAbsID( global_toweriPhi ) );
+      
+      gctTowers->push_back(l1CaloTower);
     }
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -894,7 +960,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       }
       
     }
-    // Negative eta: towers (TO-DO: PUSH BACK TO CMSSW COLLECTION)
+    // Negative eta: towers : push back to CMSSW as well 
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
       std::cout<< "Accessing negative eta: GCTCorrfiber " << i
       	       << " , GCTtowers " << k
@@ -912,7 +978,14 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       l1CaloTower.setEcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt/8.0); // float: ECAL divide by 8.0
       float hcalLSB = 0.5;
       l1CaloTower.setHcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt * hcalLSB);  // float: HCAL multiply by LSB 
+      int global_toweriEta = getTower_global_toweriEta( nGCTCard, i, k );
+      int global_toweriPhi = getTower_global_toweriPhi( nGCTCard, i, k );
+      l1CaloTower.setTowerIEta( global_toweriEta );
+      l1CaloTower.setTowerIPhi( global_toweriPhi );
+      l1CaloTower.setTowerEta( getTowerEta_fromAbsID( global_toweriEta ) );
+      l1CaloTower.setTowerPhi( getTowerPhi_fromAbsID( global_toweriPhi ) );
       
+      gctTowers->push_back(l1CaloTower);
       
       
     }

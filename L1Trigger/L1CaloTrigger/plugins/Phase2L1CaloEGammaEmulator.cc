@@ -1050,6 +1050,13 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
     std::cout << "GCT cluster energy " << c.pt() << std::endl;
   }
+  for (auto const& c: *L1GCTTowers ) {
+    
+    std::cout << "GCT tower energy " << c.ecalTowerEt() + c.hcalTowerEt()
+	      << " at real eta, phi: (" << c.towerEta() << ", " << c.towerPhi() << ")" << std::endl;
+    
+  }
+  
   
   iEvent.put(std::move(L1GCTClusters), "GCT");
   iEvent.put(std::move(L1GCTTowers),   "GCT");
