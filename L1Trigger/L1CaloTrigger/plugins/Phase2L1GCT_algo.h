@@ -422,10 +422,14 @@ GCTinternal_t getClustersTowers(const GCTcard_t& GCTcard){
 
       }
       for(int k=0; k<N_RCTTOWERS_FIBER; k++){
-	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].et  = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
-	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].hoe = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ;
-	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].et  = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
-	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].hoe = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ; 
+	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].et     = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
+	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].hoe    = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ;
+	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].ecalEt = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].ecalEt ;
+	GCTout.GCTCorrfiber[i*4+j].GCTtowers[k].hcalEt = GCTcard.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTtowers[k].hcalEt ; 
+	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].et     = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].et  ;
+	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].hoe    = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].hoe ; 
+	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].ecalEt = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].ecalEt ;
+	GCTout.GCTCorrfiber[i*4+(3-j)+N_GCTPOSITIVE_FIBERS].GCTtowers[k].hcalEt = GCTcard.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTtowers[k].hcalEt ; 
       }
     }}
   return GCTout ;
@@ -770,12 +774,19 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
       	       << " , GCTtowers " << k
       	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et
-	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe << std::endl;
-      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
-      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hoe = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ; 
+	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe 
+	       << " , ecalEt " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt
+               << " , hcalEt " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt
+	       << std::endl;
+      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].et     = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
+      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hoe    = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ; 
+      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].ecalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt ; 
+      GCTtoCorr.GCTCorrfiber[i-4].GCTtowers[k].hcalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt ; 
     }
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
   // In negative eta, skip the overlap region, i.e. SKIP i = 32, 33, 34, 35, and 61, 62, 63, 64.
+  //////////////////////////////////////////////////////////////////////////////////////////////// 
   for(int i=(N_GCTPOSITIVE_FIBERS+N_RCTGCT_FIBERS); i<(N_GCTINTERNAL_FIBERS-N_RCTGCT_FIBERS); i++){
     for(int k=0; k<N_GCTCLUSTERS_FIBER; k++){
       /* std::cout << "Accessing negative eta: GCTCorrfiber " << i-12 */
@@ -796,7 +807,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 	// std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
         relative_iso = 0;
       }
-      
+      // Build negative eta clusters
       bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
       bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
       GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso        = is_iso;
@@ -851,6 +862,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       params["trkMatchWP_isolation"]     = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_looseTkiso;
       cluster.setExperimentalParams(params);
 
+      // Push back negative eta clusters to the output CMSSW collection
       if (cluster.pt() > 0.0) {
 	gctClusters->push_back(cluster);
 	std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
@@ -882,13 +894,26 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       }
       
     }
+    // Negative eta: towers (TO-DO: PUSH BACK TO CMSSW COLLECTION)
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-      std::cout<< "Accessing negative eta: GCTCorrfiber " << i-4
+      std::cout<< "Accessing negative eta: GCTCorrfiber " << i
       	       << " , GCTtowers " << k
       	       << " , energy " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].et 
-	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe << std::endl;
-      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].et  = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
-      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].hoe = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ;
+	       << " , hoe " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe 
+	       << " , ecalEt " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt 
+	       << " , hcalEt " << GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt 
+	       << std::endl;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].et     = GCTinternal.GCTCorrfiber[i].GCTtowers[k].et ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].hoe    = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hoe ;
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].ecalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt ; 
+      GCTtoCorr.GCTCorrfiber[i-12].GCTtowers[k].hcalEt = GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt ; 
+
+      l1tp2::CaloTower l1CaloTower;
+      l1CaloTower.setEcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].ecalEt/8.0); // float: ECAL divide by 8.0
+      float hcalLSB = 0.5;
+      l1CaloTower.setHcalTowerEt(GCTinternal.GCTCorrfiber[i].GCTtowers[k].hcalEt * hcalLSB);  // float: HCAL multiply by LSB 
+      
+      
       
     }
   }

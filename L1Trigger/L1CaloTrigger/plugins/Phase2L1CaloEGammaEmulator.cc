@@ -909,6 +909,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  RCTtower_t t;
 	  t.et = t0_ecal.et() + convertHcalETtoEcalET(t0_hcal.et());
 	  t.hoe = t0_ecal.hoe();
+	  // Not needed for GCT firmware but will be written into GCT CMSSW outputs : 12 bits each 
+	  t.ecalEt = t0_ecal.et();
+	  t.hcalEt = t0_hcal.et(); 
 	  // std::cout << "tower et and hoe: " << t.et << ", " << t.hoe;
 
 	  if (isPositiveEta) {  

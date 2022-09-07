@@ -45,6 +45,9 @@ typedef struct {
 typedef struct {
   ap_uint<12> et ;
   ap_uint<4> hoe ;
+  // For CMSSW outputs, not firmware
+  ap_uint<12> ecalEt ; 
+  ap_uint<12> hcalEt ; 
 } RCTtower_t ;
 
 typedef struct {
@@ -81,6 +84,9 @@ typedef struct {
 typedef struct {
   ap_uint<12> et ;
   ap_uint<4> hoe ; 
+  // For CMSSW outputs, not firmware                                                                                                             
+  ap_uint<12> ecalEt ;
+  ap_uint<12> hcalEt ;
 } GCTtower_t ;
 
 typedef struct {
