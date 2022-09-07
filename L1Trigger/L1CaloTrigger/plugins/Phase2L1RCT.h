@@ -740,15 +740,16 @@ class tower_t {
     return *this;
   }
 
-  tower_t(ap_uint<12> et, ap_uint<3> hoe, ap_uint<1> satur){
+  tower_t(ap_uint<12> et, ap_uint<4> hoe) {
     data = (et) | 
-      (((ap_uint<16>) hoe)  << 12) | 
-      (((ap_uint<16>) satur)  << 15);
+      (((ap_uint<16>) hoe)  << 12) ; 
+    //      (((ap_uint<16>) satur)  << 15);
   }
 
   ap_uint<12> et() {return (data & 0xFFF);}
-  ap_uint<3> hoe() {return ((data >> 12) & 0x7);}
-  ap_uint<1> satur() {return ((data >> 15) & 0x2);}
+  // ap_uint<3> hoe() {return ((data >> 12) & 0x7);}
+  ap_uint<4> hoe() {return ((data >> 12) & 0xF); }
+  // ap_uint<1> satur() {return ((data >> 15) & 0x2);}
 
   float getEt() { return (float) et() / 8.0; }
   
@@ -777,9 +778,9 @@ class tower_t {
     // std::cout << " getHoverE with ECAL (int) " << (int) ECAL << ", HCAL (int) " << (int) HCAL_inHcalConvention
     //           << " (which, in ECAL ET convention, is): " << (int) HCAL << std::endl;
     // std::cout << " old data as int: " << (int) data << std::endl;      
-    ap_uint<3> hoeOut ;
+    ap_uint<4> hoeOut ;
     ap_uint<1> hoeLSB = 0 ;
-    ap_uint<3> hoe = 0 ;
+    ap_uint<4> hoe = 0 ;
     ap_uint<12> A;
     ap_uint<12> B;
 
@@ -789,22 +790,22 @@ class tower_t {
     if( ECAL == 0 || HCAL == 0 || HCAL >= ECAL) hoeLSB = 0 ;
     else hoeLSB = 1 ;
     if( A > B ){
-      if(A > 128*B) hoe = 7 ;
-      else if(A > 64*B) hoe = 6 ;
-      else if(A > 32*B) hoe = 5 ;
-      else if(A > 16*B) hoe = 4 ;
-      else if(A > 8*B) hoe = 3 ;
-      else if(A > 4*B) hoe = 2 ;
-      else if(A > 2*B) hoe = 1 ;
+      if(A > 2*B) hoe = 0x1 ;
+      if(A > 4*B) hoe = 0x2 ;
+      if(A > 8*B) hoe = 0x3 ;
+      if(A > 16*B) hoe = 0x4 ;
+      if(A > 32*B) hoe = 0x5 ;
+      if(A > 64*B) hoe = 0x6 ;
+      if(A > 128*B) hoe = 0x7 ;
     }
-    hoeOut = hoeLSB | ((ap_uint<3>) hoe) << 1 ;
+    hoeOut = hoeLSB | (hoe << 1) ;
     
     // std::cout << "  hoeOut as int: " << (int) hoeOut << std::endl;
-    ap_uint<16> hoeOutLong = ( ( ((ap_uint<16>) hoeOut) << 12 ) | 0x0000 ) ;  // e.g. 0b 0___ 0000 0000 0000 where ___ are the hoe digits
+    ap_uint<16> hoeOutLong = ( ( ((ap_uint<16>) hoeOut) << 12 ) | 0x0000 ) ;  // e.g. 0b ____ 0000 0000 0000 where ___ are the hoe digits
     // std::cout << "   hoeOutLong as int: " << (int) hoeOutLong << std::endl;
 
     // Take the logical OR to preserve the saturation and tower ET bits
-    ap_uint<16> bitMask = 0x8FFF;  // 1000 1111 1111 1111 : zero-out the HoE bits
+    ap_uint<16> bitMask = 0x0FFF;  // 0000 1111 1111 1111 : zero-out the HoE bits
     data = (data & bitMask);       // zero-out the HoE bits
     data = (data | hoeOutLong);    // write in the new HoE bits
     // std::cout << "    new data as int: " << (int) data << std::endl;

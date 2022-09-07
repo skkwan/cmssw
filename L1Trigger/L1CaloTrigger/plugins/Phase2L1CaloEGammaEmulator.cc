@@ -535,8 +535,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  int iEta = (idxRegion * TOWER_IN_ETA) + (i / TOWER_IN_PHI);   
 	  int iPhi = (i % TOWER_IN_PHI);
 	  //	  std::cout << "(" << iEta << "," << iPhi << ")";
-	  towerHCALCard[iEta][iPhi][cc] = tower_t(towerEtHCAL[i], 0, 0);
-	  towerECALCard[iEta][iPhi][cc] = tower_t(towerEtECAL[i], 0, 0);
+	  // towerHCALCard[iEta][iPhi][cc] = tower_t(towerEtHCAL[i], 0, 0);
+	  // towerECALCard[iEta][iPhi][cc] = tower_t(towerEtECAL[i], 0, 0);
+	  towerHCALCard[iEta][iPhi][cc] = tower_t(towerEtHCAL[i], 0);
+	  towerECALCard[iEta][iPhi][cc] = tower_t(towerEtECAL[i], 0);
 	}
 
       } // end of "if"
@@ -636,9 +638,10 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  int whichTowerPhiInCard = cExtra.towerPhi(); 
 	  ap_uint<12> oldTowerEt = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].et();
 	  ap_uint<12> newTowerEt = (oldTowerEt + cExtra.clusterEnergy());
-	  ap_uint<3>  hoe        = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].hoe();
-	  ap_uint<4>  satur      = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].satur();
-	  towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc] = tower_t(newTowerEt, hoe, satur);
+	  ap_uint<4>  hoe        = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].hoe();
+	  // ap_uint<4>  satur      = towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc].satur();
+	  // towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc] = tower_t(newTowerEt, hoe, satur);
+	  towerECALCard[whichTowerEtaInCard][whichTowerPhiInCard][cc] = tower_t(newTowerEt, hoe);
 	  
 	  // std::cout << "... Adding to card eta (0-17) " << whichTowerEtaInCard
 	  // 	    << ", card phi (0-4) " << whichTowerPhiInCard
@@ -905,8 +908,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 	  tower_t t0_hcal = towerHCALCard[iTower][iLink][rcc];
 	  RCTtower_t t;
 	  t.et = t0_ecal.et() + convertHcalETtoEcalET(t0_hcal.et());
-	  // std::cout << t.et << " ";
-	  // TO-DO: Add HoE to RCTtower_t struct
+	  t.hoe = t0_ecal.hoe();
+	  // std::cout << "tower et and hoe: " << t.et << ", " << t.hoe;
+
 	  if (isPositiveEta) {  
 	    gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t;
 	  } else {

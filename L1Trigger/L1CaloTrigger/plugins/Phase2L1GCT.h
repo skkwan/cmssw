@@ -44,6 +44,7 @@ typedef struct {
 
 typedef struct {
   ap_uint<12> et ;
+  ap_uint<4> hoe ;
 } RCTtower_t ;
 
 typedef struct {
@@ -79,6 +80,7 @@ typedef struct {
 
 typedef struct {
   ap_uint<12> et ;
+  ap_uint<4> hoe ; 
 } GCTtower_t ;
 
 typedef struct {
