@@ -76,7 +76,8 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
   return iPhi_in_barrel;
 }
 
-/*
+/* 
+* Correlator fiber convention -> Global GCT convention
  * Get tower's global (iEta) from the GCTCorrFiber index [0, 64) and the tower's postion in the fiber [0, 17).
  * Recall that GCTCorrFiber is [0, 32) for negative eta and [32, 64) for positive eta. The tower's position in the fiber [0, 17)
  * always counts outwards from real eta = 0.
@@ -101,9 +102,10 @@ int getTower_global_toweriEta(unsigned int nGCTCard, unsigned int gctCorrFiberId
   return global_toweriEta;
 }
 
-/*
+/* 
+ * Correlator fiber convention -> Global GCT convention
  * Get tower's global (iPhi) from the GCT card number (0, 1, 2), and the GCTCorrFiber index [0, 64).
- * Recall that GCTCorrFiber is [0, 32) for negative eta and [32, 64) for positive eta. In the phi direction, fiber index #0 has the same phi 
+ * GCTCorrFiber is [0, 32) for negative eta and [32, 64) for positive eta. In the phi direction, fiber index #0 has the same phi 
  * as fiber index #32, so only the (fiber index modulo 32) matters for the phi direction. 
  * The tower's position in the fiber doesn't matter; in each fiber the phi is the same. 
  * Use in conjunction with (float) getTowerPhi_fromAbsID(int id) from Phase2L1RCT.h to get a tower's real phi.
@@ -127,6 +129,31 @@ int getTower_global_toweriPhi(unsigned int nGCTCard, unsigned int gctCorrFiberId
   return global_toweriPhi;
 }
 
+/*
+ * GCT card convention -> Global GCT convention
+ * Get tower's global iEta from the tower's iEta inside the GCT card (0-34).
+ */
+ int getTower_global_toweriEta_fromGCTcard(unsigned int nGCTCard, unsigned int iEtaInGCTCard) {
+  (void) nGCTCard;
+  int global_iEta = iEtaInGCTCard;
+  return global_iEta;
+ }
+
+ /*
+  * GCT card convention -> Global GCT convention
+  * Get tower's global iPhi from the GCT card number (0, 1, or 2) and the tower's iPhi inside the GCT card (0-32).
+  */
+int getTower_global_toweriPhi_fromGCTcard(unsigned int nGCTCard, unsigned int iPhiInGCTCard) {
+  assert(nGCTCard <= 2);  // Make sure the card number is valid
+  int toweriPhi_card_offset = 0;   
+  if      (nGCTCard == 0) toweriPhi_card_offset = GCTCARD_0_TOWER_IPHI_OFFSET;
+  else if (nGCTCard == 1) toweriPhi_card_offset = GCTCARD_1_TOWER_IPHI_OFFSET;
+  else if (nGCTCard == 2) toweriPhi_card_offset = GCTCARD_2_TOWER_IPHI_OFFSET;
+
+  int global_iPhi = (toweriPhi_card_offset + iPhiInGCTCard) % (n_towers_Phi);  //   n_towers_Phi = 72
+
+  return global_iPhi;
+}
 
 
 GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
@@ -490,46 +517,45 @@ GCTinternal_t getClustersTowers(const GCTcard_t& GCTcard){
 GCTintTowers_t  getFullTowers(const GCTinternal_t& GCTinternal) {
   GCTintTowers_t GCTintTowers;
   
-  //-- positive eta
-  //
+  // Positive eta
   for(int i=0; i<N_GCTPOSITIVE_FIBERS; i=i+4){
     for(int i1=0; i1<4; i1++){
       for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-	ap_uint<15> phi = i+i1 ; 
-	ap_uint<15> eta = N_GCTETA/2 + k ; 
-	GCTintTowers.GCTtower[eta][phi].et  = GCTinternal.GCTCorrfiber[phi].GCTtowers[k].et ;
-	for(int ic1=0; ic1<4; ic1++){
-	  for(int jc=0; jc<N_GCTCLUSTERS_FIBER; jc++){
-	    ap_uint<15> eta1 = N_GCTETA/2 + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towEta ; 
-	    ap_uint<15> phi1 = GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towPhi ; 
-	    if( eta == eta1 && phi == phi1) GCTintTowers.GCTtower[eta][phi].et  = GCTintTowers.GCTtower[eta][phi].et + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].et ;
-	  }
-	}
+	      ap_uint<15> phi = i+i1 ; 
+	      ap_uint<15> eta = N_GCTETA/2 + k ; 
+	      GCTintTowers.GCTtower[eta][phi].et  = GCTinternal.GCTCorrfiber[phi].GCTtowers[k].et ;
+        GCTintTowers.GCTtower[eta][phi].hoe = GCTinternal.GCTCorrfiber[phi].GCTtowers[k].hoe ;
+	      for(int ic1=0; ic1<4; ic1++){
+	        for(int jc=0; jc<N_GCTCLUSTERS_FIBER; jc++){
+	          ap_uint<15> eta1 = N_GCTETA/2 + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towEta ; 
+	          ap_uint<15> phi1 = GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towPhi ; 
+	          if( eta == eta1 && phi == phi1) GCTintTowers.GCTtower[eta][phi].et  = GCTintTowers.GCTtower[eta][phi].et + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].et ;
+          }
+        }
       }
     }
   }
 
-  //-- negative eta
-  //
+  // Negative eta
   for(int i=N_GCTPOSITIVE_FIBERS; i<N_GCTINTERNAL_FIBERS; i=i+4){
     for(int i1=0; i1<4; i1++){
       for(int k=0; k<N_GCTTOWERS_FIBER; k++){
-	ap_uint<15> eta = N_GCTETA/2 - k - 1 ; 
-	ap_uint<15> phi = i+i1-N_GCTPOSITIVE_FIBERS ; 
-	GCTintTowers.GCTtower[eta][phi].et  = GCTinternal.GCTCorrfiber[i+i1].GCTtowers[k].et ;
-	for(int ic1=0; ic1<4; ic1++){
-	  for(int jc=0; jc<N_GCTCLUSTERS_FIBER; jc++){
-	    ap_uint<15> eta1 = N_GCTETA/2 - 1 - GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towEta ;
-	    ap_uint<15> phi1 = GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towPhi ;
-	    if( eta == eta1 && phi == phi1) GCTintTowers.GCTtower[eta][phi].et  = GCTintTowers.GCTtower[eta][phi].et + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].et ;
-	  }
-	}
+	      ap_uint<15> eta = N_GCTETA/2 - k - 1 ; 
+	      ap_uint<15> phi = i+i1-N_GCTPOSITIVE_FIBERS ; 
+	      GCTintTowers.GCTtower[eta][phi].et  = GCTinternal.GCTCorrfiber[i+i1].GCTtowers[k].et ;
+        GCTintTowers.GCTtower[eta][phi].hoe = GCTinternal.GCTCorrfiber[i+i1].GCTtowers[k].hoe ;
+	      for(int ic1=0; ic1<4; ic1++){
+	        for(int jc=0; jc<N_GCTCLUSTERS_FIBER; jc++){
+	          ap_uint<15> eta1 = N_GCTETA/2 - 1 - GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towEta ;
+	          ap_uint<15> phi1 = GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].towPhi ;
+	          if( eta == eta1 && phi == phi1) GCTintTowers.GCTtower[eta][phi].et  = GCTintTowers.GCTtower[eta][phi].et + GCTinternal.GCTCorrfiber[i+ic1].GCTclusters[jc].et ;
+          }
+        }
       }
     }
   }
   
   return GCTintTowers ;
-  //end
 }
 
 //
@@ -686,53 +712,45 @@ void compute_isolation_for_one_cluster(GCTinternal_t& GCTinternal, int i, int k,
 void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 	      unsigned int nGCTCard,
 	      std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClusters,
-	      std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers) {
+	      std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers,
+        std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers) {
   
   GCTinternal_t GCTinternal ;
 
-  // first we fill the GCT area with proper et and eta/phi; the eta is 0....16 and towEtaNeg = 0 or 1
+  // Fill the GCT area with proper et and eta/phi; the eta is 0....16 and towEtaNeg = 0 or 1
   // Phi 0....15 since this is half GCT card and 0...3 is overlap currently on one side, crEta/Phi 0...4
-  
   GCTinternal = getClustersTowers(GCTcard) ;
-  
-  
+  // Combine towers and clusters to get full towers
   GCTintTowers_t GCTintTowers;
-  // here we combine towers and clusters to get full towers, and move to internal GCT card coordinate 0...33 in eta and 0...15 in phi,
-  // should change to 0...31 for the whole card  
   GCTintTowers = getFullTowers(GCTinternal) ;
 
-  //ok now we have towers combined with clusters, now need to recalculate positions of all clusters in GCT coordinates
-  
-  // OUTPUT TO CORRELATOR !!!!
-  // remove overlap region, we send out 24 fibers: 12 pos/12 neg
-  // all phi now decreases by 4
-  // this we send to Correlator
-  // For the full GCT card (eight RCT cards wide in phi), skip the overlap region, i.e. SKIP i = 0, 1, 2, 3,
-  // and i = 28, 29, 30, 31.
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Output to correlator, positive eta. Skip overlap region, i.e. fibers i = 0, 1, 2, 3, and i = 28, 29, 30, 31.
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+
   for(int i=4; i<(N_GCTPOSITIVE_FIBERS-N_RCTGCT_FIBERS); i++){
     for(int k=0; k<N_GCTCLUSTERS_FIBER; k++){
-      /* std::cout << "Accessing positive eta: GCTCorrfiber " << i-4  */
-      /* 		<< " , GCTclusters " << k  */
-      /* 		<< " , energy " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et << std::endl; */
+
       // Comments from Stephanie:
-      // Use GCTinternal for GCT clusters. The indexing for towers and crystal eta/phi is that
-      // etas of towers go from 0-16 where iEta = 0 is real eta = 0 (indexes increase towards
+      // Use GCTinternal for GCT clusters. 
+      // Indexing: etas of towers go from 0-16 where iEta = 0 is real eta = 0 (indexes increase towards
       // larger abs(eta). Phis of towers go from 0-3 where iPhi = 0 is the leftmost (if you look
       // at a 'sideways' diagram of the GCT card like on the TWiki). 
       // 
+
       // Compute isolation 
       compute_isolation_for_one_cluster(GCTinternal, i, k, nGCTCard);
       // Compute isolation flags (inputs are: et (as float), and then relative isolation (iso/et))
       float relative_iso;
       if (GCTinternal.GCTCorrfiber[i].GCTclusters[k].et > 0) {
-	relative_iso = ( ((float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso / 8 ) / ( (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et / 8 ) );
-	std::cout << "relative iso is " << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8 
-		  << " divided by "     << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8
-		  << " giving " << relative_iso << std::endl;
+	        relative_iso = ( ((float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso / 8 ) / ( (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et / 8 ) );
+	        std::cout << "relative iso is " << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso/8 
+		                << " divided by "     << (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8
+		                 << " giving " << relative_iso << std::endl;
       }
       else {
 	// std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
-	relative_iso = 0;
+	      relative_iso = 0;
       }
       bool is_iso        = passes_iso(        GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
       bool is_looseTkiso = passes_looseTkiso( GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0, relative_iso);
@@ -781,7 +799,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 					GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss  // stage2effMatch: not computed
                                         );
 
-      // Experimental parameters
+      // Flags
       std::map<std::string, float> params;
       params["standaloneWP_showerShape"] = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_ss;
       params["standaloneWP_isolation"]   = GCTinternal.GCTCorrfiber[i].GCTclusters[k].is_iso;
@@ -790,21 +808,21 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       cluster.setExperimentalParams(params);
 
       if (cluster.pt() > 0.0) {
-	gctClusters->push_back(cluster);
-	std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
-		  << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0 
-		  << ", ("
-		  << crystaliEta_in_barrel
-		  << ", "
-	          << crystaliPhi_in_barrel
-		  << "), ("
-		  << realEta 
-		  << "," 
-		  << realPhi
-		  << ")"
-		  << " with relative isolation " << relative_iso
-	          << std::endl;
-	std::cout << "    with the GCTinternal values: " 
+	      gctClusters->push_back(cluster);
+	      std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
+		              << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0 
+		              << ", ("
+		              << crystaliEta_in_barrel
+		              << ", "
+	                << crystaliPhi_in_barrel
+		              << "), ("
+		              << realEta 
+		              << "," 
+		              << realPhi
+		              << ")"
+		              << " with relative isolation " << relative_iso
+	                << std::endl;
+	      std::cout << "    with the GCTinternal values: " 
 		  << "towEtaNeg: " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEtaNeg << ", "
 		  << "towEta: "    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towEta    << ", "
 		  << "towPhi: "    << GCTinternal.GCTCorrfiber[i].GCTclusters[k].towPhi    << ", "
@@ -822,7 +840,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       }
 
     }
-    // Positive eta: towers : also push back to CMSSW collection
+    // Positive eta towers : push back to CMSSW collection
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
       std::cout<< "Accessing positive eta: GCTCorrfiber " << i-4
       	       << " , GCTtowers " << k
@@ -851,17 +869,17 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
     }
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////
-  // In negative eta, skip the overlap region, i.e. SKIP i = 32, 33, 34, 35, and 61, 62, 63, 64.
+  // Output to correlator: In negative eta, the overlap region to skip is fibers 32, 33, 34, 35, and 61, 62, 63, 64.
   //////////////////////////////////////////////////////////////////////////////////////////////// 
   for(int i=(N_GCTPOSITIVE_FIBERS+N_RCTGCT_FIBERS); i<(N_GCTINTERNAL_FIBERS-N_RCTGCT_FIBERS); i++){
     for(int k=0; k<N_GCTCLUSTERS_FIBER; k++){
       /* std::cout << "Accessing negative eta: GCTCorrfiber " << i-12 */
       /*           << " , GCTclusters " << k  */
       /*           << " , energy " << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et << std::endl; */
-      // Compute isolation
+      // Isolation
       compute_isolation_for_one_cluster(GCTinternal, i, k, nGCTCard);
 
-      // Compute isolation flags (inputs are: et (as float), and then relative isolation (iso/et))                                                               
+      // Isolation flags (inputs are: et (as float), and then relative isolation (iso/et))                                                               
       float relative_iso;
       if (GCTinternal.GCTCorrfiber[i].GCTclusters[k].et > 0) {
         relative_iso = ( ((float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].iso / 8 ) / ( (float) GCTinternal.GCTCorrfiber[i].GCTclusters[k].et / 8 ) );
@@ -870,7 +888,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
                   << " giving " << relative_iso << std::endl;
       }
       else {
-	// std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
+	      // std::cout << "Cluster energy is 0: relative_iso set to 0" << std::endl;
         relative_iso = 0;
       }
       // Build negative eta clusters
@@ -930,8 +948,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 
       // Push back negative eta clusters to the output CMSSW collection
       if (cluster.pt() > 0.0) {
-	gctClusters->push_back(cluster);
-	std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
+	        gctClusters->push_back(cluster);
+	        std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
 		  << GCTinternal.GCTCorrfiber[i].GCTclusters[k].et/8.0 
 		  << ", ("
 		  << globaliEta 
@@ -960,7 +978,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       }
       
     }
-    // Negative eta: towers : push back to CMSSW as well 
+    // Negative eta towers : push back to CMSSW as well 
     for(int k=0; k<N_GCTTOWERS_FIBER; k++){
       std::cout<< "Accessing negative eta: GCTCorrfiber " << i
       	       << " , GCTtowers " << k
@@ -991,32 +1009,28 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
     }
   }
 
-  
-  // this for test of the pattern that is in the tb file
-  /*
-    
-    cluster[0] = GCTtoCorr.GCTCorrfiber[0].GCTclusters[0].et  ;
-    cluster[1] = GCTtoCorr.GCTCorrfiber[0].GCTclusters[0].towEta  ;
-    cluster[2] = GCTtoCorr.GCTCorrfiber[0].GCTclusters[0].towPhi  ;
-    cluster[3] = 0  ;
-    //           cluster[1] = GCTtoCorr.GCTCorrfiber[4].GCTclusters[0].et  ;
-    //           cluster[2] = GCTtoCorr.GCTCorrfiber[15].GCTclusters[0].et  ;
-    //           cluster[3] = GCTtoCorr.GCTCorrfiber[19].GCTclusters[0].et  ;
-    //           cluster[4] = GCTtoCorr.GCTCorrfiber[18].GCTclusters[1].et  ;
-    
-    cluster[4] = 0  ;
-    cluster[5] = 0  ;
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Create GCT Full Towers (clusters + towers) output to CMSSW.
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  for (unsigned int iEta = 0; iEta < N_GCTETA; iEta++) {
+    for (unsigned int iPhi = 0; iPhi < N_GCTPHI; iPhi++) {
 
-    cluster[6] = GCTtoCorr.GCTCorrfiber[3].GCTtowers[7].et  ;
-    cluster[7] = GCTtoCorr.GCTCorrfiber[10].GCTtowers[5].et  ;
-    cluster[8] = GCTtoCorr.GCTCorrfiber[16].GCTtowers[7].et  ;
-    cluster[9] = GCTtoCorr.GCTCorrfiber[23].GCTtowers[5].et  ;
-    
-    cluster[3] = GCTintTowers.GCTtower[12][8].et  ;
-    cluster[4] = GCTintTowers.GCTtower[24][7].et  ;
-    cluster[5] = GCTintTowers.GCTtower[18][4].et  ;
-  */
-  //end
+      l1tp2::CaloTower fullTower;
+      // Store total Et (HCAL+ECAL) in the ECAL ET member.
+      fullTower.setEcalTowerEt(GCTintTowers.GCTtower[iEta][iPhi].et/8.0); // convert to float by dividing by 8.0
+      // Leave HCAL Tower Et = 0.
+      int global_toweriEta = getTower_global_toweriEta_fromGCTcard(nGCTCard, iEta);
+      int global_toweriPhi = getTower_global_toweriPhi_fromGCTcard(nGCTCard, iPhi);
+      fullTower.setTowerIEta( global_toweriEta );
+      fullTower.setTowerIPhi( global_toweriPhi );
+      fullTower.setTowerEta( getTowerEta_fromAbsID( global_toweriEta ) );
+      fullTower.setTowerPhi( getTowerPhi_fromAbsID( global_toweriPhi ) );
+      
+      gctFullTowers->push_back(fullTower);
+    }
+  
+  }
+
 }
 
 #endif

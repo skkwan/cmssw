@@ -92,7 +92,7 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet &
   produces<l1tp2::CaloCrystalClusterCollection>( "GCT" );
   produces<l1tp2::CaloTowerCollection>( "RCT" );
   produces<l1tp2::CaloTowerCollection>( "GCT" );
-  
+  produces<l1tp2::CaloTowerCollection>( "GCTFullTowers" );
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -1031,17 +1031,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   std::cout << std::endl;
 
   //----------------------------------------------------
-  // Declare the output collections for the GCT emulator
+  // Output collections for the GCT emulator
   //----------------------------------------------------   
-  auto L1GCTClusters = std::make_unique<l1tp2::CaloCrystalClusterCollection>();
-  auto L1GCTTowers   = std::make_unique<l1tp2::CaloTowerCollection>();
+  auto L1GCTClusters   = std::make_unique<l1tp2::CaloCrystalClusterCollection>();
+  auto L1GCTTowers     = std::make_unique<l1tp2::CaloTowerCollection>();
+  auto L1GCTFullTowers = std::make_unique<l1tp2::CaloTowerCollection>();
 
   // Apply the GCT firmware code to each GCT
   for (unsigned int gcc = 0; gcc < N_GCTCARDS; gcc++) {
     // getClustersTowers
     // getClustersCombined
     // getFullTowers
-    algo_top(gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers);
+    algo_top(gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers, L1GCTFullTowers);
   }
 
   // Check that L1GCTClusters has stuff in it
@@ -1050,55 +1051,27 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
     std::cout << "GCT cluster energy " << c.pt() << std::endl;
   }
-  for (auto const& c: *L1GCTTowers ) {
+  // for (auto const& c: *L1GCTTowers ) {
     
-    std::cout << "GCT tower energy " << c.ecalTowerEt() + c.hcalTowerEt()
-	      << " at real eta, phi: (" << c.towerEta() << ", " << c.towerPhi() << ")" << std::endl;
+  //   std::cout << "GCT tower energy " << c.ecalTowerEt() + c.hcalTowerEt()
+	//       << " at real eta, phi: (" << c.towerEta() << ", " << c.towerPhi() << ")" << std::endl;
+    
+  // }
+
+  std::cout << "Checking that the GCT Full Towers have entries..." << std::endl;
+  for (auto const& c: *L1GCTFullTowers ) {
+    
+    std::cout << "GCT FULL tower energy " << c.ecalTowerEt() 
+	            << " at real eta, phi: (" << c.towerEta() << ", " << c.towerPhi() << ")" << std::endl;
     
   }
   
   
   iEvent.put(std::move(L1GCTClusters), "GCT");
   iEvent.put(std::move(L1GCTTowers),   "GCT");
+  iEvent.put(std::move(L1GCTFullTowers), "GCTFullTowers");
 } 
 
-
-// Flags moved to Phase2RCT.h
-
-// bool Phase2L1CaloEGammaEmulator::passes_iso(float pt, float iso) {
-//   bool is_iso = true;
-//   if (pt < slideIsoPtThreshold) {
-//     if (!((a0_80 - a1_80 * pt) > iso))
-//       is_iso = false;
-//   } else {
-//     if (iso > a0)
-//       is_iso = false;
-//   }
-//   if (pt > 130)
-//     is_iso = true;
-//   return is_iso;
-// }
-
-// bool Phase2L1CaloEGammaEmulator::passes_looseTkiso(float pt, float iso) {
-//   bool is_iso = (b0 + b1 * std::exp(-b2 * pt) > iso);
-//   if (pt > 130)
-//     is_iso = true;
-//   return is_iso;
-// }
-
-// bool Phase2L1CaloEGammaEmulator::passes_ss(float pt, float ss) {
-//   bool is_ss = ((c0_ss + c1_ss * std::exp(-c2_ss * pt)) <= ss);
-//   if (pt > 130)
-//     is_ss = true;
-//   return is_ss;
-// }
-
-// bool Phase2L1CaloEGammaEmulator::passes_looseTkss(float pt, float ss) {
-//   bool is_ss = ((e0_looseTkss - e1_looseTkss * std::exp(-e2_looseTkss * pt)) <= ss);
-//   if (pt > 130)
-//     is_ss = true;
-//   return is_ss;
-// }
 
 
 ////////////////////////////////////////////////////////////////////////// 
