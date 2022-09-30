@@ -36,7 +36,6 @@ typedef struct {
   ap_uint<3> crEta ;
   ap_uint<3> crPhi ;
 
-  // newly added compared to firmware
   ap_uint<12> iso ;     
   ap_uint<15> et2x5;
   ap_uint<15> et5x5;
@@ -76,13 +75,16 @@ typedef struct {
   ap_uint<7> towPhi ;
   ap_uint<3> crEta ;
   ap_uint<3> crPhi ;
-  ap_uint<12> iso ;   // new
-  ap_uint<15> et2x5 ; // new
-  ap_uint<15> et5x5 ; // new
-  bool is_ss;         // new
-  bool is_looseTkss;  // new
-  bool is_iso;    // new 
-  bool is_looseTkiso;  // new
+  ap_uint<12> iso ;   
+
+  ap_uint<15> et2x5 ; 
+  ap_uint<15> et5x5 ; 
+  bool is_ss;         
+  bool is_looseTkss;  
+  bool is_iso;    
+  bool is_looseTkiso; 
+
+  float relIso; // for analyzer only, not firmware
 
 } GCTcluster_t ;
 
@@ -140,34 +142,57 @@ void initializeGCTCard(GCTcard_t gctCard){
   for (int i = 0; i < (N_RCTCARDS_PHI); i++) {  // loop from i = 0 to i = 8 and do pos and neg eta at the same time
     for (int iLink = 0; iLink < N_RCTGCT_FIBERS; ++iLink) {  // four links per card
       for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; ++iTower) {  // 17 towers per link
-	RCTtower_t t0;
-	t0.et = 0;
-	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
-	gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
+        RCTtower_t t0;
+        t0.et = 0;
+        gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
+        gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t0;
       }
-      
+            
       for (int iCluster = 0; iCluster < N_GCTCLUSTERS_FIBER; ++iCluster) { // 2 clusters per link
-	RCTcluster_t c0;
-	c0.et     = 0;
-	c0.towEta = 0;
-	c0.towPhi = 0;
-	c0.crEta  = 0;
-	c0.crPhi  = 0;
-	c0.et2x5  = 0;
-	c0.et5x5  = 0;
-	c0.iso    = 0;
-	c0.is_ss  = false;
-	c0.is_looseTkss = false;
-	c0.is_iso = false;
-	c0.is_looseTkiso = false;
-	gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
-	gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
+        RCTcluster_t c0;
+        c0.et     = 0;
+        c0.towEta = 0;
+        c0.towPhi = 0;
+        c0.crEta  = 0;
+        c0.crPhi  = 0;
+        c0.et2x5  = 0;
+        c0.et5x5  = 0;
+        c0.iso    = 0;
+        c0.is_ss  = false;
+        c0.is_looseTkss = false;
+        c0.is_iso = false;
+        c0.is_looseTkiso = false;
+        gctCard.RCTcardEtaPos[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
+        gctCard.RCTcardEtaNeg[i].RCTtoGCTfiber[iLink].RCTclusters[iCluster] = c0;
       }
     }
   }
 }
 
-//void algo_top(const GCTcard_t& GCTcard, ap_uint<15> cluster[10]);
+/*
+ * Print GCT cluster information.
+ */
+void printGCTClusterInfo(GCTcluster_t c, std::string description = "") {
+  std::cout << "[PrintGCTClusterInfo:] [ " << description << "]: " 
+            << "et (float): " << c.et/8.0 << ", "
+            << "towEtaNeg: "  << c.towEtaNeg << ", "
+            << "towEta: "     << c.towEta    << ", "
+            << "towPhi: "     << c.towPhi    << ", "
+            << "crEta: "   << c.crEta   << ", "
+            << "crPhi: "   << c.crPhi   << ", "
+            << "iso: "     << c.iso/8.0 << ", " 
+            << "rel iso: " << c.relIso << ", "
+            << "et2x5 (float): "   << c.et2x5/8.0 << ", "
+            << "et5x5 (float): "   << c.et5x5/8.0 << ", "
+            << "is_ss: "         << c.is_ss << ", "
+            << "is_looseTkss"    << c.is_looseTkss << ", "
+            << "is_iso: "        << c.is_iso << ", "
+            << "is_looseTkiso: " << c.is_looseTkiso 
+            << std::endl;
+}
+
+
+
 void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr) ;
 
 GCTinternal_t getClustersTowers(const GCTcard_t& GCTcard) ;
