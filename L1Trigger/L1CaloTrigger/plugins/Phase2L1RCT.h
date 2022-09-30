@@ -1551,12 +1551,12 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
       // std::cout << "getBremsValuesPos: i, j " << i << ", " << j << ", [i+1][j-3]: " << i+1 << ", " << j-3 << std::endl;
       temp[i+1][j] = tempX[i][j+3].energy ;
       if (tempX[i][j].energy > 0) {
-	std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
-		  << "getBremsValuesPos: tempX[" << i << "][" << j+3 << "].energy: " << tempX[i][j+3].energy
-		  << ", temp[" << i+1 << "][" << j << "]" << temp[i+1][j] << std::endl;
+        std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
+            << "getBremsValuesPos: tempX[" << i << "][" << j+3 << "].energy: " << tempX[i][j+3].energy
+            << ", temp[" << i+1 << "][" << j << "]" << temp[i+1][j] << std::endl;
       }
-
-    }}
+    }
+  }
   
   ap_uint<6> seed_eta1, seed_phi1;
   seed_eta1 = seed_eta; //to start from corner
@@ -1882,14 +1882,13 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
 
 //--------------------------------------------------------// 
 
-// Takes a vector of Clusters and stitches it across the boundary specified by 
+// Stitch clusters in cluster_list across the boundary specified by 
 // towerEtaUpper and towerEtaLower (using RCT card notation). Modifies the input vector
 // (passed by reference). If two clusters are combined, modify the higher-energy cluster and
 // zero out the energy of the smaller-energy cluster.
 // Returns 1.
 
-int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, 
-				    int towerEtaUpper, int towerEtaLower) {
+int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, int towerEtaUpper, int towerEtaLower) {
 
   int crystalEtaUpper = 0;
   int crystalEtaLower = 4;
@@ -1897,68 +1896,45 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list,
   std::cout << "Comparing for towerEta boundaries " << towerEtaUpper << " and " << towerEtaLower << std::endl;
   for (int i = 0; i < (int) cluster_list.size(); i++) {
     for (int j = 0; j < (int) cluster_list.size(); j++) {
-      
       // Do not double-count
       if (i == j) continue; 
-      
-      // std::cout << "  (" << i << ", " << j << ")";
 
+      Cluster c1 = cluster_list[i];
+      Cluster c2 = cluster_list[j];
+      
       // Use the .towerEtaInCard() method to get the tower eta in the entire RCT card
-      if( cluster_list[i].clusterEnergy() > 0 && cluster_list[i].towerEtaInCard() == towerEtaUpper &&
-	  cluster_list[i].clusterEta() == crystalEtaUpper) {
-	if(cluster_list[j].clusterEnergy() > 0 && cluster_list[j].towerEtaInCard() == towerEtaLower &&
-	   cluster_list[j].clusterEta() == crystalEtaLower){
-	  std::cout << "  Found two clusters along eta border (not checked if near in phi): "
-		    << " upper has energy "     << cluster_list[i].clusterEnergy()
-		    << " and lower has energy " << cluster_list[j].clusterEnergy() << std::endl;
+      if ( (c1.clusterEnergy() > 0) && (c1.towerEtaInCard() == towerEtaUpper) && (c1.clusterEta() == crystalEtaUpper) ) {
+        if ( (c2.clusterEnergy() > 0) && (c2.towerEtaInCard() == towerEtaLower) && (c2.clusterEta() == crystalEtaLower ) ) {
+            std::cout << "  Found two clusters along eta border (not checked if near in phi): "
+                      << " upper has energy "     << c1.clusterEnergy()
+                      << " and lower has energy " << c2.clusterEnergy() << std::endl;
 
-	  ap_uint<5> phi1 = cluster_list[i].towerPhi()*5 + cluster_list[i].clusterPhi();
-          ap_uint<5> phi2 = cluster_list[j].towerPhi()*5 + cluster_list[j].clusterPhi();
-          ap_uint<5> dPhi; 
-	  dPhi = (phi1 > phi2)?(phi1-phi2):(phi2-phi1);
+	          ap_uint<5> phi1 = c1.towerPhi()*5 + c1.clusterPhi();
+            ap_uint<5> phi2 = c2.towerPhi()*5 + c2.clusterPhi();
+            ap_uint<5> dPhi; 
+	          dPhi = (phi1 > phi2)?(phi1-phi2):(phi2-phi1);
 	  
-	  if( dPhi < 2 ) {
-	    std::cout << "  The two clusters are next to each other in phi " << std::endl;
-	    ap_uint<12> one = cluster_list[i].clusterEnergy();
-	    ap_uint<12> two = cluster_list[j].clusterEnergy();
-	    ap_uint<12> sum = (one + two);
-	    // When we finalize the firmware ap_uint size, switch .et5x5 and .et2x5 to et5x5() and et2x5() methods
-	    ap_uint<15> et5x5 = (cluster_list[i].et5x5 + cluster_list[j].et5x5); 
-	    ap_uint<15> et2x5 = (cluster_list[i].et2x5 + cluster_list[j].et2x5); 
-	    int one_regionIdx = cluster_list[i].region();
-	    int two_regionIdx = cluster_list[j].region();
-	    // When we finalize the firmware ap_uint size, switch .brems to brems() method
-	    // When we finalize the firmware ap_uint size, switch Cluster() initializer 
-	    if (one > two){
-	      // Initialize a cluster with the larger cluster's position and total energy
-	      cluster_list[i] = Cluster(sum, cluster_list[i].towerEta(), cluster_list[i].towerPhi(), cluster_list[i].clusterEta(), cluster_list[i].clusterPhi(), cluster_list[i].satur(), et5x5, et2x5, cluster_list[i].brems,
-					false, false);
-	      // Also carry over the larger cluster's region #
-	      cluster_list[i].regionIdx = one_regionIdx;
-	      // cluster_list[j] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
-	      cluster_list[j] = Cluster(0, 0, 0, 0, 0, 0);
-	    }
-	    else {
-	      // Analogous to above portion
-	      cluster_list[j] = Cluster(sum, cluster_list[j].towerEta(), cluster_list[j].towerPhi(), cluster_list[j].clusterEta(), cluster_list[j].clusterPhi(), cluster_list[j].satur(), et5x5, et2x5, cluster_list[j].brems,
-					false, false);
-	      cluster_list[j].regionIdx = two_regionIdx;
-	      // cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0, 0, 0, 0);
-	      cluster_list[i] = Cluster(0, 0, 0, 0, 0, 0);
-	    }
-	  
-	  }
-	  
-	}
-	
-      }
-      
+            if( dPhi < 2 ) {
+              std::cout << "  The two clusters are next to each other in phi " << std::endl;
+              ap_uint<15> totalEnergy = c1.clusterEnergy() + c2.clusterEnergy();
+              ap_uint<15> totalEt2x5 = c1.uint_et2x5() + c2.uint_et2x5();
+              ap_uint<15> totalEt5x5 = c1.uint_et5x5() + c2.uint_et5x5();
+              if (c1.clusterEnergy() > c2.clusterEnergy()){
+                // Initialize a cluster with the larger cluster's position and total energy
+                c1 = Cluster(totalEnergy, c1.towerEta(), c1.towerPhi(), c1.clusterEta(), c1.clusterPhi(), c1.satur(), totalEt5x5, totalEt2x5, c1.getBrems(), c1.getIsSS(), c1.getIsLooseTkss());
+                c2 = Cluster(0, 0, 0, 0, 0, 0);
+              }
+              else {
+                // Analogous to above portion
+                c1 = Cluster(0, 0, 0, 0, 0, 0);
+                c2 = Cluster(totalEnergy, c2.towerEta(), c2.towerPhi(), c2.clusterEta(), c2.clusterPhi(), c2.satur(), totalEt5x5, totalEt2x5, c2.getBrems(), c2.getIsSS(), c2.getIsLooseTkss());
+              }
+	          }	  
+          }
+      }    
     }
   }
-  std::cout << std::endl;
-
   return 1;
-
 }
 
 
