@@ -388,14 +388,21 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       ehit.setEnergy(et);
       ehit.setPt();
 
+
       ecalhits.push_back(ehit);
 
-      // Debugging purposes only: only use ECAL hits in Card 28 to make clusters
-      // int cc = 28;
-      // if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
-      // 	  getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
-      // 	  getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
-      // 	  getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
+      // Debugging purposes only: print only hits in card 7
+      int cc = 0;
+      if (getCrystal_phiID(ehit.position().phi()) <= getPhiMax_card(cc) &&
+      	  getCrystal_phiID(ehit.position().phi()) >= getPhiMin_card(cc) &&
+      	  getCrystal_etaID(ehit.position().eta()) <= getEtaMax_card(cc) &&
+      	  getCrystal_etaID(ehit.position().eta()) >= getEtaMin_card(cc)){
+            
+            std::cout << "Found ECAL hit in Card " << cc << " with et (GeV) " << et << " and eta/phi "
+                      << ehit.position().eta() << ", " 
+                      << ehit.position().phi()
+                      << std::endl;
+      }
 	
       // 	// TEMP: only use ECAL hits in Card 28
       // 	ecalhits.push_back(ehit);
@@ -474,6 +481,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   int showerShape_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
   int showerShapeLooseTk_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
   int photonShowerShape_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
+  int c2x5_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
+  int c5x5_cluster_L1Card[n_links_card][n_clusters_link][n_towers_halfPhi];
 
   for (int ii = 0; ii < n_links_card; ++ii) {
     for (int jj = 0; jj < n_towers_per_link; ++jj) {
@@ -562,13 +571,32 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
           float n2x2_3 = 0;
           float e2x2_4 = 0;
           float n2x2_4 = 0;
+          // Troubleshooting: only do this for the one hit that we care about
+          if ((centerhit.position().eta() > (-0.427769 - 0.25)) && (centerhit.position().eta() < (-0.427769 + 0.25))) {
+            for (auto& hit : ecalhits) {
+              std::cout << "[Debugging: super verbose all hits]: " << " Found hit with energy " << hit.energy() 
+                        << " at (eta, phi) (" << hit.position().eta() << ", " << hit.position().phi() << "), "
+                        << "dieta, diphi from center hit is " << hit.dieta(centerhit) << ", " << hit.diphi(centerhit) << ", "
+                        << "additional condition is " << (getCrystal_etaID(hit.position().eta()) < getEtaMin_card(cc) + n_crystals_3towers * (nregion + 1) &&
+                getCrystal_etaID(hit.position().eta()) >= getEtaMin_card(cc) + n_crystals_3towers * nregion) << ": "
+                        << "card (cc) is " << cc << ", nregion is " << nregion << ", "
+                        << "crystal eta ID is " << getCrystal_etaID(hit.position().eta()) << ", "
+                        << "getEtaMin and Max card(cc) is " << getEtaMin_card(cc) << ", " << getEtaMax_card(cc) << ", "
+                        << std::endl;
+            }
+          }
           for (auto& hit : ecalhits) {
+            
             if (getCrystal_phiID(hit.position().phi()) <= getPhiMax_card(cc) &&
                 getCrystal_phiID(hit.position().phi()) >= getPhiMin_card(cc) &&
                 getCrystal_etaID(hit.position().eta()) <= getEtaMax_card(cc) &&
                 getCrystal_etaID(hit.position().eta()) >= getEtaMin_card(cc) && hit.pt() > 0 &&
                 getCrystal_etaID(hit.position().eta()) < getEtaMin_card(cc) + n_crystals_3towers * (nregion + 1) &&
                 getCrystal_etaID(hit.position().eta()) >= getEtaMin_card(cc) + n_crystals_3towers * nregion) {
+              std::cout << "[Debugging:] [In card " << cc << "]:" << " Found hit with energy " << hit.energy() 
+                        << " at (eta, phi) (" << hit.position().eta() << ", " << hit.position().phi() << "), "
+                        << "dieta, diphi from center hit is " << hit.dieta(centerhit) << ", " << hit.diphi(centerhit)
+                        << std::endl;
               if (abs(hit.dieta(centerhit)) <= 1 && hit.diphi(centerhit) > 2 && hit.diphi(centerhit) <= 7) {
                 rightlobe += hit.pt();
               }
@@ -576,6 +604,9 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                 leftlobe += hit.pt();
               }
               if (abs(hit.dieta(centerhit)) <= 2 && abs(hit.diphi(centerhit)) <= 2) {
+                std::cout << "[INFO:] To e5x5: adding hit.energy() " << hit.energy() 
+                          << " at (eta, phi) (" << hit.position().eta() << ", " << hit.position().phi() << ")"
+                          << std::endl;
                 e5x5 += hit.energy();
                 n5x5++;
               }
@@ -600,10 +631,17 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                 n2x2_4++;
               }
               if ((hit.dieta(centerhit) == 0 or hit.dieta(centerhit) == 1) && abs(hit.diphi(centerhit)) <= 2) {
+                std::cout << "[INFO:] To e2x5_1: adding hit.energy() " << hit.energy()
+                          << " at (eta, phi) (" << hit.position().eta() << ", " << hit.position().phi() << ")"
+                          << std::endl;
                 e2x5_1 += hit.energy();
                 n2x5_1++;
               }
               if ((hit.dieta(centerhit) == 0 or hit.dieta(centerhit) == -1) && abs(hit.diphi(centerhit)) <= 2) {
+                std::cout << "[INFO:] To e2x5_2: adding hit.energy() " << hit.energy() 
+                          << " at (eta, phi) (" << hit.position().eta() << ", " << hit.position().phi() << ")"
+                          << std::endl;
+
                 e2x5_2 += hit.energy();
                 n2x5_2++;
               }
@@ -648,6 +686,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
           }
           mc1.c5x5_ = e5x5;
           mc1.c2x5_ = max(e2x5_1, e2x5_2);
+          std::cout << "[INFO:] Setting mc1.c2x5 to max of " << e2x5_1 << " and " << e2x5_2 << ": which is " << mc1.c2x5_ << std::endl;
           mc1.c2x2_ = e2x2_1;
           if (e2x2_2 > mc1.c2x2_)
             mc1.c2x2_ = e2x2_2;
@@ -694,12 +733,13 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       if (cluster_list[cc][jj].cpt > 0) {
         cluster_list[cc][jj].cpt = cluster_list[cc][jj].cpt * calib_(cluster_list[cc][jj].cpt,
 								     std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
-	std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
-		  << std::abs(cluster_list[cc][jj].craweta_) << " is: "
-		  << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
-		  << std::endl;
+        std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
+            << std::abs(cluster_list[cc][jj].craweta_) << " is: "
+            << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
+            << std::endl;
 								   
         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
+        std::cout << "[INFO:] At building cluster_list_merged: c2x5 and c5x5 are " << cluster_list[cc][jj].c2x5_ << " and " << cluster_list[cc][jj].c5x5_ << std::endl;
       }
     }
     std::sort(begin(cluster_list_merged[cc]), end(cluster_list_merged[cc]), [](mycluster a, mycluster b) {
@@ -714,6 +754,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
           getTowerID(cluster_list_merged[cc][jj].ceta_, cluster_list_merged[cc][jj].cphi_);
       energy_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = cluster_list_merged[cc][jj].cpt;
       brem_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = cluster_list_merged[cc][jj].cbrem_;
+      c2x5_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = cluster_list_merged[cc][jj].c2x5_;
+      c5x5_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = cluster_list_merged[cc][jj].c5x5_;
       if (passes_ss(cluster_list_merged[cc][jj].cpt,
                     cluster_list_merged[cc][jj].c2x5_ / cluster_list_merged[cc][jj].c5x5_))
         showerShape_cluster_L1Card[jj % n_links_card][jj / n_links_card][cc] = 1;
@@ -833,6 +875,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
   int showerShape_cluster_L2Card[n_links_GCTcard][n_clusters_per_link][n_GCTcards];
   int showerShapeLooseTk_cluster_L2Card[n_links_GCTcard][n_clusters_per_link][n_GCTcards];
   int photonShowerShape_cluster_L2Card[n_links_GCTcard][n_clusters_per_link][n_GCTcards];
+  int c2x5_cluster_L2Card[n_links_GCTcard][n_clusters_per_link][n_GCTcards];
+  int c5x5_cluster_L2Card[n_links_GCTcard][n_clusters_per_link][n_GCTcards];
 
   for (int ii = 0; ii < n_links_GCTcard; ++ii) {
     for (int jj = 0; jj < n_towers_per_link; ++jj) {
@@ -856,6 +900,8 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
         photonShowerShape_cluster_L2Card[ii][jj][ll] = 0;
         showerShape_cluster_L2Card[ii][jj][ll] = 0;
         showerShapeLooseTk_cluster_L2Card[ii][jj][ll] = 0;
+	c2x5_cluster_L2Card[ii][jj][ll] = 0;
+	c5x5_cluster_L2Card[ii][jj][ll] = 0;
       }
     }
   }
@@ -1001,6 +1047,10 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
         mc1.cshowershape_ = showerShape_cluster_L1Card[jj % n_links_card][jj / n_links_card][ii];
         mc1.cshowershapeloosetk_ = showerShapeLooseTk_cluster_L1Card[jj % n_links_card][jj / n_links_card][ii];
         mc1.cphotonshowershape_ = photonShowerShape_cluster_L1Card[jj % n_links_card][jj / n_links_card][ii];
+	mc1.c2x5_ = c2x5_cluster_L1Card[jj % n_links_card][jj / n_links_card][ii];
+	mc1.c5x5_ = c5x5_cluster_L1Card[jj % n_links_card][jj / n_links_card][ii];
+        std::cout << "[INFO:] At building cluster_list_L2: c2x5 and c5x5 are " << mc1.c2x5_ << " and " << mc1.c5x5_ << std::endl;
+
         cluster_list_L2[ii].push_back(mc1);
       }
     }
@@ -1116,6 +1166,12 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                                        [ii / n_clusters_4link] = cluster_list_L2[ii][jj].cshowershapeloosetk_;
       photonShowerShape_cluster_L2Card[n_links_card * (ii % n_clusters_4link) + jj % n_links_card][jj / n_links_card]
                                       [ii / n_clusters_4link] = cluster_list_L2[ii][jj].cphotonshowershape_;
+      c2x5_cluster_L2Card[n_links_card * (ii % n_clusters_4link) + jj % n_links_card][jj / n_links_card]
+	                              [ii / n_clusters_4link] = cluster_list_L2[ii][jj].c2x5_;
+      c5x5_cluster_L2Card[n_links_card * (ii % n_clusters_4link) + jj % n_links_card][jj / n_links_card]
+	                              [ii / n_clusters_4link] = cluster_list_L2[ii][jj].c5x5_;
+      std::cout << "[INFO:] At c5x5_cluster_L2Card: c2x5 and c5x5 are " << cluster_list_L2[ii][jj].c2x5_ << " and " << cluster_list_L2[ii][jj].c5x5_ << std::endl;
+                         
     }
   }
 
@@ -1152,9 +1208,9 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                                             -1000,
                                             float(brem_cluster_L2Card[ii][jj][ll]),
                                             -1000,
-                                            -1000,
-                                            energy_cluster_L2Card[ii][jj][ll],
-                                            -1,
+                                            c2x5_cluster_L2Card[ii][jj][ll],    // et2x5
+                                            energy_cluster_L2Card[ii][jj][ll],  // et3x5 (not computed)
+                                            c5x5_cluster_L2Card[ii][jj][ll],    // et5x5
                                             is_iso&& is_ss,
                                             is_iso&& is_ss,
                                             is_photon,

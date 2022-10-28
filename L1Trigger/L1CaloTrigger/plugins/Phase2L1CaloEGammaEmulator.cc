@@ -135,11 +135,6 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
     // Get cell coordinates and info
     auto cell = ebGeometry->getGeometry(hit.id());
-    
-    // std::cout << "Found ECAL cell/hit with et " << et << "and coordinates " << cell->getPosition().x() << "," 
-    // 	  << cell->getPosition().y() << "," 
-    // 	  << cell->getPosition().z() << " and ET (GeV) " 
-    // 	  << et << std::endl;
 
     SimpleCaloHit ehit;
     ehit.setId(hit.id());
@@ -148,6 +143,18 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     ehit.setEt_uint((ap_uint<10>) hit.encodedEt());  // also save the uint Et
     ehit.setPt();
     ecalhits.push_back(ehit);	
+
+    int cc = 0;
+    if (getCrystal_iPhi(ehit.position().phi()) <= getCard_iPhiMax(cc) &&
+        getCrystal_iPhi(ehit.position().phi()) >= getCard_iPhiMin(cc) &&
+        getCrystal_iEta(ehit.position().eta()) <= getCard_iEtaMax(cc) &&
+        getCrystal_iEta(ehit.position().eta()) >= getCard_iEtaMin(cc)){
+          
+          std::cout << "Found ECAL hit in Card " << cc << " with et (GeV) " << et << " and eta/phi "
+                    << ehit.position().eta() << ", " 
+                    << ehit.position().phi()
+                    << std::endl;
+    }
   }
   
   //***************************************************// 
@@ -476,6 +483,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     std::cout << "Card " << cc << ": AFTER stitching:" << std::endl;
     for ( Cluster c : cluster_list[cc] ) {
       c.printInfo("After stitching");
+      std::cout << "[INFO: After stitchClusterOverRegionCluster:] et2x5 and et5x5 are " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
+
     }
 
     //--------------------------------------------------------------------------------//  
@@ -515,6 +524,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       std::cout << "Sorted, up to 8 clusters: ";
       for ( Cluster c : cluster_list_merged[cc] ) {
         c.printInfo("cluster_list_merged before calibration");
+        std::cout << "[INFO: After sorting:] et2x5 and et5x5 are " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
+
       }
       std::cout << std::endl;
       
@@ -658,6 +669,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
                                         c.getIsLooseTkss(), // looseL1TkMatchWP
                                         c.getIsSS()  // stage2effMatch
                                         );
+
+      std::cout << "[INFO: At building RCT outputs:] et2x5 and et5x5 are " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
+                                  
 
       std::map<std::string, float> params;
       params["standaloneWP_showerShape"] = c.getIsSS();
@@ -855,6 +869,8 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   for (auto const& c: *L1GCTClusters ) {
 
     std::cout << "GCT cluster energy " << c.pt() << std::endl;
+    std::cout << "[INFO: At building GCT outputs:] et2x5 and et5x5 are " << c.e2x5() << ", " << c.e5x5() << std::endl;
+
   }
   // for (auto const& c: *L1GCTTowers ) {
     

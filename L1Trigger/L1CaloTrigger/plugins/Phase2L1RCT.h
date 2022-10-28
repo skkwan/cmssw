@@ -1726,12 +1726,13 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   }
 
   // Copy input array energies into temp array with +2 eta and +2 phi offset.
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: entries in the input 15x20 array are: ";
+  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: entries in the input 15x20 array are: " << std::endl;
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++){
     for (int k = 0; k < (CRYSTAL_IN_PHI); k++){
       temp[i+2][k+2] = tempX[i][k].energy ;
       std::cout << tempX[i][k].energy << ", ";
     }
+    std::cout << std::endl;
   }
   std::cout << std::endl;
 
@@ -1786,6 +1787,7 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
       }
     }
   }
+
 
   // Add the first three eta strips into the cluster energy
   for (int i = 0; i < 5; i++) {
@@ -1875,7 +1877,7 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   returnCluster.brems = cluster_tmp.brems; 
   returnCluster.et5x5 = cluster_tmpCenter.et5x5;  // get et5x5 from the center value
   returnCluster.et2x5 = cluster_tmpCenter.et2x5;  // get et2x5 from the center value
-  std::cout << "[INFO: Phase2L1RCT.h: getClusterFromRegion3x4():] et2x5 and et5x5 are " << returnCluster.et2x5 << ", " << returnCluster.et5x5 << std::endl;
+  std::cout << "[INFO: At getClusterFromRegion3x4():] et2x5 and et5x5 are " << returnCluster.et2x5 << ", " << returnCluster.et5x5 << std::endl;
   return returnCluster;
   
 }
