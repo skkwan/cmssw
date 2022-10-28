@@ -23,7 +23,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.source = cms.Source("PoolSource",
 #                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/SinglePion_PT0to200_NoPU_04AC207E-AF58-C04A-9F90-746DDC628248.root'),
 #                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
-                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/TTBar_005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
+                            # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/TTBar_005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
+                            # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_8B75BCAF-FF0C-094C-AB40-08F104148BC0_evt_1_62_6189.root'),
+#                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_8B75BCAF-FF0C-094C-AB40-08F104148BC0_evt_1_32_3102.root'),
+                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_71C02E39-ED72-054B-871F-6B1FD1A1C14A_1_32_3108.root'),  
                             inputCommands = cms.untracked.vstring(
                                 "keep *"
                             )
@@ -57,7 +60,7 @@ process.load('L1Trigger.L1CaloTrigger.Phase2L1CaloEGammaEmulator_cfi')
 process.pL1EG = cms.Path( process.Phase2L1CaloEGammaEmulatorProducer )
 
 process.Out = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "phase2L1CaloEGamma.root" ),
+    fileName = cms.untracked.string( "phase2L1CaloEGamma_1_32_3108.root" ),
     outputCommands = cms.untracked.vstring(
         "keep *_Phase2L1CaloEGammaEmulatorProducer_*_*",
         "keep *_TriggerResults_*_*",
