@@ -62,6 +62,23 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
   return iPhi_in_barrel;
 }
 
+/*
+ * Each crystal falls in a tower: get this tower iEta in the GCT card (same as global) given the cluster's info. 
+ */
+ int getCluster_global_tower_iEta(unsigned int nGCTCard, GCTcluster_t c) {
+  int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, c);
+  return (int) (crystaliEta_in_GCT_card / 5);
+ }
+
+ /*
+  * Each crystal falls in a tower: get this tower iPhi in the GCT card (same as global) given the cluster's info. 
+  */ 
+int getCluster_global_tower_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
+  int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, c, returnGlobalGCTiPhi);
+  return (int) (crystaliPhi_in_GCT_card / 5);
+}
+
+
 /* 
  * Correlator fiber convention -> Global GCT convention
  * Get tower's global (iEta) from the GCTCorrFiber index [0, 64) and the tower's postion in the fiber [0, 17).
@@ -539,10 +556,10 @@ GCTintTowers_t  getFullTowers(const GCTinternal_t& GCTinternal) {
 }
 
 /*
- * Compute isolation (sum of unclustered energy in 7x7 window IN TOWERS) for a single cluster in a GCTinternal_t struct,
+ * Compute isolation (sum of other clusters in 5x5 towers window) for a single cluster in a GCTinternal_t struct,
  * at iFiber and iCluster. Needs the full GCTinternal_t to access tower energies for isolation sum.
  */ 
-void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCard) {
+void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iCluster, int nGCTCard) {
 
   // We will only save clusters with > 0 GeV, so only need to do this for clusters with >0 energy 
   if (GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].et == 0) {
@@ -552,13 +569,9 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
   
   ap_uint<12> uint_isolation = 0;
 
-  bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set, so we remain in the
-  // gct local card iEta/iPhi
-  int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]);
-  int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster], getGlobal_iPhi );
-      
-  int toweriEta_in_GCT_card = (int) (crystaliEta_in_GCT_card / 5);
-  int toweriPhi_in_GCT_card = (int) (crystaliPhi_in_GCT_card / 5);
+  bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set (so we remain in the gct local card iEta/iPhi)
+  int toweriEta_in_GCT_card = getCluster_global_tower_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]);
+  int toweriPhi_in_GCT_card = getCluster_global_tower_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster], getGlobal_iPhi );
 
   // If cluster is in the overlap region, do not compute isolation 
   bool inOverlapWithAnotherGCTCard = ( ((toweriPhi_in_GCT_card >= 0) && (toweriPhi_in_GCT_card < 4)) || ((toweriPhi_in_GCT_card >= 28) && (toweriPhi_in_GCT_card < 32)) );
@@ -567,63 +580,67 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
     return;
   }
 
-  // Size 7x7 in towers: include the overlap-region-between-GCT-cards-if-applicable. In eta direction, the min and max towers (inclusive!) are:
-  int isoWindow_toweriEta_in_GCT_card_min = std::max(0, toweriEta_in_GCT_card - 3);
-  int isoWindow_toweriEta_in_GCT_card_max = std::min(toweriEta_in_GCT_card + 3, N_GCTETA - 1);  // N_GCTETA = 34
-  // e.g. if our window is centered at tower_iEta = 5, we want to sum towers_iEta 2, 3, 4, (5), 6, 7, 8, inclusive 
-  // e.g. if our window is near the boundary, tower_iEta = 31, we want to sum towers_iEta 28, 29, 30, (31), 32, 33
-  // inclusive (but there are only N_GCTETA = 34 towers, so we stop at tower_iEta = 33)
+  // Size 5x5 in towers: include the overlap-region-between-GCT-cards-if-applicable. In eta direction, the min and max towers (inclusive!) are:
+  int isoWindow_toweriEta_in_GCT_card_min = std::max(0, toweriEta_in_GCT_card - 2);
+  int isoWindow_toweriEta_in_GCT_card_max = std::min(toweriEta_in_GCT_card + 2, N_GCTETA - 1);  // N_GCTETA = 34
+  // e.g. if our window is centered at tower_iEta = 5, we want to sum the clusters in towers_iEta 3, 4, (5), 6, 7, 
+  // e.g. if our window is near the boundary, tower_iEta = 32, we want to sum towers_iEta 30, 31, (32), 33, and then we hit the end of the card (34 doesn't exist)
   
-  // in phi direction, the min and max towers (inclusive!) are:
-  int isoWindow_toweriPhi_in_GCT_card_min = std::max(0, toweriPhi_in_GCT_card - 3);
-  int isoWindow_toweriPhi_in_GCT_card_max = std::min(toweriPhi_in_GCT_card + 3, N_GCTPHI - 1);  
-  
-  // Keep track of the number of towers we summed over
-  int nTowersSummed = 0;
-  
-  //  From "tower index in GCT card", get which fiber it is in (out of 64 fibers), and which tower it is inside the fiber (out of 17 towers)
-  for (int iEta = isoWindow_toweriEta_in_GCT_card_min; iEta <= isoWindow_toweriEta_in_GCT_card_max; iEta++) {
-    for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min; iPhi <= isoWindow_toweriPhi_in_GCT_card_max; iPhi++) {
-      
-      nTowersSummed++;
-      
-      int indexInto64Fibers;
-      int indexInto17TowersInFiber; 
-      
-      bool isTowerInPositiveEta = (iEta >= N_GCTTOWERS_FIBER); 
-      if (isTowerInPositiveEta) { 
-        // phi index is simple (e.g. if real phi = +80 degrees, iPhi in GCT = 31)
-        indexInto64Fibers = iPhi; 
-        // if real eta = 1.47, iEta in GCT card = 33. If real eta = 0.0, iEta in GCT = 17, so iEta in fiber = 17%17 = 0.
-        indexInto17TowersInFiber = (iEta % 17); 
+  // In phi direction, the min and max towers (inclusive) are:
+  int isoWindow_toweriPhi_in_GCT_card_min = std::max(0, toweriPhi_in_GCT_card - 2);
+  int isoWindow_toweriPhi_in_GCT_card_max = std::min(toweriPhi_in_GCT_card + 2, N_GCTPHI - 1);  
+
+
+  // Use the other clusters as a proxy for the ECAL energy, since we assume that there is very little unclustered ECAL energy
+  // Loop over the other clusters
+  // std::cout << ">>> Using other clusters as proxy for isolation for cluster at fiber " << iFiber << " and cluster position " << iCluster << "..." << std::endl;
+  for (unsigned int candFiber = 0; candFiber < N_GCTINTERNAL_FIBERS; candFiber++) {
+    for (unsigned int candCluster = 0; candCluster < N_GCTCLUSTERS_FIBER; candCluster++ ) {
+
+      // Do not double-count the cluster we are calculating the isolation for
+      if ((candFiber == iFiber) && (candCluster == iCluster)) {
+        continue;
       }
-      else { 
-        // add offset (e.g. if real phi = +80 degrees, iPhi in GCT = 31, and my index into GCT fibers 31 + 32 = 63)
-        indexInto64Fibers = (iPhi + N_GCTPOSITIVE_FIBERS); 
-        // e.g.  if real eta = 0, iEta in GCT card = 16, i.e. our index into the GCT fiber is 16-16 = 0
-        indexInto17TowersInFiber = (16 - iEta); 
+      else {
+        // Get the candidate cluster's tower iEta and iPhi in GCT card
+        bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set (so we remain in the gct local card iEta/iPhi)
+
+        int candidate_toweriEta = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]);
+        int candidate_toweriPhi = getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobal_iPhi );
+
+        // If the tower that the candidate cluster is in, is within a 5x5 window, add the candidate cluster energy's to the isolation as a proxy for the ECAL energy
+        if ( ( (candidate_toweriEta >= isoWindow_toweriEta_in_GCT_card_min) && (candidate_toweriEta <= isoWindow_toweriEta_in_GCT_card_max) ) &&
+             ( (candidate_toweriPhi >= isoWindow_toweriPhi_in_GCT_card_min) && (candidate_toweriPhi <= isoWindow_toweriPhi_in_GCT_card_max) ) ) {
+
+          uint_isolation += GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et;
+          // std::cout << "... adding cluster at fiber " << candFiber << " and cluster position " << candCluster << " with energy " 
+          //           << GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et << " to the isolation" << std::endl;
+        }
       }
-      
-      // std::cout << "... indexInto64Fibers: " << indexInto64Fibers << std::endl;
-      // std::cout << "... indexInto17TowersInFiber: " << indexInto17TowersInFiber << std::endl;
-      
-      ap_uint<12> towerEt = GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].et;
-	    uint_isolation += towerEt;
+
     }
   }
   
-  // Scale the isolation sum up if we summed over fewer than (7x7) = 49 towers
+  //  Also tally the actual size of the window that we summed over, since it may be less than 25 if we are near the edge of the card
+  int nTowersSummed = 0;
+  for (int iEta = isoWindow_toweriEta_in_GCT_card_min; iEta <= isoWindow_toweriEta_in_GCT_card_max; iEta++) {
+    for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min; iPhi <= isoWindow_toweriPhi_in_GCT_card_max; iPhi++) {      
+      nTowersSummed++;
+    }
+  }
+  
+  // Scale the isolation sum up if we scanned over an area smaller than (5x5) = 25 towers
   float scaleFactor = ((float) (N_GCTTOWERS_CLUSTER_ISO_ONESIDE * N_GCTTOWERS_CLUSTER_ISO_ONESIDE) / (float) nTowersSummed);
-  std::cout << "--> Summed over " << nTowersSummed << " towers: scaling iso " << uint_isolation 
+  std::cout << "--> Scanned over an area of " << nTowersSummed << " towers: scale isolation " << uint_isolation 
             << " by " << scaleFactor << " to get " << (uint_isolation * scaleFactor)
             << std::endl;
   uint_isolation = (ap_uint<12>) (((float) uint_isolation) * scaleFactor);
   
   // Set the iso in the cluster
   GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso = uint_isolation;
-  std::cout << "end of isolation calculation: (in GeV): " << uint_isolation / 8.0 
-            << ". Saved (uint) as: " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso
-            << std::endl;
+  // std::cout << "end of isolation calculation: (in GeV): " << uint_isolation / 8.0 
+  //           << ". Saved (uint) as: " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso
+  //           << std::endl;
 
 }
 
