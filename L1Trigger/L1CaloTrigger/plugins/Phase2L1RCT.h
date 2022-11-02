@@ -1730,9 +1730,9 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++){
     for (int k = 0; k < (CRYSTAL_IN_PHI); k++){
       temp[i+2][k+2] = tempX[i][k].energy ;
-      std::cout << tempX[i][k].energy << ", ";
+      // std::cout << tempX[i][k].energy << ", ";
     }
-    std::cout << std::endl;
+   // std::cout << std::endl;
   }
   std::cout << std::endl;
 
@@ -1795,19 +1795,19 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   }
   cluster_tmp.energy = (eta_slice[1] + eta_slice[2] + eta_slice[3]);
 
-    // Print the energy in the slices 
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: The energy in the five eta slices is: ";
-  for (unsigned int i = 0; i < 5; i++) {
-    std::cout << "Slice " << i << ": " << eta_slice[i] << ", ";
-  }
-  std::cout << std::endl;
+  //   // Print the energy in the slices 
+  // std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: The energy in the five eta slices is: ";
+  // for (unsigned int i = 0; i < 5; i++) {
+  //   std::cout << "Slice " << i << ": " << eta_slice[i] << ", ";
+  // }
+  // std::cout << std::endl;
 
   // Get the energy totals in the 5x5 and also in two 2x5 
   et5x5Tot   = (eta_slice[0] + eta_slice[1] + eta_slice[2] + eta_slice[3] + eta_slice[4]);
   et2x5_1Tot = (eta_slice[1] + eta_slice[2]);
   et2x5_2Tot = (eta_slice[2] + eta_slice[3]);
 
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: et2x5_1Tot (slice 1+2) " << et2x5_1Tot << " and et2x5_2Tot (slice 2+3): " << et2x5_2Tot << std::endl;
+  // std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: et2x5_1Tot (slice 1+2) " << et2x5_1Tot << " and et2x5_2Tot (slice 2+3): " << et2x5_2Tot << std::endl;
 
   if (et2x5_1Tot >= et2x5_2Tot) etSum2x5 = et2x5_1Tot;
   else                          etSum2x5 = et2x5_2Tot;

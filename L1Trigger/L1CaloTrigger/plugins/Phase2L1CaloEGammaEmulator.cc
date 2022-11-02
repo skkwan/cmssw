@@ -465,7 +465,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     std::cout << "Card " << cc << ": BEFORE stitching: " << std::endl;
     
     for ( Cluster c: cluster_list[cc] ) {
-      c.printInfo("Before stitching");
+      // c.printInfo("Before stitching");
     }
     int nRegionBoundariesEta = (N_REGIONS_PER_CARD - 1); // 6 regions -> 5 boundaries to check
     // Upper and lower boundaries respectively, to check for stitching along
@@ -523,7 +523,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       }
       std::cout << "Sorted, up to 8 clusters: ";
       for ( Cluster c : cluster_list_merged[cc] ) {
-        c.printInfo("cluster_list_merged before calibration");
+        // c.printInfo("cluster_list_merged before calibration");
         std::cout << "[INFO: After sorting:] et2x5 and et5x5 are " << c.getEt2x5() << ", " << c.getEt5x5() << std::endl;
 
       }
@@ -547,7 +547,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       c.applyCalibration(c.calib);
 
       std::cout << ">>> New pT after c.applyCalibration: " << c.getPt() << " (uint:" << c.clusterEnergy() << ")" << std::endl;
-      c.printInfo("cluster_list_merged after calibration");
+      // c.printInfo("cluster_list_merged after calibration");
       
     }
 
@@ -643,7 +643,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // Produce output collections for event display and analyzer
     //-----------------------------------------------------------//
     for (auto & c : cluster_list_merged[cc]) { 
-      c.printInfo("Start of loop to output collections");                                                    
+      // c.printInfo("Start of loop to output collections");                                                    
 
       float realEta = getEta_fromCrystaliEta( getCrystal_iEta_fromCardRegionInfo(cc, c.region(), c.towerEta(), c.clusterEta()) );
       float realPhi = getPhi_fromCrystaliPhi( getCrystal_iPhi_fromCardRegionInfo(cc, c.region(), c.towerPhi(), c.clusterPhi()) );
@@ -769,13 +769,13 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
         unsigned int iIdxInGCT = i % N_RCTCARDS_PHI;  
         unsigned int iLinkC = iCluster % N_RCTGCT_FIBERS;
         unsigned int iPosC  = iCluster / N_RCTGCT_FIBERS;
-        std::cout << c.et << ", "
-                  << "accessing link " << iCluster % N_RCTGCT_FIBERS << " "
-                  << "and position "   << iCluster / N_RCTGCT_FIBERS << " "
-                  << "isPositiveEta "  << isPositiveEta << " " 
-                  << "with iIdxInGCT " << iIdxInGCT << " " 
-                  << "with uint et5x5, et2x5 " << c.et5x5 << ", " << c.et2x5 << " " 
-                  << "with shower shape flags ss/looseTkss " << c.is_ss << ", " << c.is_looseTkss << std::endl;
+        // std::cout << c.et << ", "
+        //           << "accessing link " << iCluster % N_RCTGCT_FIBERS << " "
+        //           << "and position "   << iCluster / N_RCTGCT_FIBERS << " "
+        //           << "isPositiveEta "  << isPositiveEta << " " 
+        //           << "with iIdxInGCT " << iIdxInGCT << " " 
+        //           << "with uint et5x5, et2x5 " << c.et5x5 << ", " << c.et2x5 << " " 
+        //           << "with shower shape flags ss/looseTkss " << c.is_ss << ", " << c.is_looseTkss << std::endl;
 	
         if (isPositiveEta) {
           gctCards[gcc].RCTcardEtaPos[iIdxInGCT].RCTtoGCTfiber[iLinkC].RCTclusters[iPosC] = c;
