@@ -607,8 +607,15 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
       // std::cout << "... indexInto64Fibers: " << indexInto64Fibers << std::endl;
       // std::cout << "... indexInto17TowersInFiber: " << indexInto17TowersInFiber << std::endl;
       
+      // TO-DO: TEST IF I DO just .hcalEt AND JUST .ecalEt
       ap_uint<12> towerEt = GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].et;
+      ap_uint<12> hcalEtInEcalConvention =  convertHcalETtoEcalET(GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].hcalEt);
+      ap_uint<12> ecalEt = GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].ecalEt;
+      std::cout << "towerEt: HCAL ET (in ECAL convention) is " << hcalEtInEcalConvention << ", "
+                << "ECAL is " << ecalEt << ", "
+                << "total ET is " << towerEt << ". ";
 	    uint_isolation += towerEt;
+      std::cout << "Added towerEt " << towerEt << " to isolation, running sum is now " << uint_isolation << std::endl;;
     }
   }
   
@@ -621,7 +628,7 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
   
   // Set the iso in the cluster
   GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso = uint_isolation;
-  std::cout << "end of isolation calculation: (in GeV): " << uint_isolation / 8.0 
+  std::cout << "End of isolation calculation: (in GeV): " << uint_isolation / 8.0 
             << ". Saved (uint) as: " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso
             << std::endl;
 
