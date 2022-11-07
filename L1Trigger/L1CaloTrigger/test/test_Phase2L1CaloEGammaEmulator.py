@@ -21,16 +21,18 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 # xrdcp root://cms-xrd-global.cern.ch///store/mc/Phase2HLTTDRWinter20DIGI/SinglePion_PT0to200/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/0248A46E-D4D8-514D-A6F9-699E32BDF4B6.root SinglePion_PT0to200_PU200_04AC207E-AF58-C04A-9F90-746DDC628248.root
 
 process.source = cms.Source("PoolSource",
-#                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/SinglePion_PT0to200_NoPU_04AC207E-AF58-C04A-9F90-746DDC628248.root'),
-#                            fileNames = cms.untracked.vstring('file:/eos/user/s/skkwan/phase2RCTDevel/005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
-                            # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/TTBar_005E74D6-B50E-674E-89E6-EAA9A617B476.root'),
-                            # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_8B75BCAF-FF0C-094C-AB40-08F104148BC0_evt_1_62_6189.root'),
-#                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_8B75BCAF-FF0C-094C-AB40-08F104148BC0_evt_1_32_3102.root'),
-                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/s/skkwan/public/phase2RCT/RelValElectronGunPt2To100_71C02E39-ED72-054B-871F-6B1FD1A1C14A_1_32_3108.root'),  
+                            fileNames = cms.untracked.vstring(
+
+                                'root://cms-xrd-global.cern.ch://store/mc/Phase2HLTTDRSummer20ReRECOMiniAOD/SinglePion_PT0to200/GEN-SIM-DIGI-RAW-MINIAOD/NoPU_111X_mcRun4_realistic_T15_v1-v1/120000/6930E519-DD17-DD40-BE77-41A28DEF9278.root'
+                                ),
                             inputCommands = cms.untracked.vstring(
-                                "keep *"
+                                "keep *",
+                                "drop l1tTkPrimaryVertexs_*_*_*",
                             )
                         )
+
+process.source.eventsToProcess = cms.untracked.VEventRange("1:3014")
+
 
 
 # --------------------------------------------------------------------------------------------                                                    
@@ -60,12 +62,12 @@ process.load('L1Trigger.L1CaloTrigger.Phase2L1CaloEGammaEmulator_cfi')
 process.pL1EG = cms.Path( process.Phase2L1CaloEGammaEmulatorProducer )
 
 process.Out = cms.OutputModule( "PoolOutputModule",
-    fileName = cms.untracked.string( "phase2L1CaloEGamma_1_32_3108.root" ),
+    fileName = cms.untracked.string( "phase2L1CaloEGamma_SinglePion_oneEvent.root" ),
     outputCommands = cms.untracked.vstring(
         "keep *_Phase2L1CaloEGammaEmulatorProducer_*_*",
-        "keep *_TriggerResults_*_*",
-        "keep *_simHcalTriggerPrimitiveDigis_*_*",
-        "keep *_EcalEBTrigPrimProducer_*_*"
+        # "keep *_TriggerResults_*_*",
+        # "keep *_simHcalTriggerPrimitiveDigis_*_*",
+        # "keep *_EcalEBTrigPrimProducer_*_*"
     )
 )
 
