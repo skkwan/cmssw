@@ -614,8 +614,8 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
       std::cout << "towerEt: HCAL ET (in ECAL convention) is " << hcalEtInEcalConvention << ", "
                 << "ECAL is " << ecalEt << ", "
                 << "total ET is " << towerEt << ". ";
-	    uint_isolation += towerEt;
-      std::cout << "Added towerEt " << towerEt << " to isolation, running sum is now " << uint_isolation << std::endl;;
+	    uint_isolation += ecalEt;
+      std::cout << "Added ecalEt " << ecalEt << " to isolation, running sum is now " << uint_isolation << std::endl;;
     }
   }
   

@@ -725,8 +725,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
           t.hoe = t0_ecal.hoe();
           // Not needed for GCT firmware but will be written into GCT CMSSW outputs : 12 bits each 
           t.ecalEt = t0_ecal.et();
-          t.hcalEt = t0_hcal.et(); 
-          // std::cout << "tower et and hoe: " << t.et << ", " << t.hoe;
+          t.hcalEt = t0_hcal.et();
+          std::cout << "tower et and hoe: " << t.et << ", " << t.hoe 
+                    << " from ECAL (uint) " << t.ecalEt << " and HCAL (using HCAL uint) " << t.hcalEt << std::endl;
 
           if (isPositiveEta) {  
             gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower] = t;
@@ -801,27 +802,32 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     
     for (int i = 0; i < (N_RCTCARDS_PHI); i++) {
       //       std::cout << "Inside GCT: card (out of 8 in the positive side) " << i << std::endl;
-      for (int iLink = 0; iLink < n_links_card; iLink++) {
-        for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-          //  std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
-        }
+      // for (int iLink = 0; iLink < n_links_card; iLink++) {
+      //   for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+      //     	std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << " = (ECAL) "
+      //               << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].ecalEt << " + (HCAL) "
+      //               << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].hcalEt << std::endl;
+	    //     }
+      //   }
       }
-      // std::cout << std::endl;
-      // std::cout << "Clusters: ";
-      for (int iLink = 0; iLink < n_links_card; iLink++) {
-	      for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
-	        // std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
-	      }
+    // std::cout << std::endl;
+    // std::cout << "Clusters: ";
+    for (int iLink = 0; iLink < n_links_card; iLink++) {
+      for (int iCluster = 0; iCluster < N_RCTCLUSTERS_FIBER; iCluster++) {
+        // std::cout << gctCards[gcc].RCTcardEtaPos[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTclusters[iCluster].et << ", ";
       }
     }
+    
     std::cout << std::endl;
     for (int i = N_RCTCARDS_PHI; i < (N_RCTCARDS_PHI * 2); i++) {
-      //      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
-	    for (int iLink = 0; iLink < n_links_card; iLink++) {
-	      for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
-	        //    std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << ", ";
-	      }
-	    }
+      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
+	    // for (int iLink = 0; iLink < n_links_card; iLink++) {
+	    //   for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
+	    //     std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << " = (ECAL) "
+      //               << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].ecalEt << " + (HCAL in HCAL convention) "
+      //               << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].hcalEt << std::endl;
+	    //   }
+	    // }
       //	std::cout << std::endl;
       //	std::cout << "Clusters: ";
       for (int iLink = 0; iLink < n_links_card; iLink++) {
