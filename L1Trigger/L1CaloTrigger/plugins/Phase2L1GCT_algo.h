@@ -625,7 +625,7 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
       std::cout << "    Adding tower pT " << ecalEt/8.0 << " GeV" << " at (" 
                 << getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ", "
                 << getTowerPhi_fromAbsID(getTower_global_toweriPhi(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ") "
-                << "(would have corresponded to calib_(0, " << std::abs(getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber))) << "): "
+                << "(corresponds to calib_(0, " << std::abs(getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber))) << "): "
                 << calib_(0, std::abs(getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber))))
                 << ")"
                 << std::endl;
