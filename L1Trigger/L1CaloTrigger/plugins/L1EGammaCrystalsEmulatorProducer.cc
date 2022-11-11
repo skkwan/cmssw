@@ -694,10 +694,10 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
       if (cluster_list[cc][jj].cpt > 0) {
         cluster_list[cc][jj].cpt = cluster_list[cc][jj].cpt * calib_(cluster_list[cc][jj].cpt,
 								     std::abs(cluster_list[cc][jj].craweta_));  //Mark's calibration as a function of eta and pt
-	std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
-		  << std::abs(cluster_list[cc][jj].craweta_) << " is: "
-		  << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
-		  << std::endl;
+	      // std::cout << "Calib factor for (pt, eta): " << cluster_list[cc][jj].cpt << ", " 
+        //           << std::abs(cluster_list[cc][jj].craweta_) << " is: "
+        //           << calib_(cluster_list[cc][jj].cpt,std::abs(cluster_list[cc][jj].craweta_)) 
+        //           << std::endl;
 								   
         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
       }
@@ -883,7 +883,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                     5 * (towerID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left]) % n_towers_per_link -
                     crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] % 5) < 2) {
 
-	      std::cout << "Merging along phi edges..." << std::endl;
+	      // std::cout << "Merging along phi edges..." << std::endl;
               if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] >
                   energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right]) {
                 energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] +=
@@ -928,7 +928,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                 if (towerID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] < n_towers_per_link &&
                     std::abs(5 + crystalID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] / 5 -
                              (crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] / 5)) <= 5) {
-		  std::cout<< "Merging along phi edges for BREMS CORRECTIONS..."<< std::endl;
+		  // std::cout<< "Merging along phi edges for BREMS CORRECTIONS..."<< std::endl;
                   if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_left] >
                           energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] &&
                       energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_right] >
@@ -972,7 +972,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                   crystalID_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] / 5 -
                   5 * (towerID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_top] / n_towers_per_link) -
                   crystalID_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_top] / 5) < 2) {
-	    std::cout<< "Merging along eta edges..."<< std::endl;
+	    // std::cout<< "Merging along eta edges..."<< std::endl;
             if (energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] >
                 energy_cluster_L1Card[ll % n_links_card][ll / n_links_card][card_bottom]) {
               energy_cluster_L1Card[kk % n_links_card][kk / n_links_card][card_bottom] +=
@@ -1021,14 +1021,31 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
     }
   }
 
+
   // Compute isolation (7*7 ECAL towers) and HCAL energy (5x5 HCAL towers)
-  for (int ii = 0; ii < n_towers_halfPhi; ++ii) {  // Loop over the new cluster list (stored in 36x8 format)
+  for (int ii = 0; ii < n_towers_halfPhi; ++ii) {  // Loop over the new cluster list (stored in 36x8 format)                                    
     for (unsigned int jj = 0; jj < 8 && jj < cluster_list_L2[ii].size(); ++jj) {
+
+      std::cout << "[Computing isolation...]" << std::endl;
+      std::cout << " - Current cluster: " << std::endl;
+      std::cout << "    pT " << cluster_list_L2[ii][jj].cpt << " GeV" << " at (" 
+                << getEta_fromL2LinkCardTowerCrystal(n_links_card * (ii % n_clusters_4link) + jj % n_links_card,
+                                                     ii / n_clusters_4link,
+                                                     cluster_list_L2[ii][jj].ctowerid_, cluster_list_L2[ii][jj].ccrystalid_)
+                << ", "
+                << getPhi_fromL2LinkCardTowerCrystal(n_links_card * (ii % n_clusters_4link) + jj % n_links_card,
+                                                     ii / n_clusters_4link,
+                                                     cluster_list_L2[ii][jj].ctowerid_, cluster_list_L2[ii][jj].ccrystalid_)
+                << ") " << std::endl;
+                               
       int cluster_etaOfTower_fullDetector = get_towerEta_fromCardTowerInCard(ii, cluster_list_L2[ii][jj].ctowerid_);
       int cluster_phiOfTower_fullDetector = get_towerPhi_fromCardTowerInCard(ii, cluster_list_L2[ii][jj].ctowerid_);
       float hcal_nrj = 0.0;
       float isolation = 0.0;
       int ntowers = 0;
+      
+      std::cout << " - Isolation components: " << std::endl;
+
       for (int iii = 0; iii < n_towers_halfPhi; ++iii) {  // The clusters have to be added to the isolation
         for (unsigned int jjj = 0; jjj < 8 && jjj < cluster_list_L2[iii].size(); ++jjj) {
           if (!(iii == ii && jjj == jj)) {
@@ -1038,6 +1055,16 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                 (abs(cluster2_phi - cluster_phiOfTower_fullDetector) <= 2 or
                  abs(cluster2_phi - n_towers_Phi - cluster_phiOfTower_fullDetector) <= 2)) {
               isolation += cluster_list_L2[iii][jjj].cpt;
+
+              std::cout << "    Adding cluster pT " << cluster_list_L2[iii][jjj].cpt << " GeV " << " at (" 
+                        << getEta_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
+                                                            iii / n_clusters_4link,
+                                                            cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
+                        << ", "
+                        << getPhi_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
+                                                            iii / n_clusters_4link,
+                                                            cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
+                        << ") " << std::endl;
             }
           }
         }
@@ -1061,6 +1088,10 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
                     (cluster_phiOfTower_fullDetector == 71 && phiOftower_fullDetector == 2))) {
                 isolation += ECAL_tower_L1Card[ll][mm][kk];
                 ntowers++;
+
+                std::cout << "    Adding tower pT " << ECAL_tower_L1Card[ll][mm][kk] << " GeV" << " at (" 
+                                                                      << getTowerEta_fromAbsoluteID(iEta_tower_L1Card[ll][mm][kk]) << ", "
+                                                                      << getTowerPhi_fromAbsoluteID(iPhi_tower_L1Card[ll][mm][kk]) << ") " << std::endl;
               }
             }
             // Now do HCAL
@@ -1073,6 +1104,16 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
           }
         }
       }
+      std::cout << std::endl;
+      std::cout << "    Total: " << isolation << " GeV" << std::endl;
+
+      std::cout << " - Isolation: " << std::endl;
+      std::cout << "    Summed over " << ntowers << " towers" << std::endl;
+      std::cout << "    Scaling by (25.0/" << ntowers << ")" << std::endl;
+      std::cout << "    Total, scaled: " << ((isolation) * (25.0 / ntowers)) << std::endl;
+      std::cout << "    Relative isolation: " << ((isolation) * (25.0 / ntowers)) / cluster_list_L2[ii][jj].cpt << std::endl;
+      std::cout << std::endl;
+
       cluster_list_L2[ii][jj].ciso_ = ((isolation) * (25.0 / ntowers)) / cluster_list_L2[ii][jj].cpt;
       cluster_list_L2[ii][jj].chovere_ = hcal_nrj / cluster_list_L2[ii][jj].cpt;
     }
