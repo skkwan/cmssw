@@ -544,12 +544,13 @@ GCTintTowers_t  getFullTowers(const GCTinternal_t& GCTinternal) {
  */ 
 void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCard) {
 
+
   // We will only save clusters with > 0 GeV, so only need to do this for clusters with >0 energy 
   if (GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].et == 0) {
     GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso = 0;
     return;
   }
-  
+
   ap_uint<12> uint_isolation = 0;
 
   bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set, so we remain in the
@@ -580,7 +581,17 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
   
   // Keep track of the number of towers we summed over
   int nTowersSummed = 0;
+
+  std::cout << "[Computing isolation...]" << std::endl;
+  std::cout << " - Current cluster: " << std::endl;
+  std::cout << "    pT " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].et/8.0 << " GeV" << " at ("
+            << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
+            << ", "
+            << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
+            << ") " << std::endl;
   
+  std::cout << " - Isolation components: " << std::endl;
+
   //  From "tower index in GCT card", get which fiber it is in (out of 64 fibers), and which tower it is inside the fiber (out of 17 towers)
   for (int iEta = isoWindow_toweriEta_in_GCT_card_min; iEta <= isoWindow_toweriEta_in_GCT_card_max; iEta++) {
     for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min; iPhi <= isoWindow_toweriPhi_in_GCT_card_max; iPhi++) {
@@ -607,30 +618,35 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
       // std::cout << "... indexInto64Fibers: " << indexInto64Fibers << std::endl;
       // std::cout << "... indexInto17TowersInFiber: " << indexInto17TowersInFiber << std::endl;
       
-      // TO-DO: TEST IF I DO just .hcalEt AND JUST .ecalEt
       ap_uint<12> towerEt = GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].et;
-      ap_uint<12> hcalEtInEcalConvention =  convertHcalETtoEcalET(GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].hcalEt);
+   //   ap_uint<12> hcalEtInEcalConvention =  convertHcalETtoEcalET(GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].hcalEt);
       ap_uint<12> ecalEt = GCTinternal.GCTCorrfiber[indexInto64Fibers].GCTtowers[indexInto17TowersInFiber].ecalEt;
-      std::cout << "towerEt: HCAL ET (in ECAL convention) is " << hcalEtInEcalConvention << ", "
-                << "ECAL is " << ecalEt << ", "
-                << "total ET is " << towerEt << ". ";
+
+      std::cout << "    Adding tower pT " << ecalEt/8.0 << " GeV" << " at (" 
+                << getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ", "
+                << getTowerPhi_fromAbsID(getTower_global_toweriPhi(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ") " << std::endl;
 	    uint_isolation += ecalEt;
-      std::cout << "Added ecalEt " << ecalEt << " to isolation, running sum is now " << uint_isolation << std::endl;;
     }
   }
   
-  // Scale the isolation sum up if we summed over fewer than (7x7) = 49 towers
+  // Scale the isolation sum up if we summed over fewer than (5x5) = 25 towers
   float scaleFactor = ((float) (N_GCTTOWERS_CLUSTER_ISO_ONESIDE * N_GCTTOWERS_CLUSTER_ISO_ONESIDE) / (float) nTowersSummed);
-  std::cout << "--> Summed over " << nTowersSummed << " towers: scaling iso " << uint_isolation 
-            << " by " << scaleFactor << " to get " << (uint_isolation * scaleFactor)
-            << std::endl;
+
+   std::cout << std::endl;
+  std::cout << "    Total: " << uint_isolation/8.0 << " GeV" << std::endl;
+
+  std::cout << " - Isolation: " << std::endl;
+  std::cout << "    Summed over " << nTowersSummed << " towers" << std::endl;
+  std::cout << "    Scaling by (25.0/" << nTowersSummed << ")" << std::endl;
+  std::cout << "    Total, scaled: " << (uint_isolation/8.0) * scaleFactor << std::endl;
+  std::cout << "    Relative isolation: " << (uint_isolation/8.0) * scaleFactor / (GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].et/8.0)  << std::endl;
+  std::cout << std::endl;
+
+
   uint_isolation = (ap_uint<12>) (((float) uint_isolation) * scaleFactor);
   
   // Set the iso in the cluster
   GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso = uint_isolation;
-  std::cout << "End of isolation calculation: (in GeV): " << uint_isolation / 8.0 
-            << ". Saved (uint) as: " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].iso
-            << std::endl;
 
 }
 
