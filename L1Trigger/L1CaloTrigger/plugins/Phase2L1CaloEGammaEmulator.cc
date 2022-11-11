@@ -556,7 +556,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
       for (int jj = 0; jj < n_towers_cardEta; ++jj) { // 17 towers per card in eta
         float tRealEta = getTowerEta_fromAbsID(iEta_tower_L1Card[ii][jj][cc]);  // real eta of center of tower
         double tCalib = calib_(0, tRealEta);                                    // calibration factor
-        towerECALCard[jj][ii][cc].applyCalibration(tCalib);
+        std::cout << "... Calibrating tower with (eta, phi) (" << tRealEta << ", " << getTowerPhi_fromAbsID(iPhi_tower_L1Card[ii][jj][cc]) << ")" << std::endl;
+        bool verbose = true;
+        towerECALCard[jj][ii][cc].applyCalibration(tCalib, verbose);
 	
       }
     }

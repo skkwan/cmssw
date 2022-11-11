@@ -756,18 +756,29 @@ class tower_t {
   operator uint16_t() {return (uint16_t) data;}
   
   // Only for ECAL towers! Apply calibration and modify the et() value.
-  void applyCalibration(float factor) {  
-    // std::cout << "   old: " << (int) data << std::endl;
+  void applyCalibration(float factor, bool verbose = false) {  
+    if (verbose) {
+      std::cout << "    applyCalibration: old data as hex " << std::hex << data << std::endl;
+    }
     // Get the new pT as a float
     float newEt = getEt() * factor;
+
+    if (verbose) {
+      std::cout << "                      uncalibrated Et (unsigned int): " << et() << ", float: " << getEt() 
+                << ", calibration factor: " << factor << ", giving new Et (float): " << newEt << ". ";
+    }
     // Convert the new pT to an unsigned int
     ap_uint<12> newEt_uint = (ap_uint<12>) (int) (newEt * 8.0);
-    // std::cout << "   newEt_uint: " << (int) newEt_uint << std::endl;
+
+    if (verbose) {
+      std::cout << "      Multiplying by 8.0 to convert to unsigned int: " << (int) newEt_uint << std::endl; 
+    }
     // Modify 'data'
     ap_uint<16> bitMask = 0xF000;  // last twelve digits are zero
     data = (data & bitMask);                 // zero out the last twelve digits
     data = (data | newEt_uint);              // write in the new ET
-    // std::cout << "   new: " << (int) data << std::endl;
+    
+    std::cout << "      New Et as bits: " << et() << ", old data as hex " << std::hex << data << std::endl;
   }
 
   // For towers: Calculate H/E ratio given the ECAL and HCAL energies and modify the hoe() value.
@@ -1383,6 +1394,7 @@ class Cluster{
    * Apply calibration (float) to the pT in-place.
    */
   void applyCalibration(float factor) {  
+    
     float newPt = getPt() * factor;
     // Convert the new pT to an unsigned int
     ap_uint<12> newPt_uint = (ap_uint<12>) (int) (newPt * 8.0);
