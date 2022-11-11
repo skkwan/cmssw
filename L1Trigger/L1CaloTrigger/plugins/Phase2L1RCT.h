@@ -1551,9 +1551,9 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
       // std::cout << "getBremsValuesPos: i, j " << i << ", " << j << ", [i+1][j-3]: " << i+1 << ", " << j-3 << std::endl;
       temp[i+1][j] = tempX[i][j+3].energy ;
       if (tempX[i][j].energy > 0) {
-        std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
-            << "getBremsValuesPos: tempX[" << i << "][" << j+3 << "].energy: " << tempX[i][j+3].energy
-            << ", temp[" << i+1 << "][" << j << "]" << temp[i+1][j] << std::endl;
+        // std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", " 
+        //     << "getBremsValuesPos: tempX[" << i << "][" << j+3 << "].energy: " << tempX[i][j+3].energy
+        //     << ", temp[" << i+1 << "][" << j << "]" << temp[i+1][j] << std::endl;
       }
     }
   }
@@ -1570,7 +1570,7 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
       for (int k = 0; k < CRYSTAL_IN_PHI; k++) {
         if (k == seed_phi1) {
           // Same eta as the seed, read next five crystals in phi
-          std::cout << "j, k = " << j << ", " << k << std::endl;
+          // std::cout << "j, k = " << j << ", " << k << std::endl;
           
           phi0eta[0] = temp[j][k];
           phi1eta[0] = temp[j][k+1];
@@ -1578,9 +1578,9 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
           phi3eta[0] = temp[j][k+3];
           phi4eta[0] = temp[j][k+4];
 
-          for (int kk = k; kk < (k+5); kk++) {
-            std::cout << "--> phi{0-4}eta[0]:" << temp[j][kk] << std::endl;
-          }
+          // for (int kk = k; kk < (k+5); kk++) {
+          //   std::cout << "--> phi{0-4}eta[0]:" << temp[j][kk] << std::endl;
+          // }
 
           // +1 eta from the seed, read next five crystals in phi
           phi0eta[1] = temp[j+1][k];
@@ -1589,9 +1589,9 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
           phi3eta[1] = temp[j+1][k+3];
           phi4eta[1] = temp[j+1][k+4];
 
-          for (int kk =k; kk <(k+5); kk++) {
-            std::cout << "--> phi{0-4}eta[1]:"<< temp[j+1][kk] << std::endl;
-          }
+          // for (int kk =k; kk <(k+5); kk++) {
+          //   std::cout << "--> phi{0-4}eta[1]:"<< temp[j+1][kk] << std::endl;
+          // }
                               
           // +2 eta from the seed, read next five crystals in phi
           phi0eta[2] = temp[j+2][k];
@@ -1600,9 +1600,9 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
           phi3eta[2] = temp[j+2][k+3];
           phi4eta[2] = temp[j+2][k+4];
 
-          for (int kk = k; kk < (k+5); kk++) {
-            std::cout << "--> phi{0-4}eta[2]:"<< temp[j+2][kk] << std::endl;
-          }
+          // for (int kk = k; kk < (k+5); kk++) {
+          //   std::cout << "--> phi{0-4}eta[2]:"<< temp[j+2][kk] << std::endl;
+          // }
 	        continue;
         }
       }
@@ -1612,12 +1612,12 @@ clusterInfo getBremsValuesPos(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   // Add up the energies in this 3x5 of crystals, initialize a cluster_tmp, and return it
   for (int i = 0; i < 3; i++) { 
     eta_slice[i] = phi0eta[i] + phi1eta[i] + phi2eta[i] + phi3eta[i] + phi4eta[i];
-    std::cout << ">>> i = " << i << ": "
-	            << phi0eta[i] << " " << phi1eta[i] << " " << phi2eta[i] << " " << phi3eta[i] << " " << phi4eta[i] << std::endl;
+    // std::cout << ">>> i = " << i << ": "
+	  //           << phi0eta[i] << " " << phi1eta[i] << " " << phi2eta[i] << " " << phi3eta[i] << " " << phi4eta[i] << std::endl;
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
 
-  std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  // std::cout << "getBremsValuesPos: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   return cluster_tmp;
 
 }
@@ -1649,8 +1649,8 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
     for (int j = 0; j < (CRYSTAL_IN_PHI - 1); j++) {
       temp[i+1][j+7] = tempX[i][j].energy; // fixed from firmware
       if (tempX[i][j].energy > 0) {
-	      std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
-		              << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
+	      // std::cout << "For seed_eta " << seed_eta << " seed phi " << seed_phi << ", "
+		    //           << "getBremsValuesNeg: tempX[" << i << "][" << j << "].energy: " << tempX[i][j].energy << std::endl;
       }
     }
   }
@@ -1697,7 +1697,7 @@ clusterInfo getBremsValuesNeg(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_
   }
   cluster_tmp.energy = (eta_slice[0] + eta_slice[1] + eta_slice[2]);
   
-  std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
+  // std::cout << "getBremsValuesNeg: energy, seed eta/phi = " << cluster_tmp.energy << ", " << seed_eta << ", " << seed_phi << std::endl;
   
   return cluster_tmp;
   
@@ -1726,14 +1726,14 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   }
 
   // Copy input array energies into temp array with +2 eta and +2 phi offset.
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: entries in the input 15x20 array are: ";
+  // std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: entries in the input 15x20 array are: ";
   for (int i = 0; i < (CRYSTAL_IN_ETA); i++){
     for (int k = 0; k < (CRYSTAL_IN_PHI); k++){
       temp[i+2][k+2] = tempX[i][k].energy ;
-      std::cout << tempX[i][k].energy << ", ";
+      // std::cout << tempX[i][k].energy << ", ";
     }
   }
-  std::cout << std::endl;
+ // std::cout << std::endl;
 
   ap_uint<6> seed_eta1, seed_phi1;
   seed_eta1 = seed_eta; //to start from corner
@@ -1794,18 +1794,18 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   cluster_tmp.energy = (eta_slice[1] + eta_slice[2] + eta_slice[3]);
 
     // Print the energy in the slices 
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: The energy in the five eta slices is: ";
+  //std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: The energy in the five eta slices is: ";
   for (unsigned int i = 0; i < 5; i++) {
-    std::cout << "Slice " << i << ": " << eta_slice[i] << ", ";
+   // std::cout << "Slice " << i << ": " << eta_slice[i] << ", ";
   }
-  std::cout << std::endl;
+  // std::cout << std::endl;
 
   // Get the energy totals in the 5x5 and also in two 2x5 
   et5x5Tot   = (eta_slice[0] + eta_slice[1] + eta_slice[2] + eta_slice[3] + eta_slice[4]);
   et2x5_1Tot = (eta_slice[1] + eta_slice[2]);
   et2x5_2Tot = (eta_slice[2] + eta_slice[3]);
 
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: et2x5_1Tot (slice 1+2) " << et2x5_1Tot << " and et2x5_2Tot (slice 2+3): " << et2x5_2Tot << std::endl;
+  // std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues]: et2x5_1Tot (slice 1+2) " << et2x5_1Tot << " and et2x5_2Tot (slice 2+3): " << et2x5_2Tot << std::endl;
 
   if (et2x5_1Tot >= et2x5_2Tot) etSum2x5 = et2x5_1Tot;
   else                          etSum2x5 = et2x5_2Tot;
@@ -1813,8 +1813,8 @@ clusterInfo getClusterValues(crystal tempX[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI], ap_u
   cluster_tmp.et5x5 = et5x5Tot;
   cluster_tmp.et2x5 = etSum2x5;
 
-  std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues:] output energy, et5x5Tot (eta slices 0+1+2+3+4), etSum2x5 (eta slices 1+2 or 2+3 whichever is greater) = " << cluster_tmp.energy << ", " 
-	          << cluster_tmp.et5x5 << ", " << cluster_tmp.et2x5 << std::endl;
+  // std::cout << ">>> [INFO: Phase2L1RCT.h: getClusterValues:] output energy, et5x5Tot (eta slices 0+1+2+3+4), etSum2x5 (eta slices 1+2 or 2+3 whichever is greater) = " << cluster_tmp.energy << ", " 
+	//           << cluster_tmp.et5x5 << ", " << cluster_tmp.et2x5 << std::endl;
 
   return cluster_tmp;
 }
@@ -1875,7 +1875,7 @@ Cluster getClusterFromRegion3x4(crystal temp[CRYSTAL_IN_ETA][CRYSTAL_IN_PHI]){
   returnCluster.brems = cluster_tmp.brems; 
   returnCluster.et5x5 = cluster_tmpCenter.et5x5;  // get et5x5 from the center value
   returnCluster.et2x5 = cluster_tmpCenter.et2x5;  // get et2x5 from the center value
-  std::cout << "[INFO: Phase2L1RCT.h: getClusterFromRegion3x4():] et2x5 and et5x5 are " << returnCluster.et2x5 << ", " << returnCluster.et5x5 << std::endl;
+ //  std::cout << "[INFO: Phase2L1RCT.h: getClusterFromRegion3x4():] et2x5 and et5x5 are " << returnCluster.et2x5 << ", " << returnCluster.et5x5 << std::endl;
   return returnCluster;
   
 }
@@ -1893,7 +1893,7 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, int towe
   int crystalEtaUpper = 0;
   int crystalEtaLower = 4;
 
-  std::cout << "Comparing for towerEta boundaries " << towerEtaUpper << " and " << towerEtaLower << std::endl;
+  //std::cout << "Comparing for towerEta boundaries " << towerEtaUpper << " and " << towerEtaLower << std::endl;
   for (int i = 0; i < (int) cluster_list.size(); i++) {
     for (int j = 0; j < (int) cluster_list.size(); j++) {
       // Do not double-count
@@ -1905,9 +1905,9 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, int towe
       // Use the .towerEtaInCard() method to get the tower eta in the entire RCT card
       if ( (c1.clusterEnergy() > 0) && (c1.towerEtaInCard() == towerEtaUpper) && (c1.clusterEta() == crystalEtaUpper) ) {
         if ( (c2.clusterEnergy() > 0) && (c2.towerEtaInCard() == towerEtaLower) && (c2.clusterEta() == crystalEtaLower ) ) {
-            std::cout << "  Found two clusters along eta border (not checked if near in phi): "
-                      << " upper has energy "     << c1.clusterEnergy()
-                      << " and lower has energy " << c2.clusterEnergy() << std::endl;
+            // std::cout << "  Found two clusters along eta border (not checked if near in phi): "
+            //           << " upper has energy "     << c1.clusterEnergy()
+            //           << " and lower has energy " << c2.clusterEnergy() << std::endl;
 
 	          ap_uint<5> phi1 = c1.towerPhi()*5 + c1.clusterPhi();
             ap_uint<5> phi2 = c2.towerPhi()*5 + c2.clusterPhi();
@@ -1915,7 +1915,7 @@ int stitchClusterOverRegionBoundary(std::vector<Cluster>& cluster_list, int towe
 	          dPhi = (phi1 > phi2)?(phi1-phi2):(phi2-phi1);
 	  
             if( dPhi < 2 ) {
-              std::cout << "  The two clusters are next to each other in phi " << std::endl;
+//              std::cout << "  The two clusters are next to each other in phi " << std::endl;
               ap_uint<15> totalEnergy = c1.clusterEnergy() + c2.clusterEnergy();
               ap_uint<15> totalEt2x5 = c1.uint_et2x5() + c2.uint_et2x5();
               ap_uint<15> totalEt5x5 = c1.uint_et5x5() + c2.uint_et5x5();

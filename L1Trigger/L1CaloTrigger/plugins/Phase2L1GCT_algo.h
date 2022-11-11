@@ -178,26 +178,26 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
                   ap_uint<12> two = GCTcard.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
                   if (one > two){ 
                   // Test: only stitch if energy of one is >10% of the other
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    // std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (two > (0.10 * one)) {
-                      std::cout<< "merging.." << std::endl;
+                      // std::cout<< "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et = one + two ;		    
                       GCTcombinedClusters.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = 0 ; 
                     }
                     else {
-                      std::cout << "energy of 'two' is insufficient for merge" << std::endl;
+                     //  std::cout << "energy of 'two' is insufficient for merge" << std::endl;
                     }
                   }
                   else {
                     // Test: only stitch if energy is >10% of the other
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    // std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (one > (0.10 * two)) {
-                      std::cout<< "merging.." << std::endl;
+                     //  std::cout<< "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et = 0 ;
                       GCTcombinedClusters.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = one + two ; 
                     }
                     else {
-                      std::cout << "energy of 'one' is insufficiennt for merge" << std::endl;
+                      // std::cout << "energy of 'one' is insufficiennt for merge" << std::endl;
                     }
                   }
                 }
@@ -231,26 +231,26 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
                   ap_uint<12> two = GCTcard.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
                   if (one > two){
                     // Test: only stitch if energy of one is >10% of the other                                                           
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    // std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (two > (0.10 * one)) {
-                      std::cout<< "merging.." << std::endl;
+                      // std::cout<< "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et = one + two ;
                       GCTcombinedClusters.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = 0 ; 
                     }
                     else {
-                      std::cout << "energy of 'two' is insufficient for merge" << std::endl;
+                      // std::cout << "energy of 'two' is insufficient for merge" << std::endl;
                     }
                   }
                   else {
                     // Test: only stitch if energy of one is >10% of the other          
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                   //  std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (one > (0.10 * two)) { 
-                      std::cout<< "merging.." << std::endl;
+                     // std::cout<< "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaPos[i].RCTtoGCTfiber[j].RCTclusters[k].et = 0 ;
                       GCTcombinedClusters.RCTcardEtaPos[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = one + two ; 
                     }
                     else {
-                      std::cout << "energy of 'one' is insufficient for merge" << std::endl;
+                      // std::cout << "energy of 'one' is insufficient for merge" << std::endl;
                     }
                   }
                 }
@@ -285,26 +285,26 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
                   ap_uint<12> two = GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
                   if (one > two){ 
                     // Test: only stitch if energy of one is >10% of the other                                                         
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    //std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (two > (0.10 * one)) {
-                      std::cout<< "merging.." << std::endl;
+                      //std::cout<< "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et = one + two ;
                       GCTcombinedClusters.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = 0 ; 
                     }
                     else { 
-                      std::cout << "Energy of 'two' was insufficient for merge" << std::endl; 
+                      //std::cout << "Energy of 'two' was insufficient for merge" << std::endl; 
                       }
                   }
                   else {
                     // Test: 
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    //std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (one > (0.10 * two)) {
-                      std::cout << "merging.." << std::endl;
+                      //std::cout << "merging.." << std::endl;
                       GCTcombinedClusters.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et = 0 ;
                       GCTcombinedClusters.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = one + two ; 
                     }
                     else { 
-                      std::cout <<"Energy of 'one' was insufficient for merge" <<std::endl; 
+                      //std::cout <<"Energy of 'one' was insufficient for merge" <<std::endl; 
                     }
                   }
                 }
@@ -338,26 +338,26 @@ GCTcard_t getClustersCombined(const GCTcard_t& GCTcard){
                   ap_uint<12> two = GCTcard.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et ;
                   if (one > two){ 
                     // Test: only stitch if energy of one is >10% of the other                                                         
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    // std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                                 if (two > (0.10 * one)) {
-                      std::cout << "merging..." << std::endl;
+                      // std::cout << "merging..." << std::endl;
                       GCTcombinedClusters.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et = one + two ;
                       GCTcombinedClusters.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = 0 ; 
                     }
                     else {
-                      std::cout << "energy insufficient to merge" << std::endl;
+                      // std::cout << "energy insufficient to merge" << std::endl;
                     }
                   }
                   else {
                     // Test: only stitch if energy of one is >10% of the other                                                           
-                    std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
+                    // std::cout << "Comparing 'one' and 'two': " << one << ", " << two << std::endl;
                     if (one > (0.10 * two)) {
-                      std::cout << "merging..." << std::endl;
+                      // std::cout << "merging..." << std::endl;
                       GCTcombinedClusters.RCTcardEtaNeg[i].RCTtoGCTfiber[j].RCTclusters[k].et = 0 ;
                       GCTcombinedClusters.RCTcardEtaNeg[i+1].RCTtoGCTfiber[j1].RCTclusters[k1].et = one + two ; 
                     }
                     else {
-                      std::cout <<"energy insufficient to merge" << std::endl;
+                      //std::cout <<"energy insufficient to merge" << std::endl;
                     }
                   }
                 }
@@ -748,14 +748,14 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
 
         if (cluster.pt() > 0.0) {
           gctClusters->push_back(cluster);
-          std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
-                    << posCluster.et/8.0  << ", "
-                    << "(" << crystaliEta_in_barrel << ", " << crystaliPhi_in_barrel << "), "
-                    << "(" << realEta << "," << realPhi << ")"
-                    << " with relative isolation " << posCluster.relIso
-                    << std::endl;
-          std::cout << "    with the GCTinternal values: " << std::endl;
-          printGCTClusterInfo(posCluster, "positive cluster writeout");
+          // std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
+          //           << posCluster.et/8.0  << ", "
+          //           << "(" << crystaliEta_in_barrel << ", " << crystaliPhi_in_barrel << "), "
+          //           << "(" << realEta << "," << realPhi << ")"
+          //           << " with relative isolation " << posCluster.relIso
+          //           << std::endl;
+          // std::cout << "    with the GCTinternal values: " << std::endl;
+          // printGCTClusterInfo(posCluster, "positive cluster writeout");
 	      }
     }
     // Positive eta towers : push back to CMSSW collection
@@ -836,14 +836,14 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       // Push back negative eta clusters to the output CMSSW collection
       if (cluster.pt() > 0.0) {
 	        gctClusters->push_back(cluster);
-	        std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
-                    << negCluster.et/8.0  << ", "
-                    << "(" << globaliEta << ", "  << globaliPhi << "), "
-                    << "(" << realEta << "," << realPhi << ")"
-                    << " with relative isolation " << negCluster.relIso
-                    << std::endl;
-          std::cout << "... with the GCTinternal values: " << std::endl;
-          printGCTClusterInfo(negCluster, "negative cluster writeout");
+	        // std::cout << "--- cluster pT, global iEta, iPhi and real eta, phi: "
+          //           << negCluster.et/8.0  << ", "
+          //           << "(" << globaliEta << ", "  << globaliPhi << "), "
+          //           << "(" << realEta << "," << realPhi << ")"
+          //           << " with relative isolation " << negCluster.relIso
+          //           << std::endl;
+          // std::cout << "... with the GCTinternal values: " << std::endl;
+          // printGCTClusterInfo(negCluster, "negative cluster writeout");
 	      }
       
     }
