@@ -24,7 +24,7 @@ static constexpr int GCTCARD_1_TOWER_IPHI_OFFSET = 44;  // same but for GCT card
 static constexpr int GCTCARD_2_TOWER_IPHI_OFFSET = 68;  // same for GCT card #2 (card #2 also wraps around phi = 180 degrees)
 
 
-static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 7; 
+static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 5; 
 
 typedef ap_uint<5> loop;
 using namespace std;
