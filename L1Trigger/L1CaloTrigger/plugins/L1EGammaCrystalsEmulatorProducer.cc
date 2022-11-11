@@ -1054,17 +1054,17 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
             if (abs(cluster2_eta - cluster_etaOfTower_fullDetector) <= 2 &&
                 (abs(cluster2_phi - cluster_phiOfTower_fullDetector) <= 2 or
                  abs(cluster2_phi - n_towers_Phi - cluster_phiOfTower_fullDetector) <= 2)) {
-              isolation += cluster_list_L2[iii][jjj].cpt;
+              // isolation += cluster_list_L2[iii][jjj].cpt;
 
-              std::cout << "    Adding cluster pT " << cluster_list_L2[iii][jjj].cpt << " GeV " << " at (" 
-                        << getEta_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
-                                                            iii / n_clusters_4link,
-                                                            cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
-                        << ", "
-                        << getPhi_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
-                                                            iii / n_clusters_4link,
-                                                            cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
-                        << ") " << std::endl;
+              // std::cout << "    Adding cluster pT " << cluster_list_L2[iii][jjj].cpt << " GeV " << " at (" 
+              //           << getEta_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
+              //                                               iii / n_clusters_4link,
+              //                                               cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
+              //           << ", "
+              //           << getPhi_fromL2LinkCardTowerCrystal(n_links_card * (iii % n_clusters_4link) + jjj % n_links_card,
+              //                                               iii / n_clusters_4link,
+              //                                               cluster_list_L2[iii][jjj].ctowerid_, cluster_list_L2[iii][jjj].ccrystalid_)
+              //           << ") " << std::endl;
             }
           }
         }
