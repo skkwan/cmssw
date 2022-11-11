@@ -767,8 +767,10 @@ class tower_t {
       std::cout << "                      uncalibrated Et (unsigned int): " << et() << ", float: " << getEt() 
                 << ", calibration factor: " << factor << ", giving new Et (float): " << newEt << ". ";
     }
-    // Convert the new pT to an unsigned int
-    ap_uint<12> newEt_uint = (ap_uint<12>) (int) (newEt * 8.0);
+    // Convert the new pT to an unsigned int (16 bits so we can take the logical OR with the bit mask later)
+    ap_uint<16> newEt_uint = (ap_uint<16>) (int) (newEt * 8.0);
+    // Make sure the first four bits are zero
+    newEt_uint = (newEt_uint & 0x0FFF); 
 
     if (verbose) {
       std::cout << "      Multiplying by 8.0 to convert to unsigned int: " << (int) newEt_uint << std::endl; 
@@ -1396,8 +1398,11 @@ class Cluster{
   void applyCalibration(float factor) {  
     
     float newPt = getPt() * factor;
-    // Convert the new pT to an unsigned int
-    ap_uint<12> newPt_uint = (ap_uint<12>) (int) (newPt * 8.0);
+    // Convert the new pT to an unsigned int, 28 bits to take the logical OR with the mask
+    ap_uint<28> newPt_uint = (ap_uint<28>) (int) (newPt * 8.0);
+    // Make sure that the new pT only takes up the last twelve bits
+    newPt_uint = (newPt_uint & 0x0000FFF);
+    
     // std::cout << "   newPt_uint: " << (int) newPt_uint << std::endl;
     // Modify 'data'
     ap_uint<28> bitMask = 0xFFFF000;  // last twelve digits are zero
