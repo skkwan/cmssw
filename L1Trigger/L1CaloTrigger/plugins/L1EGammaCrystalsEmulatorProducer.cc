@@ -1091,7 +1091,11 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
 
                 std::cout << "    Adding tower pT " << ECAL_tower_L1Card[ll][mm][kk] << " GeV" << " at (" 
                                                                       << getTowerEta_fromAbsoluteID(iEta_tower_L1Card[ll][mm][kk]) << ", "
-                                                                      << getTowerPhi_fromAbsoluteID(iPhi_tower_L1Card[ll][mm][kk]) << ") " << std::endl;
+                                                                      << getTowerPhi_fromAbsoluteID(iPhi_tower_L1Card[ll][mm][kk]) << ") " 
+                                                                      << "(would have corresponded to calib_(0, " << std::abs(getTowerEta_fromAbsoluteID(iEta_tower_L1Card[ll][mm][kk])) << "): "
+                                                                      << calib_(0, std::abs(getTowerEta_fromAbsoluteID(iEta_tower_L1Card[ll][mm][kk])))
+                                                                      << ")"
+                                                                      << std::endl;
               }
             }
             // Now do HCAL

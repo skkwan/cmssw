@@ -853,7 +853,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     // getClustersTowers
     // getClustersCombined
     // getFullTowers
-    algo_top(gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers, L1GCTFullTowers);
+    algo_top(gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers, L1GCTFullTowers, calib_);
   }
 
   // Check that L1GCTClusters has stuff in it

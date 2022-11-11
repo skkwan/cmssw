@@ -542,7 +542,7 @@ GCTintTowers_t  getFullTowers(const GCTinternal_t& GCTinternal) {
  * Compute isolation (sum of unclustered energy in 7x7 window IN TOWERS) for a single cluster in a GCTinternal_t struct,
  * at iFiber and iCluster. Needs the full GCTinternal_t to access tower energies for isolation sum.
  */ 
-void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCard) {
+void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCard, l1tp2::ParametricCalibration calib_) {
 
 
   // We will only save clusters with > 0 GeV, so only need to do this for clusters with >0 energy 
@@ -624,7 +624,11 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
 
       std::cout << "    Adding tower pT " << ecalEt/8.0 << " GeV" << " at (" 
                 << getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ", "
-                << getTowerPhi_fromAbsID(getTower_global_toweriPhi(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ") " << std::endl;
+                << getTowerPhi_fromAbsID(getTower_global_toweriPhi(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber)) << ") "
+                << "(would have corresponded to calib_(0, " << std::abs(getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber))) << "): "
+                << calib_(0, std::abs(getTowerEta_fromAbsID(getTower_global_toweriEta(nGCTCard, indexInto64Fibers, indexInto17TowersInFiber))))
+                << ")"
+                << std::endl;
 	    uint_isolation += ecalEt;
     }
   }
@@ -669,11 +673,11 @@ int computeRelIsoAndFlags(GCTcluster_t &cluster) {
 /*
  * Compute cluster isolation for an entire GCTinternal_t struct given the GCT card index as well. Returns 1.
  */
-int computeClusterIsolationsForGCTCard(GCTinternal_t &gctInternal, int nGCTCard) {
+int computeClusterIsolationsForGCTCard(GCTinternal_t &gctInternal, int nGCTCard, l1tp2::ParametricCalibration calib_) {
   for (unsigned int iFiber = 0; iFiber < N_GCTINTERNAL_FIBERS; iFiber++) {
     for (unsigned int iCluster = 0; iCluster < N_GCTCLUSTERS_FIBER; iCluster++ ) {
 
-      computeIso(gctInternal, iFiber, iCluster, nGCTCard);
+      computeIso(gctInternal, iFiber, iCluster, nGCTCard, calib_);
       computeRelIsoAndFlags(gctInternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]);
      
     }
@@ -692,7 +696,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
               unsigned int nGCTCard,
               std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClusters,
               std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers,
-              std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers) {
+              std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers,
+              l1tp2::ParametricCalibration calib_) {
   
   //-------------------------//
   // Initialize the GCT area 
@@ -707,7 +712,7 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
   //---------------------------//
   // Compute cluster isolation
   //--------------------------//
-  computeClusterIsolationsForGCTCard(GCTinternal, nGCTCard); 
+  computeClusterIsolationsForGCTCard(GCTinternal, nGCTCard, calib_); 
 
   //-----------------------------------------------------------------------------------------------------------------------//
   // Output to correlator, positive eta. Skip overlap region, i.e. fibers i = 0, 1, 2, 3, and i = 28, 29, 30, 31.
