@@ -605,11 +605,6 @@ void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iC
             << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
             << ") " << std::endl;
 
-  std::cout << " - Isolation range: " << std::endl;
-  std::cout << "   Center of the window has tower eta/phi: " << toweriEta_in_GCT_card << ", " << toweriPhi_in_GCT_card << std::endl;
-  std::cout << "   Eta window (inclusive) ranges from " << isoWindow_toweriEta_in_GCT_card_min << " to " << isoWindow_toweriEta_in_GCT_card_max << std::endl;
-  std::cout << "   Phi window (inclusive) ranges from " << isoWindow_toweriPhi_in_GCT_card_min << " to " << isoWindow_toweriPhi_in_GCT_card_max << std::endl;
-  
   std::cout << " - Isolation components: " << std::endl;
 
   // First add any nearby clusters to the isolation
@@ -627,17 +622,6 @@ void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iC
 
           int candidate_toweriEta = getCluster_global_tower_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]);
           int candidate_toweriPhi = getCluster_global_tower_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobal_iPhi);
-
-            // Print all clusters
-          std::cout << "    Noted cluster pT " << GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et/8.0 << " GeV " << " at (" 
-                    << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]))
-                    << ", "
-                    << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], true))
-                    << ") "
-                    << "with tower iEta, iPhi: " 
-                    << candidate_toweriEta << ", " << candidate_toweriPhi
-                    << std::endl;
-
 
           // If the tower that the candidate cluster is in, is within a 5x5 window, add the candidate cluster energy's to the isolation as a proxy for the ECAL energy
           if ( ( (candidate_toweriEta >= isoWindow_toweriEta_in_GCT_card_min) && (candidate_toweriEta <= isoWindow_toweriEta_in_GCT_card_max) ) &&
