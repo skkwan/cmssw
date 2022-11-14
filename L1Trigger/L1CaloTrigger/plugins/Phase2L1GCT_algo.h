@@ -8,7 +8,7 @@
  * Get GCT cluster c's iEta (global iEta convention).
  * Use with getEta_fromCrystaliEta from Phase2L1RCT.h to convert from GCT cluster iEta to real eta.
  */
-int getCluster_global_iEta(unsigned int nGCTCard, GCTcluster_t c) {
+int getCluster_global_cluster_iEta(unsigned int nGCTCard, GCTcluster_t c) {
 
   // First get the "iEta/iPhi" in the GCT card. i.e. in the diagram where the barrel
   // is split up into three GCT cards, (iEta, iPhi) = (0, 0) is the top left corner
@@ -42,7 +42,7 @@ int getCluster_global_iEta(unsigned int nGCTCard, GCTcluster_t c) {
  * If returnGlobalGCTiPhi is true (Default value) then return the iPhi in the entire GCT barrel. Otherwise
  * just return the iPhi in the current GCT card.
  */
-int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
+int getCluster_global_cluster_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
 
   assert(nGCTCard <= 2); 
 
@@ -67,7 +67,7 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
  * Each crystal falls in a tower: get this tower iEta in the GCT card (same as global) given the cluster's info. 
  */
  int getCluster_global_tower_iEta(unsigned int nGCTCard, GCTcluster_t c) {
-  int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, c);
+  int crystaliEta_in_GCT_card = getCluster_global_cluster_iEta(nGCTCard, c);
   return (int) (crystaliEta_in_GCT_card / 5);
  }
 
@@ -75,7 +75,7 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
   * Each crystal falls in a tower: get this tower iPhi in the GCT card (same as global) given the cluster's info. 
   */ 
 int getCluster_global_tower_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
-  int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, c, returnGlobalGCTiPhi);
+  int crystaliPhi_in_GCT_card = getCluster_global_cluster_iPhi(nGCTCard, c, returnGlobalGCTiPhi);
   return (int) (crystaliPhi_in_GCT_card / 5);
 }
 
@@ -600,9 +600,9 @@ void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iC
   std::cout << "[Computing isolation...]" << std::endl;
   std::cout << " - Current cluster: " << std::endl;
   std::cout << "    pT " <<  GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster].et/8.0 << " GeV" << " at ("
-            << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
+            << getEta_fromCrystaliEta(getCluster_global_cluster_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
             << ", "
-            << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
+            << getPhi_fromCrystaliPhi(getCluster_global_cluster_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
             << ") " << std::endl;
 
   std::cout << " - Isolation components: " << std::endl;
@@ -631,9 +631,9 @@ void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iC
 
             bool getGlobalPhi = true; // just for print-out statements
             std::cout << "    Adding cluster pT " << GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et/8.0 << " GeV " << " at (" 
-                      << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]))
+                      << getEta_fromCrystaliEta(getCluster_global_cluster_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]))
                       << ", "
-                      << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobalPhi))
+                      << getPhi_fromCrystaliPhi(getCluster_global_cluster_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobalPhi))
                       << ") " << std::endl;
           }
         }
@@ -782,8 +782,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       GCTtoCorr.GCTCorrfiber[i-4].GCTclusters[k].towPhi  =  posCluster.towPhi-4 ;
 
       // Get the real eta, phi using two helper functions
-      int crystaliEta_in_barrel = getCluster_global_iEta(nGCTCard, posCluster);
-      int crystaliPhi_in_barrel = getCluster_global_iPhi(nGCTCard, posCluster);
+      int crystaliEta_in_barrel = getCluster_global_cluster_iEta(nGCTCard, posCluster);
+      int crystaliPhi_in_barrel = getCluster_global_cluster_iPhi(nGCTCard, posCluster);
       float realEta = getEta_fromCrystaliEta(crystaliEta_in_barrel);
       float realPhi = getPhi_fromCrystaliPhi(crystaliPhi_in_barrel);
 
@@ -869,8 +869,8 @@ void algo_top(const GCTcard_t& GCTcard, GCTtoCorr_t& GCTtoCorr,
       GCTtoCorr.GCTCorrfiber[i-12].GCTclusters[k].towPhi  =  negCluster.towPhi-4 ;
 
       // Get the real eta, phi using two helper functions
-      int globaliEta = getCluster_global_iEta(nGCTCard, negCluster);
-      int globaliPhi = getCluster_global_iPhi(nGCTCard, negCluster);
+      int globaliEta = getCluster_global_cluster_iEta(nGCTCard, negCluster);
+      int globaliPhi = getCluster_global_cluster_iPhi(nGCTCard, negCluster);
       float realEta = getEta_fromCrystaliEta(globaliEta);
       float realPhi = getPhi_fromCrystaliPhi(globaliPhi);
       
