@@ -583,11 +583,11 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
     return;
   }
 
-  // Size 7x7 in towers: include the overlap-region-between-GCT-cards-if-applicable. In eta direction, the min and max towers (inclusive!) are:
+  // Size 5x5 in towers: include the overlap-region-between-GCT-cards-if-applicable. In eta direction, the min and max towers (inclusive!) are:
   int isoWindow_toweriEta_in_GCT_card_min = std::max(0, toweriEta_in_GCT_card - 2);
   int isoWindow_toweriEta_in_GCT_card_max = std::min(toweriEta_in_GCT_card + 2, N_GCTETA - 1);  // N_GCTETA = 34
-  // e.g. if our window is centered at tower_iEta = 5, we want to sum towers_iEta 2, 3, 4, (5), 6, 7, 8, inclusive 
-  // e.g. if our window is near the boundary, tower_iEta = 31, we want to sum towers_iEta 28, 29, 30, (31), 32, 33
+  // e.g. if our window is centered at tower_iEta = 5, we want to sum towers_iEta 3, 4, (5), 6, 7, inclusive 
+  // e.g. if our window is near the boundary, tower_iEta = 32, we want to sum towers_iEta 30, 31, (32), 33
   // inclusive (but there are only N_GCTETA = 34 towers, so we stop at tower_iEta = 33)
   
   // in phi direction, the min and max towers (inclusive!) are:
