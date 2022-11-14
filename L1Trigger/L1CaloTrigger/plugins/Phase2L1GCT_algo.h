@@ -611,7 +611,7 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
   for (int iEta = isoWindow_toweriEta_in_GCT_card_min; iEta <= isoWindow_toweriEta_in_GCT_card_max; iEta++) {
     for (int iPhi = isoWindow_toweriPhi_in_GCT_card_min; iPhi <= isoWindow_toweriPhi_in_GCT_card_max; iPhi++) {
       
-      nTowersSummed++;
+      nTowersSummed += 1;
       
       int indexInto64Fibers;
       int indexInto17TowersInFiber; 
