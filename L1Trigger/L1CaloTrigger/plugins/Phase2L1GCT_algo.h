@@ -560,7 +560,7 @@ GCTintTowers_t  getFullTowers(const GCTinternal_t& GCTinternal) {
  * Compute isolation (sum of unclustered energy in 7x7 window IN TOWERS) for a single cluster in a GCTinternal_t struct,
  * at iFiber and iCluster. Needs the full GCTinternal_t to access tower energies for isolation sum.
  */ 
-void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCard, l1tp2::ParametricCalibration calib_) {
+void computeIso(GCTinternal_t& GCTinternal, unsigned int iFiber, unsigned int iCluster, int nGCTCard, l1tp2::ParametricCalibration calib_) {
 
 
   // We will only save clusters with > 0 GeV, so only need to do this for clusters with >0 energy 
@@ -604,8 +604,60 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
             << ", "
             << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]))
             << ") " << std::endl;
+
+  std::cout << " - Isolation range: " << std::endl;
+  std::cout << "   Center of the window has tower eta/phi: " << toweriEta_in_GCT_card << ", " << toweriPhi_in_GCT_card << std::endl;
+  std::cout << "   Eta window (inclusive) ranges from " << isoWindow_toweriEta_in_GCT_card_min << " to " << isoWindow_toweriEta_in_GCT_card_max << std::endl;
+  std::cout << "   Phi window (inclusive) ranges from " << isoWindow_toweriPhi_in_GCT_card_min << " to " << isoWindow_toweriPhi_in_GCT_card_max << std::endl;
   
   std::cout << " - Isolation components: " << std::endl;
+
+  // First add any nearby clusters to the isolation
+  for (unsigned int candFiber = 0; candFiber < N_GCTINTERNAL_FIBERS; candFiber++) {
+    for (unsigned int candCluster = 0; candCluster < N_GCTCLUSTERS_FIBER; candCluster++ ) {
+
+      // Do not double-count the cluster we are calculating the isolation for
+      if ( !((candFiber == iFiber) && (candCluster == iCluster))) {
+
+        // Only consider clusters with et > 0 for isolation sum
+        if (GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et > 0) {
+
+          // Get the candidate cluster's tower iEta and iPhi in GCT card
+          bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set (so we remain in the gct local card iEta/iPhi)
+
+          int candidate_toweriEta = getCluster_global_tower_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]);
+          int candidate_toweriPhi = getCluster_global_tower_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobal_iPhi);
+
+            // Print all clusters
+          std::cout << "    Noted cluster pT " << GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et/8.0 << " GeV " << " at (" 
+                    << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]))
+                    << ", "
+                    << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], true))
+                    << ") "
+                    << "with tower iEta, iPhi: " 
+                    << candidate_toweriEta << ", " << candidate_toweriPhi
+                    << std::endl;
+
+
+          // If the tower that the candidate cluster is in, is within a 5x5 window, add the candidate cluster energy's to the isolation as a proxy for the ECAL energy
+          if ( ( (candidate_toweriEta >= isoWindow_toweriEta_in_GCT_card_min) && (candidate_toweriEta <= isoWindow_toweriEta_in_GCT_card_max) ) &&
+                ( (candidate_toweriPhi >= isoWindow_toweriPhi_in_GCT_card_min) && (candidate_toweriPhi <= isoWindow_toweriPhi_in_GCT_card_max) ) ) {
+            
+            uint_isolation += GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et;
+
+            bool getGlobalPhi = true; // just for print-out statements
+            std::cout << "    Adding cluster pT " << GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster].et/8.0 << " GeV " << " at (" 
+                      << getEta_fromCrystaliEta(getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster]))
+                      << ", "
+                      << getPhi_fromCrystaliPhi(getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[candFiber].GCTclusters[candCluster], getGlobalPhi))
+                      << ") " << std::endl;
+          }
+        }
+      }
+    }
+  }
+
+
 
   //  From "tower index in GCT card", get which fiber it is in (out of 64 fibers), and which tower it is inside the fiber (out of 17 towers)
   for (int iEta = isoWindow_toweriEta_in_GCT_card_min; iEta <= isoWindow_toweriEta_in_GCT_card_max; iEta++) {
