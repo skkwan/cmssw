@@ -759,6 +759,7 @@ class tower_t {
   void applyCalibration(float factor, bool verbose = false) {  
     if (verbose) {
       std::cout << "    applyCalibration: old data as hex " << std::hex << data << std::endl;
+      std::cout << std::dec;
     }
     // Get the new pT as a float
     float newEt = getEt() * factor;
@@ -781,6 +782,7 @@ class tower_t {
     data = (data | newEt_uint);              // write in the new ET
     
     std::cout << "      New Et as bits: " << et() << ", old data as hex " << std::hex << data << std::endl;
+    std::cout << std::dec;
   }
 
   // For towers: Calculate H/E ratio given the ECAL and HCAL energies and modify the hoe() value.
