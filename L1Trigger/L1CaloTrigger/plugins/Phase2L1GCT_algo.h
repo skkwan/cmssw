@@ -62,6 +62,24 @@ int getCluster_global_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlo
   return iPhi_in_barrel;
 }
 
+
+/*
+ * Each crystal falls in a tower: get this tower iEta in the GCT card (same as global) given the cluster's info. 
+ */
+ int getCluster_global_tower_iEta(unsigned int nGCTCard, GCTcluster_t c) {
+  int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, c);
+  return (int) (crystaliEta_in_GCT_card / 5);
+ }
+
+ /*
+  * Each crystal falls in a tower: get this tower iPhi in the GCT card (same as global) given the cluster's info. 
+  */ 
+int getCluster_global_tower_iPhi(unsigned int nGCTCard, GCTcluster_t c, bool returnGlobalGCTiPhi = true) {
+  int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, c, returnGlobalGCTiPhi);
+  return (int) (crystaliPhi_in_GCT_card / 5);
+}
+
+
 /* 
  * Correlator fiber convention -> Global GCT convention
  * Get tower's global (iEta) from the GCTCorrFiber index [0, 64) and the tower's postion in the fiber [0, 17).
@@ -555,11 +573,8 @@ void computeIso(GCTinternal_t& GCTinternal, int iFiber, int iCluster, int nGCTCa
 
   bool getGlobal_iPhi = false;   // for the phi function: do not add the GCT card off-set, so we remain in the
   // gct local card iEta/iPhi
-  int crystaliEta_in_GCT_card = getCluster_global_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]);
-  int crystaliPhi_in_GCT_card = getCluster_global_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster], getGlobal_iPhi );
-      
-  int toweriEta_in_GCT_card = (int) (crystaliEta_in_GCT_card / 5);
-  int toweriPhi_in_GCT_card = (int) (crystaliPhi_in_GCT_card / 5);
+  int toweriEta_in_GCT_card = getCluster_global_tower_iEta(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster]);
+  int toweriPhi_in_GCT_card = getCluster_global_tower_iPhi(nGCTCard, GCTinternal.GCTCorrfiber[iFiber].GCTclusters[iCluster], getGlobal_iPhi);
 
   // If cluster is in the overlap region, do not compute isolation 
   bool inOverlapWithAnotherGCTCard = ( ((toweriPhi_in_GCT_card >= 0) && (toweriPhi_in_GCT_card < 4)) || ((toweriPhi_in_GCT_card >= 28) && (toweriPhi_in_GCT_card < 32)) );
