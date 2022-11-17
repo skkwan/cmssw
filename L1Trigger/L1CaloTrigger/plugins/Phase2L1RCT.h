@@ -781,8 +781,8 @@ class tower_t {
     data = (data & bitMask);                 // zero out the last twelve digits
     data = (data | newEt_uint);              // write in the new ET
     
-    std::cout << "      New Et as bits: " << et() << ", old data as hex " << std::hex << data << std::endl;
-    std::cout << std::dec;
+    // std::cout << "      New Et as bits: " << et() << ", old data as hex " << std::hex << data << std::endl;
+    // std::cout << std::dec;
   }
 
   // For towers: Calculate H/E ratio given the ECAL and HCAL energies and modify the hoe() value.

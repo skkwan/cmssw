@@ -822,7 +822,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
     
     std::cout << std::endl;
     for (int i = N_RCTCARDS_PHI; i < (N_RCTCARDS_PHI * 2); i++) {
-      std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
+      // std::cout<< "Inside GCT: card (out of 8 in the negative side) " << i % N_RCTCARDS_PHI << std::endl;
 	    // for (int iLink = 0; iLink < n_links_card; iLink++) {
 	    //   for (int iTower = 0; iTower < N_GCTTOWERS_FIBER; iTower++) {
 	    //     std::cout << gctCards[gcc].RCTcardEtaNeg[i % N_RCTCARDS_PHI].RCTtoGCTfiber[iLink].RCTtowers[iTower].et << " = (ECAL) "
