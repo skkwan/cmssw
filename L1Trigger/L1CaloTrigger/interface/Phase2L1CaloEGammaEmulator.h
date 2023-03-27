@@ -1329,8 +1329,9 @@ namespace p2eg {
     ap_uint<12> ecalEt;
     ap_uint<12> hcalEt;
 
-    inline float ecalEtFloat() const { return ((float)et * ECAL_LSB); }  // Return energy as a float
-    inline float hcalEtFloat() const { return ((float)et * HCAL_LSB); }  // Return energy as a float, use HCAL LSB
+    inline float totalEtFloat() const { return ((float) et * ECAL_LSB); }  // Return total energy as a float (assuming the energy uses the ECAL LSB convention)
+    inline float ecalEtFloat() const { return ((float) ecalEt * ECAL_LSB); }  // Return ECAL energy as a float
+    inline float hcalEtFloat() const { return ((float) hcalEt * HCAL_LSB); }  // Return HCAL energy as a float, use HCAL LSB
 
     /*
        * Initialize from RCTtower_t.
@@ -1387,22 +1388,75 @@ namespace p2eg {
       return global_tower_iPhi;
     }
 
+    /*
+     * For fulltowers that are indexed by GCT local index: eta
+     */
+    int globalToweriEtaFromGCTcardiEta(int gctCard_tower_iEta) {
+      int global_iEta = gctCard_tower_iEta;
+      return global_iEta;
+    }
+
+    /*
+     * For fulltowers that are indexed by GCT local index: phi. Very similar to globalToweriPhi function but keep them separate for clarity.
+     */
+    int globalToweriPhiFromGCTcardiPhi(unsigned int nGCTCard, int gctCard_tower_iPhi) {
+      assert(nGCTCard <= 2);  // Make sure the card number is valid
+      int toweriPhi_card_offset = 0;   
+      if      (nGCTCard == 0) toweriPhi_card_offset = GCTCARD_0_TOWER_IPHI_OFFSET;
+      else if (nGCTCard == 1) toweriPhi_card_offset = GCTCARD_1_TOWER_IPHI_OFFSET;
+      else if (nGCTCard == 2) toweriPhi_card_offset = GCTCARD_2_TOWER_IPHI_OFFSET;
+
+      int global_iPhi = (toweriPhi_card_offset + gctCard_tower_iPhi) % (n_towers_Phi);  //   n_towers_Phi = 72
+      return global_iPhi;
+    }
+
+
     /* 
-       * Method to create a l1tp2::CaloTower object. 
+       * Method to create a l1tp2::CaloTower object from the fiber and tower-in-fiber indices. 
        * nGCTCard (0, 1, 2) is needed to determine the absolute eta/phi.
        * iFiber and iTowerInFiber are the indices of the tower in the card, e.g. GCTinternal.GCTCorrFiber[iFiber].GCTtowers[iTowerInFiber]
        */
-    l1tp2::CaloTower createCaloTower(int nGCTCard, int iFiber, int iTowerInFiber) {
+    l1tp2::CaloTower createCaloTowerFromFiberIdx(int nGCTCard, int iFiber, int iTowerInFiber) {
       l1tp2::CaloTower l1CaloTower;
       l1CaloTower.setEcalTowerEt(ecalEtFloat());  // float: ECAL divide by 8.0
       l1CaloTower.setHcalTowerEt(hcalEtFloat());  // float: HCAL multiply by LSB
-      int global_toweriEta = globalToweriEta(nGCTCard, iFiber, iTowerInFiber);
-      int global_toweriPhi = globalToweriPhi(nGCTCard, iFiber, iTowerInFiber);
-      l1CaloTower.setTowerIEta(global_toweriEta);
-      l1CaloTower.setTowerIPhi(global_toweriPhi);
-      l1CaloTower.setTowerEta(getTowerEta_fromAbsID(global_toweriEta));
-      l1CaloTower.setTowerPhi(getTowerPhi_fromAbsID(global_toweriPhi));
+      int global_tower_iEta = globalToweriEta(nGCTCard, iFiber, iTowerInFiber);
+      int global_tower_iPhi = globalToweriPhi(nGCTCard, iFiber, iTowerInFiber);
+      l1CaloTower.setTowerIEta(global_tower_iEta);
+      l1CaloTower.setTowerIPhi(global_tower_iPhi);
+      l1CaloTower.setTowerEta(getTowerEta_fromAbsID(global_tower_iEta));
+      l1CaloTower.setTowerPhi(getTowerPhi_fromAbsID(global_tower_iPhi));
       return l1CaloTower;
+    }
+
+    /*
+     * Method to create a l1tp2::CaloTower object from the global tower ieta and iphi.
+     */
+    l1tp2::CaloTower createFullTowerFromCardIdx(int nGCTCard, int gctCard_tower_iEta, int gctCard_tower_iPhi) {
+      l1tp2::CaloTower l1CaloTower;
+       // Store total Et (HCAL+ECAL) in the ECAL Et member
+      l1CaloTower.setEcalTowerEt(totalEtFloat()); 
+      int global_tower_iEta = globalToweriEtaFromGCTcardiEta(gctCard_tower_iEta);
+      int global_tower_iPhi = globalToweriPhiFromGCTcardiPhi(nGCTCard, gctCard_tower_iPhi);
+      l1CaloTower.setTowerIEta(global_tower_iEta);
+      l1CaloTower.setTowerIPhi(global_tower_iPhi);
+      l1CaloTower.setTowerEta(getTowerEta_fromAbsID(global_tower_iEta));
+      l1CaloTower.setTowerPhi(getTowerPhi_fromAbsID(global_tower_iPhi));
+      return l1CaloTower;
+    }
+
+    /*
+     * Print GCTtower_t tower information.
+     */
+    void printGCTTowerInfoFromGlobalIdx(int global_tower_iEta, int global_tower_iPhi, std::string description = "") {
+      std::cout << "[Print GCTtower_t class info from global idx:] [" << description << "]: "
+                << "total et (float): " << totalEtFloat() << ", "
+                << "ecal et (float): " << ecalEtFloat() << ", "
+                << "hcal et (float): " << hcalEtFloat() << ", "
+                << "global tower ieta: " << global_tower_iEta << ", "
+                << "global tower iphi: " << global_tower_iPhi << ", "
+                << "eta: " << getTowerEta_fromAbsID(global_tower_iEta) << ", "
+                << "phi: " << getTowerPhi_fromAbsID(global_tower_iPhi) << std::endl;
     }
   };
 
@@ -1498,7 +1552,7 @@ namespace p2eg {
               } else {
                 // add offset (e.g. if real phi = +80 degrees, iPhi in GCT = 31, and my index into GCT fibers 31 + 32 = 63)
                 indexInto64Fibers = (iPhi + N_GCTPOSITIVE_FIBERS);
-                // e.g.  if real eta = 0, iEta in GCT card = 16, i.e. our index into the GCT fiber is 16-16 = 0
+                // e.g.  if real eta = 0, iEta innew GCT card = 16, i.e. our index into the GCT fiber is 16-16 = 0
                 indexInto17TowersInFiber = (16 - iEta);
               }
 
@@ -1532,7 +1586,19 @@ namespace p2eg {
   class GCTintTowers_t {
   public:
     GCTtower_t GCTtower[N_GCTETA][N_GCTPHI];
+
+    // Write contents to output CMSSW collection. Note the use of the GCTtower_t method that creates the
+    // l1tp2::CaloTower object from the global eta/phi.
+    void writeToPFOutput(int nGCTCard, std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers) {
+       for (unsigned int iEta = 0; iEta < N_GCTETA; iEta++) {
+        for (unsigned int iPhi = 0; iPhi < N_GCTPHI; iPhi++) {
+          GCTtower_t thisFullTower = GCTtower[iEta][iPhi];
+          gctFullTowers->push_back(thisFullTower.createFullTowerFromCardIdx(nGCTCard, iEta, iPhi));
+        }
+      }
+    }
   };
+
 
   /* For each GCT card (3 of them in total, for barrel + endcap), list the sixteen                
     * RCT cards that fall in them. The first eight are in positive eta, the next                   
@@ -1550,6 +1616,19 @@ namespace p2eg {
 
       // GCT Card 2
       {35, 1, 3, 5, 7, 9, 11, 13, 34, 0, 2, 4, 6, 8, 10, 12}};
+
+  /*
+   * Helper function to monitor l1tp2::CaloTower members.
+   */
+  void printl1tp2TowerInfo(l1tp2::CaloTower thisTower, std::string description = "") {
+     std::cout << "[Print l1tp2::CaloTower info:] [" << description << "]: "
+                << ".ecalTowerEta() (float): " << thisTower.ecalTowerEt() << ", "
+                << ".hcalTowerEta() (float): " << thisTower.hcalTowerEt() << ", "
+                << ".towerIEta(): " << thisTower.towerIEta() << ", "
+                << ".towerIPhi(): " << thisTower.towerIPhi() << ", "
+                << ".towerEta() " << thisTower.towerEta() << ", "
+                << ".towerPhi() " << thisTower.towerPhi() << std::endl;
+  }
 
   void algo_top(const GCTcard_t& GCTcard,
                 GCTtoCorr_t& GCTtoCorr,

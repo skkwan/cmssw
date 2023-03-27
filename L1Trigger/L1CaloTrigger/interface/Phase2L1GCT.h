@@ -315,7 +315,7 @@ void p2eg::writeGCTToCMSSWAndCorrelatorOutputs(
       }
 
       // Then the clusters to the correlator: all fields are the same with the exception of towPhi, which
-      // needs to be subtracted by 4 becauuse the output to correlator does NOT include the overlap region.
+      // needs to be subtracted by 4 because the output to correlator does NOT include the overlap region.
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTclusters[k] = thisCluster;
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTclusters[k].towPhi =
           (thisCluster.towPhi - corrTowPhiOffset);
@@ -325,7 +325,7 @@ void p2eg::writeGCTToCMSSWAndCorrelatorOutputs(
     for (int k = 0; k < p2eg::N_GCTTOWERS_FIBER; k++) {
       // First do CMSSW tower outputs
       p2eg::GCTtower_t thisTower = GCTinternal.GCTCorrfiber[i].GCTtowers[k];
-      l1tp2::CaloTower thisL1CaloTower = thisTower.createCaloTower(nGCTCard, i, k);
+      l1tp2::CaloTower thisL1CaloTower = thisTower.createCaloTowerFromFiberIdx(nGCTCard, i, k);
       gctTowersOutput->push_back(thisL1CaloTower);
 
       // Then the towers to the correlator. Note the same corrFiberIndexOffset as was done for the clusters
@@ -411,12 +411,7 @@ void p2eg::algo_top(const p2eg::GCTcard_t& GCTcard,
   //-----------------------------------------------------------------------------------------------------------------------//
   // CMSSW outputs for GCT Full Towers (clusters + towers) output for PFClusters.
   //-----------------------------------------------------------------------------------------------------------------------//
-  for (unsigned int iEta = 0; iEta < p2eg::N_GCTETA; iEta++) {
-    for (unsigned int iPhi = 0; iPhi < p2eg::N_GCTPHI; iPhi++) {
-      p2eg::GCTtower_t thisFullTower = GCTintTowers.GCTtower[iEta][iPhi];
-      gctFullTowers->push_back(thisFullTower.createCaloTower(nGCTCard, iEta, iPhi));
-    }
-  }
+  GCTintTowers.writeToPFOutput(nGCTCard, gctFullTowers);
 }
 
 #endif
