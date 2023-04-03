@@ -32,10 +32,11 @@ bool passMaxValuesConstructorTest(void) {
     unsigned int maxiEta = 33;
     unsigned int maxiPhi = 23;  // max in GCT card unique area
     unsigned int maxiCrystal = 4; // same for eta and phi
+    unsigned int maxHoE_dummy = 0b1111; // dummy value
     int nGCTCard = 2;
     l1tp2::DigitizedClusterCorrelator dc = l1tp2::DigitizedClusterCorrelator(maxPt, maxiEta, maxiPhi,
                                                                              maxiCrystal, maxiCrystal,
-                                                                             0, true,
+                                                                             maxHoE_dummy, true,
                                                                              0, 0,
                                                                              true, 0,
                                                                              nGCTCard);
@@ -47,6 +48,7 @@ bool passMaxValuesConstructorTest(void) {
     dc.printPhiCr();
     return ((dc.pt() == 0xFFF) && (dc.eta() == maxiEta) && (dc.phi() == maxiPhi) &&
             (dc.etaCr() == maxiCrystal) && (dc.phiCr() == maxiCrystal) &&
+            (dc.hoe() == maxHoE_dummy) && 
             (dc.iso() == true) &&
             (dc.shape() == true) &&
             dc.passNullBitsCheck() &&

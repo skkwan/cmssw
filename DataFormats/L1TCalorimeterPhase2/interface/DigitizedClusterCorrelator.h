@@ -58,7 +58,7 @@ namespace l1tp2 {
                 return (ap_uint<3>) iPhiCr;
             }
 
-            // To-do: hoe information?
+            // HoE is not defined for clusters
             ap_uint<4> digitizeHoE(unsigned int hoe) {
                 return (ap_uint<4>) hoe;
             }
