@@ -22,6 +22,7 @@ namespace l1tp2 {
             const float LSB_PT = 0.5; // 0.5 GeV
 
             const unsigned int n_bits_pt = 12; // 12 bits allocated for pt
+            const unsigned int n_bits_unused_start = 49; // unused bits start at bit 49
 
             // Private member functions to perform digitization 
             ap_uint<12> digitizePt(float pt_f) {
@@ -58,7 +59,7 @@ namespace l1tp2 {
                 return (ap_uint<3>) iPhiCr;
             }
 
-            // HoE is not defined for clusters
+            // To-do: HoE is not defined for clusters
             ap_uint<4> digitizeHoE(unsigned int hoe) {
                 return (ap_uint<4>) hoe;
             }
