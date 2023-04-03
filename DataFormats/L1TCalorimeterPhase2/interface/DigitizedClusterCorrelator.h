@@ -10,17 +10,16 @@ namespace l1tp2 {
     class DigitizedClusterCorrelator {
 
         private:
+            // Data
             ap_uint<64> clusterData;
+            int idxGCTCard;  // 0, 1, or 2
 
-            const unsigned int n_towers_eta = 34;
-            const unsigned int n_towers_phi = 72;
+            // Constants
+            const unsigned int n_towers_eta = 34; // in GCT card unique region
+            const unsigned int n_towers_phi = 24;  // in GCT card unique region
             const unsigned int n_crystals_in_tower = 5;
 
             const float LSB_PT = 0.5; // 0.5 GeV
-            const float LSB_ETA = 1.4/ (n_towers_eta / n_crystals_in_tower); // tower eta index in barrel region (0-33)
-            const float LSB_PHI = M_PI / n_towers_phi; // tower phi index in barrel region (0-71)
-            const float LSB_ETA_CR = 1.4/ (n_towers_eta/2) / n_crystals_in_tower; // crystal eta index in the tower (0-4), same orientation as tower eta/phi indices
-            const float LSB_PHI_CR = M_PI/ n_towers_phi / n_crystals_in_tower; // crystal phi index in the tower (0-4), same orientation as tower eta/phi indices
 
             const unsigned int n_bits_pt = 12; // 12 bits allocated for pt
 
@@ -43,6 +42,7 @@ namespace l1tp2 {
                 return (ap_uint<6>) iEta;
             }
 
+            // This is tower iPhi in the unique region of the GCT card, so this only goes from 0-23
             ap_uint<5> digitizeIPhi(unsigned int iPhi) {
                 assert(iPhi < n_towers_phi);
                 return (ap_uint<5>) iPhi;
@@ -101,13 +101,15 @@ namespace l1tp2 {
             DigitizedClusterCorrelator(ap_uint<12> pt, ap_uint<6> eta, ap_uint<5> phi,
                                        ap_uint<3> etaCr, ap_uint<3> phiCr,
                                        ap_uint<4> hoe, ap_uint<3> iso, ap_uint<6> fb, ap_uint<5> timing,
-                                       ap_uint<1> shape, ap_uint<1> brems) {
+                                       ap_uint<1> shape, ap_uint<1> brems,
+                                       int iGCTCard) {
 
                                         clusterData = ((ap_uint<64>) pt) | (((ap_uint<64>) eta) << 12) | (((ap_uint<64>) phi) << 18) |
                                                       (((ap_uint<64>) etaCr) << 23) | (((ap_uint<64>) phiCr) << 26) |
                                                       (((ap_uint<64>) hoe) << 29) | (((ap_uint<64>) iso << 33)) | 
                                                       (((ap_uint<64>) fb << 36)) | (((ap_uint<64>) timing << 42)) |
                                                       (((ap_uint<64>) shape << 47)) | (((ap_uint<64>) brems << 48));
+                                        idxGCTCard = iGCTCard;
                                        }
 
             // To-do: constructor from float inputs that will perform digitization
@@ -115,7 +117,8 @@ namespace l1tp2 {
                                        unsigned int iEtaCr, unsigned int iPhiCr,
                                        unsigned int hoe, bool iso,
                                        unsigned int fb, unsigned int timing,
-                                       bool shape, unsigned int brems) {
+                                       bool shape, unsigned int brems,
+                                       int iGCTCard) {
 
                 clusterData = (((ap_uint<64>) digitizePt(pt_f)) |
                                ((ap_uint<64>) digitizeIEta(iEta) << 12) | ((ap_uint<64>) digitizeIPhi(iPhi) << 18) | 
@@ -124,6 +127,7 @@ namespace l1tp2 {
                                ((ap_uint<64>) digitizeFb(fb) << 36) | ((ap_uint<64>) digitizeTiming(timing) << 42) | 
                                ((ap_uint<64>) digitizeShape(shape) << 47) | ((ap_uint<64>) digitizeBrems(brems) << 48)
                                ); 
+                idxGCTCard = iGCTCard;
             }
 
             ap_uint<64> data() const { return clusterData; }
@@ -141,6 +145,7 @@ namespace l1tp2 {
             ap_uint<5> timing() { return ((clusterData >> 42) & 0x1F); }
             ap_uint<1> shape() { return ((clusterData >> 47) & 0x1); }
             ap_uint<1> brems() { return ((clusterData >> 48) & 0x1); }
+            int cardNumber() { return idxGCTCard; }  // which GCT card (0, 1, or 2)
 
             const int unusedBitsStart() { return 49; } // unused bits start at bit 49
 
@@ -152,7 +157,7 @@ namespace l1tp2 {
             void printEtaCr(void) { std::cout << "etaCr: " << std::bitset<3>{etaCr()} << std::endl; };
             void printPhiCr(void) { std::cout << "phiCr: " << std::bitset<3>{phiCr()} << std::endl; };
             void printHoE(void) { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
-    
+            void printCardNumber(void) { std::cout << "GCT card number: " << cardNumber() << std::endl; };
 
             // Other checks
             bool passNullBitsCheck(void)  {
