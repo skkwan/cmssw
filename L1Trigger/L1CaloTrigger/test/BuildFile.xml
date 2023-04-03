@@ -7,3 +7,8 @@
   <use name="DataFormats/L1TCalorimeterPhase2"/>
   <use name="hls"/>
 </bin>
+
+<bin   name="TestDigitizedTowerGT" file="testDigitizedTowerGT.cc">
+  <use name="DataFormats/L1TCalorimeterPhase2"/>
+  <use name="hls"/>
+</bin>
