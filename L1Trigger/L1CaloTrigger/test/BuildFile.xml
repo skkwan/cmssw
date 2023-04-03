@@ -1,0 +1,9 @@
+<bin   name="TestDigitizedClusterCorrelator" file="testDigitizedClusterCorrelator.cc">
+  <use name="DataFormats/L1TCalorimeterPhase2"/>
+  <use name="hls"/>
+</bin>
+
+<bin   name="TestDigitizedClusterGT" file="testDigitizedClusterGT.cc">
+  <use name="DataFormats/L1TCalorimeterPhase2"/>
+  <use name="hls"/>
+</bin>
