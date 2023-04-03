@@ -33,7 +33,7 @@ bool passMaxValuesConstructorTest(void) {
     unsigned int maxiPhi = 23;  // max in GCT card unique area
     unsigned int maxiCrystal = 4; // same for eta and phi
     unsigned int maxHoE_dummy = 0b1111; // dummy value
-    int nGCTCard = 2;
+    unsigned int nGCTCard = 2;
     l1tp2::DigitizedClusterCorrelator dc = l1tp2::DigitizedClusterCorrelator(maxPt, maxiEta, maxiPhi,
                                                                              maxiCrystal, maxiCrystal,
                                                                              maxHoE_dummy, true,

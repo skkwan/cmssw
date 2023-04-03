@@ -12,7 +12,7 @@ namespace l1tp2 {
         private:
             // Data
             ap_uint<64> clusterData;
-            int idxGCTCard;  // 0, 1, or 2
+            unsigned int idxGCTCard;  // 0, 1, or 2
 
             // Constants
             const unsigned int n_towers_eta = 34; // in GCT card unique region
@@ -113,7 +113,7 @@ namespace l1tp2 {
                                         idxGCTCard = iGCTCard;
                                        }
 
-            // To-do: constructor from float inputs that will perform digitization
+            // Constructor from float inputs
             DigitizedClusterCorrelator(float pt_f, unsigned int iEta, unsigned int iPhi,
                                        unsigned int iEtaCr, unsigned int iPhiCr,
                                        unsigned int hoe, bool iso,
@@ -146,7 +146,7 @@ namespace l1tp2 {
             ap_uint<5> timing() { return ((clusterData >> 42) & 0x1F); }
             ap_uint<1> shape() { return ((clusterData >> 47) & 0x1); }
             ap_uint<1> brems() { return ((clusterData >> 48) & 0x1); }
-            int cardNumber() { return idxGCTCard; }  // which GCT card (0, 1, or 2)
+            unsigned int cardNumber() { return idxGCTCard; }  // which GCT card (0, 1, or 2)
 
             const int unusedBitsStart() { return 49; } // unused bits start at bit 49
 
