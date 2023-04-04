@@ -37,6 +37,10 @@
 // Output tower collection
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloTower.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
+
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
 
@@ -90,6 +94,9 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet& 
   produces<l1tp2::CaloTowerCollection>("GCT");
   produces<l1tp2::CaloTowerCollection>("GCTFullTowers");
   produces<BXVector<l1t::EGamma>>("GCTEGammas");
+  produces<l1tp2::DigitizedClusterCorrelatorCollection>("GCTDigitizedToCorrelator");
+  produces<l1tp2::DigitizedTowerCorrelatorCollection>("GCTDigitizedToCorrelator");
+  produces<l1tp2::DigitizedClusterGTCollection>("GCTDigitizedToGT");
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -598,6 +605,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   auto L1GCTTowers = std::make_unique<l1tp2::CaloTowerCollection>();
   auto L1GCTFullTowers = std::make_unique<l1tp2::CaloTowerCollection>();
   auto L1GCTEGammas = std::make_unique<l1t::EGammaBxCollection>();
+  auto L1DigitizedClusterCorrelator = std::make_unique<l1tp2::DigitizedClusterCorrelatorCollection>();
+  auto L1DigitizedTowerCorrelator = std::make_unique<l1tp2::DigitizedTowerCorrelatorCollection>();
+  auto L1DigitizedClusterGT = std::make_unique<l1tp2::DigitizedClusterGTCollection>();
 
   //----------------------------------------------------
   // Apply the GCT firmware code to each GCT card
@@ -605,13 +615,19 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
 
   for (unsigned int gcc = 0; gcc < p2eg::N_GCTCARDS; gcc++) {
     p2eg::algo_top(
-        gctCards[gcc], gctToCorr[gcc], gcc, L1GCTClusters, L1GCTTowers, L1GCTFullTowers, L1GCTEGammas, calib_);
+        gctCards[gcc], gctToCorr[gcc], gcc,
+        L1GCTClusters, L1GCTTowers, L1GCTFullTowers, L1GCTEGammas,
+        L1DigitizedClusterCorrelator, L1DigitizedTowerCorrelator, L1DigitizedClusterGT,
+        calib_);
   }
 
   iEvent.put(std::move(L1GCTClusters), "GCT");
   iEvent.put(std::move(L1GCTTowers), "GCT");
   iEvent.put(std::move(L1GCTFullTowers), "GCTFullTowers");
   iEvent.put(std::move(L1GCTEGammas), "GCTEGammas");
+  iEvent.put(std::move(L1DigitizedClusterCorrelator), "GCTDigitizedToCorrelator");
+  iEvent.put(std::move(L1DigitizedTowerCorrelator), "GCTDigitizedToCorrelator");
+  iEvent.put(std::move(L1DigitizedClusterGT), "GCTDigitizedToGT");
 }
 
 //////////////////////////////////////////////////////////////////////////

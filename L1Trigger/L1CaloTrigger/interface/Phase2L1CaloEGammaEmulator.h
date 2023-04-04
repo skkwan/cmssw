@@ -15,6 +15,9 @@
 // Output collections
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloTower.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
 
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
@@ -1658,6 +1661,9 @@ namespace p2eg {
                 std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers,
                 std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers,
                 std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
+                std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
+                std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,
+                std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
                 l1tp2::ParametricCalibration calib_);
 
   GCTinternal_t getClustersTowers(const GCTcard_t& GCTcard, unsigned int nGCTCard);
@@ -1671,16 +1677,19 @@ namespace p2eg {
 
   GCTintTowers_t getFullTowers(const GCTinternal_t& GCTinternal);
 
-  void writeGCTToCMSSWAndCorrelatorOutputs(const GCTinternal_t& GCTinternal,
-                                           GCTtoCorr_t& GCTtoCorrOutput,
-                                           std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClustersOutput,
-                                           std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowersOutput,
-                                           std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
-                                           int nGCTCard,
-                                           int fiberStart,
-                                           int fiberEnd,
-                                           int corrFiberIndexOffset,
-                                           int corrTowPhiOffset);
+  void writeToCorrelatorAndGTOutputs(const GCTinternal_t& GCTinternal,
+                                      GCTtoCorr_t& GCTtoCorrOutput,
+                                      std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClustersOutput,
+                                      std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowersOutput,
+                                      std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
+                                      std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
+                                      std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,
+                                      std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
+                                      int nGCTCard,
+                                      int fiberStart,
+                                      int fiberEnd,
+                                      int corrFiberIndexOffset,
+                                      int corrTowPhiOffset);
 
 }  // namespace p2eg
 
