@@ -2,6 +2,7 @@
 #define DataFormats_L1TCalorimeterPhase2_DigitizedTowerCorrelator_h
 
 #include <ap_int.h>
+#include <bitset>
 #include <vector>
 
 
@@ -17,11 +18,11 @@ namespace l1tp2 {
             unsigned int idxTower; // 0 to 16 (there are 17 towers in one fiber)
 
             // Constants
-            const float LSB_ET = 0.5; // 0.5 GeV, so max value is (2^10 - 1) * 0.5 = 511.5 GeV
-            const unsigned int n_bits_pt = 10;
-            const unsigned int n_towers_in_fiber = 17;
-            const unsigned int n_fibers_in_card = 48;
-            const unsigned int n_cards = 3;
+            static constexpr float LSB_ET = 0.5; // 0.5 GeV, so max value is (2^10 - 1) * 0.5 = 511.5 GeV
+            static constexpr unsigned int n_bits_pt = 10;
+            static constexpr unsigned int n_towers_in_fiber = 17;
+            static constexpr unsigned int n_fibers_in_card = 48;
+            static constexpr unsigned int n_cards = 3;
 
             // Private member functions to perform digitization 
             ap_uint<10> digitizeEt(float et_f) {

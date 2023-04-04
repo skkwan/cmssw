@@ -2,6 +2,7 @@
 #define DataFormats_L1TCalorimeterPhase2_DigitizedClusterCorrelator_h
 
 #include <ap_int.h>
+#include <bitset>
 #include <vector>
 
 
@@ -15,14 +16,12 @@ namespace l1tp2 {
             unsigned int idxGCTCard;  // 0, 1, or 2
 
             // Constants
-            const unsigned int n_towers_eta = 34; // in GCT card unique region
-            const unsigned int n_towers_phi = 24;  // in GCT card unique region
-            const unsigned int n_crystals_in_tower = 5;
-
-            const float LSB_PT = 0.5; // 0.5 GeV
-
-            const unsigned int n_bits_pt = 12; // 12 bits allocated for pt
-            const unsigned int n_bits_unused_start = 49; // unused bits start at bit 49
+            static constexpr unsigned int n_towers_eta = 34; // in GCT card unique region
+            static constexpr unsigned int n_towers_phi = 24;  // in GCT card unique region
+            static constexpr unsigned int n_crystals_in_tower = 5;
+            static constexpr float LSB_PT = 0.5; // 0.5 GeV
+            static constexpr unsigned int n_bits_pt = 12; // 12 bits allocated for pt
+            static constexpr unsigned int n_bits_unused_start = 49; // unused bits start at bit 49
 
             // Private member functions to perform digitization 
             ap_uint<12> digitizePt(float pt_f) {
@@ -103,7 +102,10 @@ namespace l1tp2 {
                                        ap_uint<3> etaCr, ap_uint<3> phiCr,
                                        ap_uint<4> hoe, ap_uint<3> iso, ap_uint<6> fb, ap_uint<5> timing,
                                        ap_uint<1> shape, ap_uint<1> brems,
-                                       int iGCTCard) {
+                                       int iGCTCard,
+                                       bool fullydigitizedInputs) {
+                                        
+                                        (void) fullydigitizedInputs; 
 
                                         clusterData = ((ap_uint<64>) pt) | (((ap_uint<64>) eta) << 12) | (((ap_uint<64>) phi) << 18) |
                                                       (((ap_uint<64>) etaCr) << 23) | (((ap_uint<64>) phiCr) << 26) |

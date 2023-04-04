@@ -2,6 +2,7 @@
 #define DataFormats_L1TCalorimeterPhase2_DigitizedClusterGT_h
 
 #include <ap_int.h>
+#include <bitset>
 #include <vector>
 
 
@@ -14,16 +15,13 @@ namespace l1tp2 {
             ap_uint<64> clusterData;
 
             // Constants
-            const float LSB_PT = 0.03125; // 0.03125 GeV
-
-            const unsigned int n_bits_eta_pi = 12; // 12 bits corresponds to pi in eta
-            const float LSB_ETA = M_PI / (std::pow(2, n_bits_eta_pi) - 1);  // 12 bits to express pi: i.e. pi = 0xFFF
-
-            const unsigned int n_bits_phi_pi = 12; // 12 bits corresponds to pi in phi
-            const float LSB_PHI = M_PI / (std::pow(2, n_bits_phi_pi) - 1); // 12 bits to express phi, i.e. pi = 0xFFF
-
-            const unsigned int n_bits_pt = 16; // 12 bits allocated for pt
-            const unsigned int n_bits_unused_start = 44; // unused bits start at bit number 44
+            static constexpr float LSB_PT = 0.03125; // 0.03125 GeV
+            static constexpr unsigned int n_bits_eta_pi = 12; // 12 bits corresponds to pi in eta
+            static float LSB_ETA = M_PI / (std::pow(2, n_bits_eta_pi) - 1);  // 12 bits to express pi: i.e. pi = 0xFFF
+            static constexpr unsigned int n_bits_phi_pi = 12; // 12 bits corresponds to pi in phi
+            static float LSB_PHI = M_PI / (std::pow(2, n_bits_phi_pi) - 1); // 12 bits to express phi, i.e. pi = 0xFFF
+            static constexpr unsigned int n_bits_pt = 16; // 12 bits allocated for pt
+            static constexpr unsigned int n_bits_unused_start = 44; // unused bits start at bit number 44
 
             // Private member functions to perform digitization 
             ap_uint<1> digitizeIsValid(bool isValid) {
