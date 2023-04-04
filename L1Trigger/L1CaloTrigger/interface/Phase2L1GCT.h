@@ -311,7 +311,10 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
       // First do CMSSW cluster outputs
       p2eg::GCTcluster_t thisCluster = GCTinternal.GCTCorrfiber[i].GCTclusters[k];
       if (thisCluster.etFloat() > 0.0) {
+        // Make l1tp2::CaloCrystalCluster
         gctClustersOutput->push_back(thisCluster.createCaloCrystalCluster());
+
+        // Make l1t::EGamma
         int bx = 0;
         l1t::EGamma thisEGamma = thisCluster.createL1TEGamma();
         gctEGammas->push_back(bx, thisEGamma);
@@ -322,6 +325,12 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTclusters[k] = thisCluster;
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTclusters[k].towPhi =
           (thisCluster.towPhi - corrTowPhiOffset);
+
+      // Make l1tp2::DigitizedClusterCorrelator. The function needs corrTowPhiOffset to know the towPhi in the card excluding the overlap region.
+      // The correlator clusters don't need to know the fiber offset.
+      if (thisCluster.etFloat() > 0.0) {
+        gctDigitizedClustersCorrelator->push_back(thisCluster.createDigitizedClusterCorrelator(corrTowPhiOffset));
+      }
     }
 
     // Next do tower outputs

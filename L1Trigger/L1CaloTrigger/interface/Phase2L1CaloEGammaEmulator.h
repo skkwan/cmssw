@@ -1316,6 +1316,20 @@ namespace p2eg {
     }
 
     /*
+     * Create a l1tp2::DigitizedClusterCorrelator object, with corrTowPhiOffset specifying the offset necessary to correct the tower phi to the region
+     * unique to each GCT card.
+     */
+    l1tp2::DigitizedClusterCorrelator createDigitizedClusterCorrelator(const int corrTowPhiOffset) const {
+      return l1tp2::DigitizedClusterCorrelator(etFloat(), // technically we are just multiplying and then dividing again by the LSB
+                                               towEta, towPhi - corrTowPhiOffset,
+                                               crEta, crPhi,
+                                               hoe, is_iso,
+                                               fb, timing,
+                                               is_ss, brems,
+                                               nGCTCard);
+    }
+
+    /*
       * Print GCT cluster information.
       */
     void printGCTClusterInfo(std::string description = "") {
