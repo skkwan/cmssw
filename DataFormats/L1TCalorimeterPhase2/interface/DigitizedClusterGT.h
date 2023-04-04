@@ -17,9 +17,7 @@ namespace l1tp2 {
             // Constants
             static constexpr float LSB_PT = 0.03125; // 0.03125 GeV
             static constexpr unsigned int n_bits_eta_pi = 12; // 12 bits corresponds to pi in eta
-            static float LSB_ETA = M_PI / (std::pow(2, n_bits_eta_pi) - 1);  // 12 bits to express pi: i.e. pi = 0xFFF
             static constexpr unsigned int n_bits_phi_pi = 12; // 12 bits corresponds to pi in phi
-            static float LSB_PHI = M_PI / (std::pow(2, n_bits_phi_pi) - 1); // 12 bits to express phi, i.e. pi = 0xFFF
             static constexpr unsigned int n_bits_pt = 16; // 12 bits allocated for pt
             static constexpr unsigned int n_bits_unused_start = 44; // unused bits start at bit number 44
 
@@ -42,7 +40,8 @@ namespace l1tp2 {
             ap_uint<13> digitizePhi(float phi_f) {
                 ap_uint<1> sign = (phi_f >= 0) ? 0 : 1; 
                 float phiMag_f = std::abs(phi_f);
-                ap_uint<12> phiMag_digitized = (phiMag_f / LSB_PHI);
+                float lsb_phi = (M_PI / (std::pow(2, n_bits_phi_pi) - 1));
+                ap_uint<12> phiMag_digitized = (phiMag_f / lsb_phi);
                 ap_uint<13> phi_digitized = ((ap_uint<13>) sign) | ((ap_uint<13>) phiMag_digitized << 1);
                 return phi_digitized;
             }
@@ -52,7 +51,8 @@ namespace l1tp2 {
             ap_uint<14> digitizeEta(float eta_f) {
                 ap_uint<1> sign = (eta_f >= 0) ? 0 : 1; 
                 float etaMag_f = std::abs(eta_f);
-                ap_uint<13> etaMag_digitized = (etaMag_f / LSB_ETA);
+                float lsb_eta = (M_PI / (std::pow(2, n_bits_eta_pi) - 1));
+                ap_uint<13> etaMag_digitized = (etaMag_f / lsb_eta);
                 ap_uint<14> eta_digitized = ((ap_uint<14>) sign) | ((ap_uint<14>) etaMag_digitized << 1);
                 return eta_digitized;
             }
