@@ -1,6 +1,6 @@
 #include <bitset>
 #include <cassert>
-#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerGT.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
 
 /*
  * Test basic constructor from digitized inputs
@@ -12,9 +12,9 @@ int passItemizedDigitizedConstructorTest(void) {
     unsigned int nGCTCard = 1;
     unsigned int nFiber = 1;
     unsigned int nTower = 1;
-    l1tp2::DigitizedTowerGT towGT = l1tp2::DigitizedTowerGT(pt, hoe, fb, nGCTCard, nFiber, nTower);
-    return ((towGT.et() == 0x1) &&
-            (towGT.hoe() == 0x1) && (towGT.fb() == 0x1) && 
+    l1tp2::DigitizedTowerCorrelator tow = l1tp2::DigitizedTowerCorrelator(pt, hoe, fb, nGCTCard, nFiber, nTower);
+    return ((tow.et() == 0x1) &&
+            (tow.hoe() == 0x1) && (tow.fb() == 0x1) && 
             (nGCTCard == 1) && (nFiber == 1) && (nTower == 1)
             );
 }
@@ -29,8 +29,8 @@ int passConstructorTest(void) {
     unsigned int nGCTCard = 2;
     unsigned int nFiber = 47;
     unsigned int nTower = 16;
-    l1tp2::DigitizedTowerGT towGT = l1tp2::DigitizedTowerGT(pt_f, hoe, fb, nGCTCard, nFiber, nTower);
-    return ((towGT.et() == 0x3FF) && (towGT.hoe() = 0xF) && (towGT.fb() == 0x3) && towGT.hasValidIndices());
+    l1tp2::DigitizedTowerCorrelator tow = l1tp2::DigitizedTowerCorrelator(pt_f, hoe, fb, nGCTCard, nFiber, nTower);
+    return ((tow.et() == 0x3FF) && (tow.hoe() = 0xF) && (tow.fb() == 0x3) && tow.hasValidIndices());
 }
 
 int main() {

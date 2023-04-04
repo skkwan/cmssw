@@ -1,5 +1,5 @@
-#ifndef DataFormats_L1TCalorimeterPhase2_DigitizedTowerGT_h
-#define DataFormats_L1TCalorimeterPhase2_DigitizedTowerGT_h
+#ifndef DataFormats_L1TCalorimeterPhase2_DigitizedTowerCorrelator_h
+#define DataFormats_L1TCalorimeterPhase2_DigitizedTowerCorrelator_h
 
 #include <ap_int.h>
 #include <vector>
@@ -7,7 +7,7 @@
 
 namespace l1tp2 {
 
-    class DigitizedTowerGT {
+    class DigitizedTowerCorrelator {
 
         private:
             // Data
@@ -44,16 +44,16 @@ namespace l1tp2 {
 
 
         public:
-            DigitizedTowerGT() {
+            DigitizedTowerCorrelator() {
                 towerData = 0x0;
             }
 
-            DigitizedTowerGT(ap_uint<16> data) {
+            DigitizedTowerCorrelator(ap_uint<16> data) {
                 towerData = data;
             }
 
             // Constructor from digitized inputs
-            DigitizedTowerGT(ap_uint<10> et, ap_uint<4> hoe, ap_uint<2> fb,
+            DigitizedTowerCorrelator(ap_uint<10> et, ap_uint<4> hoe, ap_uint<2> fb,
                             unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower) {
                 towerData = ((ap_uint<16>) et) | (((ap_uint<16>) hoe) << 10) |
                             (((ap_uint<16>) fb) << 14);
@@ -64,7 +64,7 @@ namespace l1tp2 {
             }
 
             // Constructor from float inputs
-            DigitizedTowerGT(float et_f,  ap_uint<4> hoe, ap_uint<2> fb,
+            DigitizedTowerCorrelator(float et_f,  ap_uint<4> hoe, ap_uint<2> fb,
                              unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower) {
                 towerData = ((ap_uint<16>) digitizeEt(et_f)) | (((ap_uint<16>) hoe) << 10) |
                             (((ap_uint<16>) fb) << 14);
@@ -100,7 +100,7 @@ namespace l1tp2 {
     };
 
     // Collection typedef
-    typedef std::vector<l1tp2::DigitizedTowerGT> DigitizedTowerGTCollection;
+    typedef std::vector<l1tp2::DigitizedTowerCorrelator> DigitizedTowerCorrelatorCollection;
 
 } // namespace l1tp2
 

@@ -3,12 +3,12 @@
   <use name="hls"/>
 </bin>
 
-<bin   name="TestDigitizedClusterGT" file="testDigitizedClusterGT.cc">
+<bin   name="TestDigitizedTowerGT" file="testDigitizedTowerCorrelator.cc">
   <use name="DataFormats/L1TCalorimeterPhase2"/>
   <use name="hls"/>
 </bin>
 
-<bin   name="TestDigitizedTowerGT" file="testDigitizedTowerGT.cc">
+<bin   name="TestDigitizedClusterGT" file="testDigitizedClusterGT.cc">
   <use name="DataFormats/L1TCalorimeterPhase2"/>
   <use name="hls"/>
 </bin>
