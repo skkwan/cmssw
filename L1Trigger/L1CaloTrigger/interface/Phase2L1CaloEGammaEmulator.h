@@ -1040,6 +1040,7 @@ namespace p2eg {
     bool is_looseTkss;
     bool is_iso;
     bool is_looseTkiso;
+    ap_uint<2> brems; 
 
     int nGCTCard;
   };
@@ -1087,6 +1088,11 @@ namespace p2eg {
     bool is_iso;
     bool is_looseTkiso;
 
+    unsigned int hoe; // not defined 
+    unsigned int fb; // not defined
+    unsigned int timing; // not defined
+    ap_uint<2> brems; // 0 if no brems applied, 1 or 2 if brems applied (one for + direction, one for - direction: check firmware)
+
     float relIso;  // for analyzer only, not firmware
     int nGCTCard;  // for analyzer only, not firmware
 
@@ -1132,7 +1138,10 @@ namespace p2eg {
       relIso = 0;             // initialize: no info from RCT, so set it to null
       is_iso = false;         // initialize: no info from RCT, so set it to false
       is_looseTkiso = false;  // initialize: no info from RCT, so set it to false
-
+      hoe = 0;                // initialize: no info from RCT, so set it to null
+      fb = 0;                 // initialize: no info from RCT, so set it to null
+      timing = 0;             // initialize: no info from RCT, so set it to null
+      brems = rctCluster.brems; 
       nGCTCard = rctCluster.nGCTCard;
     }
 
@@ -1323,7 +1332,8 @@ namespace p2eg {
                 << "is_ss: " << is_ss << ", "
                 << "is_looseTkss" << is_looseTkss << ", "
                 << "is_iso: " << is_iso << ", "
-                << "is_looseTkiso: " << is_looseTkiso << std::endl;
+                << "is_looseTkiso: " << is_looseTkiso << ", " 
+                << "brems: " << brems << std::endl;
     }
   };
 

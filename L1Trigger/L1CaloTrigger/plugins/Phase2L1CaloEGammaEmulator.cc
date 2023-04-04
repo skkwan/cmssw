@@ -549,6 +549,7 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
         c.is_looseTkss = c0.getIsLooseTkss();
         c.is_iso = c0.getIsIso();
         c.is_looseTkiso = c0.getIsLooseTkIso();
+        c.brems = c0.getBrems();
         c.nGCTCard = gcc;  // store gct card index as well
         unsigned int iIdxInGCT = i % p2eg::N_RCTCARDS_PHI;
         unsigned int iLinkC = iCluster % p2eg::N_RCTGCT_FIBERS;
