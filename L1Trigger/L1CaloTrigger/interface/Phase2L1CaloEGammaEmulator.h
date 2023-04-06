@@ -1486,6 +1486,14 @@ namespace p2eg {
     }
 
     /*
+     * Method to create a l1tp2::DigitizedTowerCorrelator, from the GCT card number, the fiber index *inside the GCT card* (excluding overlap region),
+     * and the index of the tower inside the fiber.
+     */
+    l1tp2::DigitizedTowerCorrelator createDigitizedTowerCorrelator(unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower) {
+      return l1tp2::DigitizedTowerCorrelator(totalEtFloat(), hoe, fb, indexCard, indexFiber, indexTower);
+    }
+
+    /*
      * Print GCTtower_t tower information.
      */
     void printGCTTowerInfoFromGlobalIdx(int global_tower_iEta, int global_tower_iPhi, std::string description = "") {

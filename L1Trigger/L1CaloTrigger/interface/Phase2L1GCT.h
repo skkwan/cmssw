@@ -342,6 +342,11 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
 
       // Then the towers to the correlator. Note the same corrFiberIndexOffset as was done for the clusters
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTtowers[k] = thisTower;
+
+      // For the collection, the three arguments are (1) the GCT card, (2) the fiber index in the GCT card (excluding the overlap region), and (3) the tower index in the fiber
+      l1tp2::DigitizedTowerCorrelator thisDigitizedTowerCorrelator = thisTower.createDigitizedTowerCorrelator(nGCTCard, i - corrFiberIndexOffset, k);
+      gctDigitizedTowersCorrelator->push_back(thisDigitizedTowerCorrelator);
+      
     }
   }
 }
