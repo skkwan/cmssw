@@ -15,7 +15,6 @@ bool passItemizedDigitizedConstructorTest(void) {
                                                                       (ap_uint<6>) 0x1, (ap_uint<5>) 0x1,
                                                                       (ap_uint<1>) 0x1, (ap_uint<1>) 0x1,
                                                                       (ap_uint<1>) 0x1, isDigitizedInputs);
-    dc.print("in passItemizedDigitizedConstructorTest");
     return ((dc.pt() == 0x1) && (dc.eta() == 0x1) && (dc.phi() == 0x1) && 
             (dc.etaCr() == 0x1) && (dc.phiCr() == 0x1) && 
             (dc.hoe() == 0x1) && (dc.iso() == 0x1) && (dc.fb() == 0x1) && 
@@ -41,12 +40,6 @@ bool passMaxValuesConstructorTest(void) {
                                                                              0, 0,
                                                                              true, 0,
                                                                              nGCTCard);
-    dc.print("in passFloatsConstructorTest");
-    dc.printPt();
-    dc.printEta();
-    dc.printPhi();
-    dc.printEtaCr();
-    dc.printPhiCr();
     return ((dc.pt() == 0xFFF) && (dc.eta() == maxiEta) && (dc.phi() == maxiPhi) &&
             (dc.etaCr() == maxiCrystal) && (dc.phiCr() == maxiCrystal) &&
             (dc.hoe() == maxHoE_dummy) && 

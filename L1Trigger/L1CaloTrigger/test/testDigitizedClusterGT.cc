@@ -78,11 +78,6 @@ int passSignedIntegerReprPositive(void) {
     float precision = 0.01;
 
     l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt_f, phi_f, eta_f);
-    cGT.printRealEta();
-    cGT.printRealPhi();
-    std::cout << cGT.realEta() << ", " << round_to(cGT.realEta(), precision) << std::endl;
-    std::cout << cGT.realPhi() << ", " << round_to(cGT.realPhi(), precision) << std::endl;
-
     return ((round_to(cGT.realEta(), 2) == round_to(eta_f, 2)) && (round_to(cGT.realPhi(), 2) == round_to(phi_f, 2)));
 }
 
