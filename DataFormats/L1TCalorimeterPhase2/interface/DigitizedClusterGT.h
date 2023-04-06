@@ -31,7 +31,6 @@ namespace l1tp2 {
 
             ap_uint<16> digitizePt(float pt_f) {
                 float maxPt_f = (std::pow(2, n_bits_pt) - 1) * LSB_PT;
-                std::cout << "max pT: " << maxPt_f << std::endl;
                 // If pT exceeds the maximum, saturate the value
                 if (pt_f >= maxPt_f) {
                     return (ap_uint<16>) 0xFFFF; 
@@ -92,10 +91,23 @@ namespace l1tp2 {
             ap_uint<1> isValid() const { return (clusterData & 0x1); }
             ap_uint<16> pt() const { return ((clusterData >> 1) & 0xFFFF); } // 16 1's = 0xFFFF
             ap_uint<13> phi() const { return ((clusterData >> 17) & 0x1FFF); }  // (thirteen 1's)= 0x1FFF
+            ap_uint<12> phiMagnitude() const { return ((clusterData >> 18) & 0xFFF); }  // skip the LSB of the phi, and (twelve 1's)= 0xFFF
+            ap_uint<1>  phiSign() const { return ((clusterData >> 17) & 0x1); }   // get the LSB of the phi
             ap_uint<14> eta() const { return ((clusterData >> 30) & 0x3FFF); }  // (fourteen 1's) = 0x3FFF
-            float ptFloat() const { return pt() * ptLSB(); }
-            float realPhi() const { return phi() * phiLSB(); }
-            float realEta() const { return eta() * etaLSB(); }
+            ap_uint<13> etaMagnitude() const { return ((clusterData >> 31) & 0x1FFF); }  // skip the LSB of the eta, and (thirteen 1's) = 0x1FFF
+            ap_uint<1>  etaSign() const { return ((clusterData >> 30) & 0x1); } // get the LSB of the eta
+
+            float ptFloat() const {
+                return (pt() * ptLSB());
+            }
+            float realPhi() const { // convert from signed int to float
+                float sign = (phiSign() == 0) ? +1 : -1;
+                return (sign * phiMagnitude() * phiLSB());
+            }
+            float realEta() const { // convert from signed int to float
+                float sign = (etaSign() == 0) ? +1 : -1; 
+                return (sign * etaMagnitude() * etaLSB());
+            }
             const int unusedBitsStart() const { return n_bits_unused_start; } // unused bits start at bit 44
 
             // Prints

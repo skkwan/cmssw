@@ -1,6 +1,14 @@
 #include <bitset>
 #include <cassert>
+#include <cmath>
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
+
+/*
+ * Helper for tests
+ */
+double round_to(double value, double precision = 1.0) {
+    return std::round(value / precision) * precision;
+}
 
 /*
  * Test basic constructor from digitized inputs
@@ -44,6 +52,40 @@ int passNegativeConstructorTest(void) {
     return ((cGT.pt() == 0xFFFF) && (cGT.phi() == 0x1FFF) && (cGT.eta() == 0xF1D) && cGT.passNullBitsCheck());
 }
 
+/*
+ * Check signed integer representation
+ */
+int passSignedIntegerRepr(void) {
+    bool isValid = true;
+    float pt_f = 2048; // max value is 2047.97
+    float phi_f = -1 * M_PI; 
+    float eta_f = -1.4841; 
+    float precision = 0.01;
+
+    l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt_f, phi_f, eta_f);
+    return (round_to(cGT.realEta(), precision) == round_to(eta_f, precision)) && 
+           (round_to(cGT.realPhi(), precision) == round_to(phi_f, precision));
+}
+
+/*
+ * Check signed integer representation
+ */
+int passSignedIntegerReprPositive(void) {
+    bool isValid = true;
+    float pt_f = 2048; // max value is 2047.97
+    float phi_f = -0.87266; 
+    float eta_f = 0.83; 
+    float precision = 0.01;
+
+    l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt_f, phi_f, eta_f);
+    cGT.printRealEta();
+    cGT.printRealPhi();
+    std::cout << cGT.realEta() << ", " << round_to(cGT.realEta(), precision) << std::endl;
+    std::cout << cGT.realPhi() << ", " << round_to(cGT.realPhi(), precision) << std::endl;
+
+    return ((round_to(cGT.realEta(), 2) == round_to(eta_f, 2)) && (round_to(cGT.realPhi(), 2) == round_to(phi_f, 2)));
+}
+
 
 int main() {
 
@@ -59,6 +101,16 @@ int main() {
     
     if (!passNegativeConstructorTest()) {
         std::cout << "Fails negative constructor test!\n" << std::endl;
+        return 1;
+    }
+
+    if (!passSignedIntegerRepr()) {
+        std::cout << "Fails signed integer representation test!\n" << std::endl;
+        return 1;
+    }
+
+    if (!passSignedIntegerReprPositive()) {
+        std::cout << "Fails signed integer positive representation test!\n" << std::endl;
         return 1;
     }
 
