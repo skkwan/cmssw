@@ -55,7 +55,8 @@ namespace l1tp2 {
 
             // Constructor from digitized inputs
             DigitizedTowerCorrelator(ap_uint<10> et, ap_uint<4> hoe, ap_uint<2> fb,
-                            unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower) {
+                            unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower, bool fullyDigitizedInputs) {
+                (void) fullyDigitizedInputs;
                 towerData = ((ap_uint<16>) et) | (((ap_uint<16>) hoe) << 10) |
                             (((ap_uint<16>) fb) << 14);
                 idxCard = indexCard;
