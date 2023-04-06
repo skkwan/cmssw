@@ -90,6 +90,7 @@ namespace l1tp2 {
             // Prints
             void print (const std::string location);
             void printEt(void) const {  std::cout << "et: " << std::bitset<10>{et()} << std::endl; };
+            void printEtFloat(void) const {  std::cout << "et float: " << et() * etLSB() << std::endl; };
             void printHoE(void) const {  std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
             void printFB(void) const {  std::cout << "fb: " << std::bitset<2>{fb()} << std::endl; };
             void printInfo(void) const { std::cout << "GCT card: " << cardNumber() << ", fiber number: " << fiberNumber() << ", tower number: " << towerNumber() << std::endl; };
