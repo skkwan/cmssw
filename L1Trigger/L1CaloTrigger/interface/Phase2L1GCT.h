@@ -331,6 +331,12 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
       if (thisCluster.etFloat() > 0.0) {
         gctDigitizedClustersCorrelator->push_back(thisCluster.createDigitizedClusterCorrelator(corrTowPhiOffset));
       }
+
+      // Make l1tp2::DigitizedClusterGT.
+      if (thisCluster.etFloat() > 0.0) {
+        bool isValid = true;
+        gctDigitizedClustersGT->push_back(thisCluster.createDigitizedClusterGT(isValid));
+      }
     }
 
     // Next do tower outputs

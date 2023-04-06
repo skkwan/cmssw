@@ -1330,6 +1330,14 @@ namespace p2eg {
     }
 
     /*
+     * Create a l1tp2::DigitizedClusterGT object
+     */
+    l1tp2::DigitizedClusterGT createDigitizedClusterGT(bool isValid) const {
+      // Constructor arguments take phi, then eta
+      return l1tp2::DigitizedClusterGT(isValid, etFloat(), realPhi(), realEta());
+    }
+
+    /*
       * Print GCT cluster information.
       */
     void printGCTClusterInfo(std::string description = "") {
