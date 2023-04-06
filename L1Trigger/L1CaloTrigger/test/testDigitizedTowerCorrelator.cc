@@ -6,13 +6,14 @@
  * Test basic constructor from digitized inputs
  */
 int passItemizedDigitizedConstructorTest(void) {
+    bool isFullyDigitizedInputs = true;
     ap_uint<10> pt = 0x1;
     ap_uint<4> hoe = 0x1;
     ap_uint<2> fb = 0x1;
     unsigned int nGCTCard = 1;
     unsigned int nFiber = 1;
     unsigned int nTower = 1;
-    l1tp2::DigitizedTowerCorrelator tow = l1tp2::DigitizedTowerCorrelator(pt, hoe, fb, nGCTCard, nFiber, nTower);
+    l1tp2::DigitizedTowerCorrelator tow = l1tp2::DigitizedTowerCorrelator(pt, hoe, fb, nGCTCard, nFiber, nTower, isFullyDigitizedInputs);
     return ((tow.et() == 0x1) &&
             (tow.hoe() == 0x1) && (tow.fb() == 0x1) && 
             (nGCTCard == 1) && (nFiber == 1) && (nTower == 1)

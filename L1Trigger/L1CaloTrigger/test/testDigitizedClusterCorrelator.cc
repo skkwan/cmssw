@@ -7,13 +7,14 @@
  * Test constructor with digitized inputs
  */
 bool passItemizedDigitizedConstructorTest(void) {
+    bool isDigitizedInputs = true;
     l1tp2::DigitizedClusterCorrelator dc = l1tp2::DigitizedClusterCorrelator((ap_uint<12>) 0x1,
                                                                       (ap_uint<6>) 0x1, (ap_uint<5>) 0x1, 
                                                                       (ap_uint<3>) 0x1, (ap_uint<3>) 0x1, 
                                                                       (ap_uint<4>) 0x1, (ap_uint<3>) 0x1,
                                                                       (ap_uint<6>) 0x1, (ap_uint<5>) 0x1,
                                                                       (ap_uint<1>) 0x1, (ap_uint<1>) 0x1,
-                                                                      (ap_uint<1>) 0x1);
+                                                                      (ap_uint<1>) 0x1, isDigitizedInputs);
     dc.print("in passItemizedDigitizedConstructorTest");
     return ((dc.pt() == 0x1) && (dc.eta() == 0x1) && (dc.phi() == 0x1) && 
             (dc.etaCr() == 0x1) && (dc.phiCr() == 0x1) && 

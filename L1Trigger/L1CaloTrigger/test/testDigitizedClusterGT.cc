@@ -6,11 +6,12 @@
  * Test basic constructor from digitized inputs
  */
 int passItemizedDigitizedConstructorTest(void) {
+    bool isFullyDigitizedInputs = true;
     ap_uint<1> isValid = 0x1;
     ap_uint<16> pt = 0x1;
     ap_uint<13> phi = 0x1;
     ap_uint<14> eta = 0x1;
-    l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt, phi, eta);
+    l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt, phi, eta, isFullyDigitizedInputs);
     return (cGT.passNullBitsCheck() && (cGT.pt() == 0x1) &&
             (cGT.phi() == 0x1) && (cGT.eta() == 0x1)  );
 }
