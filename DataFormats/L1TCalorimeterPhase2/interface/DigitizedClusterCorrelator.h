@@ -26,8 +26,6 @@ namespace l1tp2 {
             // Private member functions to perform digitization 
             ap_uint<12> digitizePt(float pt_f) {
                 float maxPt_f = (std::pow(2, n_bits_pt) - 1) * LSB_PT;
-                std::cout << "max pT: " << maxPt_f << std::endl;
-
                 // If pT exceeds the maximum (extremely unlikely), saturate the value
                 if (pt_f >= maxPt_f) {
                     return (ap_uint<12>) 0xFFF; 
