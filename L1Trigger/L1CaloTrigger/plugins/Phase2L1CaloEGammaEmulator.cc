@@ -614,11 +614,17 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   //----------------------------------------------------
 
   for (unsigned int gcc = 0; gcc < p2eg::N_GCTCARDS; gcc++) {
-    p2eg::algo_top(
-        gctCards[gcc], gctToCorr[gcc], gcc,
-        L1GCTClusters, L1GCTTowers, L1GCTFullTowers, L1GCTEGammas,
-        L1DigitizedClusterCorrelator, L1DigitizedTowerCorrelator, L1DigitizedClusterGT,
-        calib_);
+    p2eg::algo_top(gctCards[gcc],
+                   gctToCorr[gcc],
+                   gcc,
+                   L1GCTClusters,
+                   L1GCTTowers,
+                   L1GCTFullTowers,
+                   L1GCTEGammas,
+                   L1DigitizedClusterCorrelator,
+                   L1DigitizedTowerCorrelator,
+                   L1DigitizedClusterGT,
+                   calib_);
   }
 
   iEvent.put(std::move(L1GCTClusters), "GCT");

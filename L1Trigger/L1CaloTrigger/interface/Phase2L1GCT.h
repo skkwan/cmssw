@@ -350,9 +350,9 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
       GCTtoCorrOutput.GCTCorrfiber[i - corrFiberIndexOffset].GCTtowers[k] = thisTower;
 
       // For the collection, the three arguments are (1) the GCT card, (2) the fiber index in the GCT card (excluding the overlap region), and (3) the tower index in the fiber
-      l1tp2::DigitizedTowerCorrelator thisDigitizedTowerCorrelator = thisTower.createDigitizedTowerCorrelator(nGCTCard, i - corrFiberIndexOffset, k);
+      l1tp2::DigitizedTowerCorrelator thisDigitizedTowerCorrelator =
+          thisTower.createDigitizedTowerCorrelator(nGCTCard, i - corrFiberIndexOffset, k);
       gctDigitizedTowersCorrelator->push_back(thisDigitizedTowerCorrelator);
-      
     }
   }
 }
@@ -364,17 +364,18 @@ inline void p2eg::writeToCorrelatorAndGTOutputs(
  * gctTowers is the CMSSW-style output collection of towers.
  */
 
-inline void p2eg::algo_top(const p2eg::GCTcard_t& GCTcard,
-                           p2eg::GCTtoCorr_t& GCTtoCorr,
-                           unsigned int nGCTCard,
-                           std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClusters,
-                           std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers,
-                           std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers,
-                           std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
-                           std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
-                           std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,                         
-                           std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
-                           l1tp2::ParametricCalibration calib_) {
+inline void p2eg::algo_top(
+    const p2eg::GCTcard_t& GCTcard,
+    p2eg::GCTtoCorr_t& GCTtoCorr,
+    unsigned int nGCTCard,
+    std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClusters,
+    std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowers,
+    std::unique_ptr<l1tp2::CaloTowerCollection> const& gctFullTowers,
+    std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
+    std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
+    std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,
+    std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
+    l1tp2::ParametricCalibration calib_) {
   //-------------------------//
   // Initialize the GCT area
   //-------------------------//

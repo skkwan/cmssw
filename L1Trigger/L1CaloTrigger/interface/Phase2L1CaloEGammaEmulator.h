@@ -1043,7 +1043,7 @@ namespace p2eg {
     bool is_looseTkss;
     bool is_iso;
     bool is_looseTkiso;
-    ap_uint<2> brems; 
+    ap_uint<2> brems;
 
     int nGCTCard;
   };
@@ -1091,10 +1091,11 @@ namespace p2eg {
     bool is_iso;
     bool is_looseTkiso;
 
-    unsigned int hoe; // not defined 
-    unsigned int fb; // not defined
-    unsigned int timing; // not defined
-    ap_uint<2> brems; // 0 if no brems applied, 1 or 2 if brems applied (one for + direction, one for - direction: check firmware)
+    unsigned int hoe;     // not defined
+    unsigned int fb;      // not defined
+    unsigned int timing;  // not defined
+    ap_uint<2>
+        brems;  // 0 if no brems applied, 1 or 2 if brems applied (one for + direction, one for - direction: check firmware)
 
     float relIso;  // for analyzer only, not firmware
     int nGCTCard;  // for analyzer only, not firmware
@@ -1144,7 +1145,7 @@ namespace p2eg {
       hoe = 0;                // initialize: no info from RCT, so set it to null
       fb = 0;                 // initialize: no info from RCT, so set it to null
       timing = 0;             // initialize: no info from RCT, so set it to null
-      brems = rctCluster.brems; 
+      brems = rctCluster.brems;
       nGCTCard = rctCluster.nGCTCard;
     }
 
@@ -1320,13 +1321,19 @@ namespace p2eg {
      * unique to each GCT card.
      */
     l1tp2::DigitizedClusterCorrelator createDigitizedClusterCorrelator(const int corrTowPhiOffset) const {
-      return l1tp2::DigitizedClusterCorrelator(etFloat(), // technically we are just multiplying and then dividing again by the LSB
-                                               towEta, towPhi - corrTowPhiOffset,
-                                               crEta, crPhi,
-                                               hoe, is_iso,
-                                               fb, timing,
-                                               is_ss, brems,
-                                               nGCTCard);
+      return l1tp2::DigitizedClusterCorrelator(
+          etFloat(),  // technically we are just multiplying and then dividing again by the LSB
+          towEta,
+          towPhi - corrTowPhiOffset,
+          crEta,
+          crPhi,
+          hoe,
+          is_iso,
+          fb,
+          timing,
+          is_ss,
+          brems,
+          nGCTCard);
     }
 
     /*
@@ -1357,7 +1364,7 @@ namespace p2eg {
                 << "is_ss: " << is_ss << ", "
                 << "is_looseTkss" << is_looseTkss << ", "
                 << "is_iso: " << is_iso << ", "
-                << "is_looseTkiso: " << is_looseTkiso << ", " 
+                << "is_looseTkiso: " << is_looseTkiso << ", "
                 << "brems: " << brems << std::endl;
     }
   };
@@ -1366,7 +1373,7 @@ namespace p2eg {
   public:
     ap_uint<12> et;
     ap_uint<4> hoe;
-    ap_uint<2> fb;   // not defined yet in emulator
+    ap_uint<2> fb;  // not defined yet in emulator
     // For CMSSW outputs, not firmware
     ap_uint<12> ecalEt;
     ap_uint<12> hcalEt;
@@ -1497,7 +1504,9 @@ namespace p2eg {
      * Method to create a l1tp2::DigitizedTowerCorrelator, from the GCT card number, the fiber index *inside the GCT card* (excluding overlap region),
      * and the index of the tower inside the fiber.
      */
-    l1tp2::DigitizedTowerCorrelator createDigitizedTowerCorrelator(unsigned int indexCard, unsigned int indexFiber, unsigned int indexTower) {
+    l1tp2::DigitizedTowerCorrelator createDigitizedTowerCorrelator(unsigned int indexCard,
+                                                                   unsigned int indexFiber,
+                                                                   unsigned int indexTower) {
       return l1tp2::DigitizedTowerCorrelator(totalEtFloat(), hoe, fb, indexCard, indexFiber, indexTower);
     }
 
@@ -1709,19 +1718,20 @@ namespace p2eg {
 
   GCTintTowers_t getFullTowers(const GCTinternal_t& GCTinternal);
 
-  void writeToCorrelatorAndGTOutputs(const GCTinternal_t& GCTinternal,
-                                      GCTtoCorr_t& GCTtoCorrOutput,
-                                      std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClustersOutput,
-                                      std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowersOutput,
-                                      std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
-                                      std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
-                                      std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,
-                                      std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
-                                      int nGCTCard,
-                                      int fiberStart,
-                                      int fiberEnd,
-                                      int corrFiberIndexOffset,
-                                      int corrTowPhiOffset);
+  void writeToCorrelatorAndGTOutputs(
+      const GCTinternal_t& GCTinternal,
+      GCTtoCorr_t& GCTtoCorrOutput,
+      std::unique_ptr<l1tp2::CaloCrystalClusterCollection> const& gctClustersOutput,
+      std::unique_ptr<l1tp2::CaloTowerCollection> const& gctTowersOutput,
+      std::unique_ptr<l1t::EGammaBxCollection> const& gctEGammas,
+      std::unique_ptr<l1tp2::DigitizedClusterCorrelatorCollection> const& gctDigitizedClustersCorrelator,
+      std::unique_ptr<l1tp2::DigitizedTowerCorrelatorCollection> const& gctDigitizedTowersCorrelator,
+      std::unique_ptr<l1tp2::DigitizedClusterGTCollection> const& gctDigitizedClustersGT,
+      int nGCTCard,
+      int fiberStart,
+      int fiberEnd,
+      int corrFiberIndexOffset,
+      int corrTowPhiOffset);
 
 }  // namespace p2eg
 
