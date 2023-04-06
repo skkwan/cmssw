@@ -78,23 +78,23 @@ namespace l1tp2 {
             ap_uint<16> data() const { return towerData; }
 
             // Other getters
-            float etLSB() { return LSB_ET; }
-            ap_uint<10> et() { return (towerData & 0x3FF); } // ten 1's = 0x3FF
-            ap_uint<4> hoe() { return ((towerData >> 10) & 0xF); }  // four 1's= 0xF
-            ap_uint<2> fb() { return ((towerData >> 14) & 0x3); }  // two 1's = 0x3
-            unsigned int cardNumber() { return idxCard; } // GCT card number
-            unsigned int fiberNumber() { return idxFiber; } // fiber number in card (hardware convention)
-            unsigned int towerNumber() { return idxTower; } // tower number in fiber (hardware convention)
+            float etLSB() const { return LSB_ET; }
+            ap_uint<10> et() const  { return (towerData & 0x3FF); } // ten 1's = 0x3FF
+            ap_uint<4> hoe() const  { return ((towerData >> 10) & 0xF); }  // four 1's= 0xF
+            ap_uint<2> fb() const { return ((towerData >> 14) & 0x3); }  // two 1's = 0x3
+            unsigned int cardNumber() const { return idxCard; } // GCT card number
+            unsigned int fiberNumber() const { return idxFiber; } // fiber number in card (hardware convention)
+            unsigned int towerNumber() const { return idxTower; } // tower number in fiber (hardware convention)
 
             // Prints
-            void print(const std::string location);
-            void printEt(void) {  std::cout << "et: " << std::bitset<10>{et()} << std::endl; };
-            void printHoE(void) {  std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
-            void printFB(void) {  std::cout << "fb: " << std::bitset<2>{fb()} << std::endl; };
-            void printInfo(void) { std::cout << "GCT card: " << cardNumber() << ", fiber number: " << fiberNumber() << ", tower number: " << towerNumber() << std::endl; };
+            void print (const std::string location);
+            void printEt(void) const {  std::cout << "et: " << std::bitset<10>{et()} << std::endl; };
+            void printHoE(void) const {  std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
+            void printFB(void) const {  std::cout << "fb: " << std::bitset<2>{fb()} << std::endl; };
+            void printInfo(void) const { std::cout << "GCT card: " << cardNumber() << ", fiber number: " << fiberNumber() << ", tower number: " << towerNumber() << std::endl; };
 
             // Other checks
-            bool hasValidIndices(void) { 
+            bool hasValidIndices(void) const { 
                 return (idxTower < n_towers_in_fiber) && (idxFiber < n_fibers_in_card) && (idxCard < n_cards);
             }
 

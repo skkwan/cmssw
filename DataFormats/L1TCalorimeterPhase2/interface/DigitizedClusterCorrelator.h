@@ -136,34 +136,35 @@ namespace l1tp2 {
             ap_uint<64> data() const { return clusterData; }
 
             // Other getters
-            float ptLSB() { return LSB_PT; }
-            ap_uint<12> pt() { return (clusterData & 0xFFF); }
-            ap_uint<6> eta() { return ((clusterData >> 12) & 0x3F); }  // (six 1's) 0b111111 = 0x3F
-            ap_uint<5> phi() { return ((clusterData >> 18) & 0x1F); }  // (five 1's) 0b11111 = 0x1F
-            ap_uint<3> etaCr() { return ((clusterData >> 23) & 0x7); }  // (three 1's) 0b111 = 0x7
-            ap_uint<3> phiCr() { return ((clusterData >> 26) & 0x7); }
-            ap_uint<4> hoe() { return ((clusterData >> 29) & 0xF); } // (four 1's) 0b1111 = 0xF 
-            ap_uint<3> iso() { return ((clusterData >> 33) & 0x7); }
-            ap_uint<6> fb() { return ((clusterData >> 36) & 0x3F); }
-            ap_uint<5> timing() { return ((clusterData >> 42) & 0x1F); }
-            ap_uint<1> shape() { return ((clusterData >> 47) & 0x1); }
-            ap_uint<1> brems() { return ((clusterData >> 48) & 0x1); }
-            unsigned int cardNumber() { return idxGCTCard; }  // which GCT card (0, 1, or 2)
+            float ptLSB() const { return LSB_PT; }
+            ap_uint<12> pt() const { return (clusterData & 0xFFF); }
+            ap_uint<6> eta() const { return ((clusterData >> 12) & 0x3F); }  // (six 1's) 0b111111 = 0x3F
+            ap_uint<5> phi() const { return ((clusterData >> 18) & 0x1F); }  // (five 1's) 0b11111 = 0x1F
+            ap_uint<3> etaCr() const { return ((clusterData >> 23) & 0x7); }  // (three 1's) 0b111 = 0x7
+            ap_uint<3> phiCr() const { return ((clusterData >> 26) & 0x7); }
+            ap_uint<4> hoe() const { return ((clusterData >> 29) & 0xF); } // (four 1's) 0b1111 = 0xF 
+            ap_uint<3> iso() const { return ((clusterData >> 33) & 0x7); }
+            ap_uint<6> fb() const { return ((clusterData >> 36) & 0x3F); }
+            ap_uint<5> timing() const { return ((clusterData >> 42) & 0x1F); }
+            ap_uint<1> shape() const { return ((clusterData >> 47) & 0x1); }
+            ap_uint<1> brems() const { return ((clusterData >> 48) & 0x1); }
+            unsigned int cardNumber() const { return idxGCTCard; }  // which GCT card (0, 1, or 2)
 
-            const int unusedBitsStart() { return 49; } // unused bits start at bit 49
+            const int unusedBitsStart() const { return 49; } // unused bits start at bit 49
 
             // Prints
             void print(const std::string location);
-            void printPt(void) {  std::cout << "pt: " << std::bitset<12>{pt()} << std::endl; };
-            void printEta(void) {  std::cout << "eta: " << std::bitset<6>{eta()} << std::endl; };
-            void printPhi(void) {  std::cout << "phi: " << std::bitset<5>{phi()} << std::endl; };
-            void printEtaCr(void) { std::cout << "etaCr: " << std::bitset<3>{etaCr()} << std::endl; };
-            void printPhiCr(void) { std::cout << "phiCr: " << std::bitset<3>{phiCr()} << std::endl; };
-            void printHoE(void) { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
-            void printCardNumber(void) { std::cout << "GCT card number: " << cardNumber() << std::endl; };
+            void printPt(void) const {  std::cout << "pt: " << std::bitset<12>{pt()} << std::endl; };
+            void printPtFloat(void) const {  std::cout << "pt: " << pt() * ptLSB() << std::endl; };
+            void printEta(void) const {  std::cout << "eta: " << std::bitset<6>{eta()} << std::endl; };
+            void printPhi(void) const {  std::cout << "phi: " << std::bitset<5>{phi()} << std::endl; };
+            void printEtaCr(void) const { std::cout << "etaCr: " << std::bitset<3>{etaCr()} << std::endl; };
+            void printPhiCr(void) const { std::cout << "phiCr: " << std::bitset<3>{phiCr()} << std::endl; };
+            void printHoE(void) const { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
+            void printCardNumber(void) const { std::cout << "GCT card number: " << cardNumber() << std::endl; };
 
             // Other checks
-            bool passNullBitsCheck(void)  {
+            bool passNullBitsCheck(void) const {
                 return ((data() >> unusedBitsStart()) == 0x0);
             }
 

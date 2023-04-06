@@ -84,23 +84,23 @@ namespace l1tp2 {
             ap_uint<64> data() const { return clusterData; }
 
             // Other getters
-            float ptLSB() { return LSB_PT; }
-            ap_uint<1> isValid() { return (clusterData & 0x1); }
-            ap_uint<16> pt() { return ((clusterData >> 1) & 0xFFFF); } // 16 1's = 0xFFFF
-            ap_uint<13> phi() { return ((clusterData >> 17) & 0x1FFF); }  // (thirteen 1's)= 0x1FFF
-            ap_uint<14> eta() { return ((clusterData >> 30) & 0x3FFF); }  // (fourteen 1's) = 0x3FFF
+            float ptLSB() const { return LSB_PT; }
+            ap_uint<1> isValid() const { return (clusterData & 0x1); }
+            ap_uint<16> pt() const { return ((clusterData >> 1) & 0xFFFF); } // 16 1's = 0xFFFF
+            ap_uint<13> phi() const { return ((clusterData >> 17) & 0x1FFF); }  // (thirteen 1's)= 0x1FFF
+            ap_uint<14> eta() const { return ((clusterData >> 30) & 0x3FFF); }  // (fourteen 1's) = 0x3FFF
 
-            const int unusedBitsStart() { return n_bits_unused_start; } // unused bits start at bit 44
+            const int unusedBitsStart() const { return n_bits_unused_start; } // unused bits start at bit 44
 
             // Prints
             void print(const std::string location);
-            void printIsValid(void) { std::cout << "isValid: " << isValid() << std::endl; };
-            void printPt(void) {  std::cout << "pt: " << std::bitset<16>{pt()} << std::endl; };
-            void printPhi(void) {  std::cout << "phi: " << std::bitset<13>{phi()} << std::endl; };
-            void printEta(void) {  std::cout << "eta: " << std::bitset<14>{eta()} << std::endl; };
+            void printIsValid(void) const { std::cout << "isValid: " << isValid() << std::endl; };
+            void printPt(void) const {  std::cout << "pt: " << std::bitset<16>{pt()} << std::endl; };
+            void printPhi(void) const {  std::cout << "phi: " << std::bitset<13>{phi()} << std::endl; };
+            void printEta(void) const {  std::cout << "eta: " << std::bitset<14>{eta()} << std::endl; };
 
             // Other checks
-            bool passNullBitsCheck(void)  {
+            bool passNullBitsCheck(void) const {
                 return ((data() >> unusedBitsStart()) == 0x0);
             }
 
