@@ -94,9 +94,9 @@ Phase2L1CaloEGammaEmulator::Phase2L1CaloEGammaEmulator(const edm::ParameterSet& 
   produces<l1tp2::CaloTowerCollection>("GCT");
   produces<l1tp2::CaloTowerCollection>("GCTFullTowers");
   produces<BXVector<l1t::EGamma>>("GCTEGammas");
-  produces<l1tp2::DigitizedClusterCorrelatorCollection>("GCTDigitizedToCorrelator");
-  produces<l1tp2::DigitizedTowerCorrelatorCollection>("GCTDigitizedToCorrelator");
-  produces<l1tp2::DigitizedClusterGTCollection>("GCTDigitizedToGT");
+  produces<l1tp2::DigitizedClusterCorrelatorCollection>("GCTDigitizedClusterToCorrelator");
+  produces<l1tp2::DigitizedTowerCorrelatorCollection>("GCTDigitizedTowerToCorrelator");
+  produces<l1tp2::DigitizedClusterGTCollection>("GCTDigitizedClusterToGT");
 }
 
 Phase2L1CaloEGammaEmulator::~Phase2L1CaloEGammaEmulator() {}
@@ -625,9 +625,9 @@ void Phase2L1CaloEGammaEmulator::produce(edm::Event& iEvent, const edm::EventSet
   iEvent.put(std::move(L1GCTTowers), "GCT");
   iEvent.put(std::move(L1GCTFullTowers), "GCTFullTowers");
   iEvent.put(std::move(L1GCTEGammas), "GCTEGammas");
-  iEvent.put(std::move(L1DigitizedClusterCorrelator), "GCTDigitizedToCorrelator");
-  iEvent.put(std::move(L1DigitizedTowerCorrelator), "GCTDigitizedToCorrelator");
-  iEvent.put(std::move(L1DigitizedClusterGT), "GCTDigitizedToGT");
+  iEvent.put(std::move(L1DigitizedClusterCorrelator), "GCTDigitizedClusterToCorrelator");
+  iEvent.put(std::move(L1DigitizedTowerCorrelator), "GCTDigitizedTowerToCorrelator");
+  iEvent.put(std::move(L1DigitizedClusterGT), "GCTDigitizedClusterToGT");
 }
 
 //////////////////////////////////////////////////////////////////////////
