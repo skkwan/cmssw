@@ -1358,6 +1358,7 @@ namespace p2eg {
   public:
     ap_uint<12> et;
     ap_uint<4> hoe;
+    ap_uint<2> fb;   // not defined yet in emulator
     // For CMSSW outputs, not firmware
     ap_uint<12> ecalEt;
     ap_uint<12> hcalEt;
@@ -1492,6 +1493,7 @@ namespace p2eg {
                 << "total et (float): " << totalEtFloat() << ", "
                 << "ecal et (float): " << ecalEtFloat() << ", "
                 << "hcal et (float): " << hcalEtFloat() << ", "
+                << "fb: " << fb << ", "
                 << "global tower ieta: " << global_tower_iEta << ", "
                 << "global tower iphi: " << global_tower_iPhi << ", "
                 << "eta: " << getTowerEta_fromAbsID(global_tower_iEta) << ", "
