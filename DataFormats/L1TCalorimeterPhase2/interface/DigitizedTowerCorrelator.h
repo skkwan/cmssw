@@ -79,6 +79,7 @@ namespace l1tp2 {
     ap_uint<10> et() const { return (towerData & 0x3FF); }        // ten 1's = 0x3FF
     ap_uint<4> hoe() const { return ((towerData >> 10) & 0xF); }  // four 1's= 0xF
     ap_uint<2> fb() const { return ((towerData >> 14) & 0x3); }   // two 1's = 0x3
+    float etFloat() const { return  et() * etLSB(); }
     unsigned int cardNumber() const { return idxCard; }           // GCT card number
     unsigned int fiberNumber() const { return idxFiber; }         // fiber number in card (hardware convention)
     unsigned int towerNumber() const { return idxTower; }         // tower number in fiber (hardware convention)
@@ -86,12 +87,12 @@ namespace l1tp2 {
     // Prints
     void print(const std::string location);
     void printEt(void) const { std::cout << "et: " << std::bitset<10>{et()} << std::endl; };
-    void printEtFloat(void) const { std::cout << "et float: " << et() * etLSB() << std::endl; };
+    void printEtFloat(void) const { std::cout << "et float: " << etFloat() << std::endl; };
     void printHoE(void) const { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
     void printFB(void) const { std::cout << "fb: " << std::bitset<2>{fb()} << std::endl; };
     void printInfo(void) const {
       std::cout << "GCT card: " << cardNumber() << ", fiber number: " << fiberNumber()
-                << ", tower number: " << towerNumber() << std::endl;
+                << ", tower number: " << towerNumber() << ", energy (GeV): " << etFloat() << std::endl;
     };
 
     // Other checks
