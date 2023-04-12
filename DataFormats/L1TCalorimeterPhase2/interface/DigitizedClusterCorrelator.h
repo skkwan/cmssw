@@ -141,17 +141,6 @@ namespace l1tp2 {
 
     const int unusedBitsStart() const { return 49; }  // unused bits start at bit 49
 
-    // Prints
-    void print(const std::string location);
-    void printPt(void) const { std::cout << "pt: " << std::bitset<12>{pt()} << std::endl; };
-    void printPtFloat(void) const { std::cout << "pt: " << pt() * ptLSB() << std::endl; };
-    void printEta(void) const { std::cout << "eta: " << std::bitset<6>{eta()} << std::endl; };
-    void printPhi(void) const { std::cout << "phi: " << std::bitset<5>{phi()} << std::endl; };
-    void printEtaCr(void) const { std::cout << "etaCr: " << std::bitset<3>{etaCr()} << std::endl; };
-    void printPhiCr(void) const { std::cout << "phiCr: " << std::bitset<3>{phiCr()} << std::endl; };
-    void printHoE(void) const { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
-    void printCardNumber(void) const { std::cout << "GCT card number: " << cardNumber() << std::endl; };
-
     // Other checks
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0x0); }
   };

@@ -100,16 +100,6 @@ namespace l1tp2 {
     }
     const int unusedBitsStart() const { return n_bits_unused_start; }  // unused bits start at bit 44
 
-    // Prints
-    void print(const std::string location);
-    void printIsValid(void) const { std::cout << "isValid: " << isValid() << std::endl; };
-    void printPt(void) const { std::cout << "pt: " << std::bitset<16>{pt()} << std::endl; };
-    void printPhi(void) const { std::cout << "phi: " << std::bitset<13>{phi()} << std::endl; };
-    void printEta(void) const { std::cout << "eta: " << std::bitset<14>{eta()} << std::endl; };
-    void printPtFloat(void) const { std::cout << "pt (GeV): " << ptFloat() << std::endl; };
-    void printRealPhi(void) const { std::cout << "real phi: " << realPhi() << std::endl; }
-    void printRealEta(void) const { std::cout << "real eta: " << realEta() << std::endl; }
-
     // Other checks
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0x0); }
   };

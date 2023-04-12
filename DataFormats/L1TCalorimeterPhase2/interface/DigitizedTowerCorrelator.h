@@ -84,17 +84,6 @@ namespace l1tp2 {
     unsigned int fiberNumber() const { return idxFiber; }  // fiber number in card (hardware convention)
     unsigned int towerNumber() const { return idxTower; }  // tower number in fiber (hardware convention)
 
-    // Prints
-    void print(const std::string location);
-    void printEt(void) const { std::cout << "et: " << std::bitset<10>{et()} << std::endl; };
-    void printEtFloat(void) const { std::cout << "et float: " << etFloat() << std::endl; };
-    void printHoE(void) const { std::cout << "hoe: " << std::bitset<4>{hoe()} << std::endl; };
-    void printFB(void) const { std::cout << "fb: " << std::bitset<2>{fb()} << std::endl; };
-    void printInfo(void) const {
-      std::cout << "GCT card: " << cardNumber() << ", fiber number: " << fiberNumber()
-                << ", tower number: " << towerNumber() << ", energy (GeV): " << etFloat() << std::endl;
-    };
-
     // Other checks
     bool hasValidIndices(void) const {
       return (idxTower < n_towers_in_fiber) && (idxFiber < n_fibers_in_card) && (idxCard < n_cards);
