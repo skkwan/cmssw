@@ -79,10 +79,10 @@ namespace l1tp2 {
     ap_uint<10> et() const { return (towerData & 0x3FF); }        // ten 1's = 0x3FF
     ap_uint<4> hoe() const { return ((towerData >> 10) & 0xF); }  // four 1's= 0xF
     ap_uint<2> fb() const { return ((towerData >> 14) & 0x3); }   // two 1's = 0x3
-    float etFloat() const { return  et() * etLSB(); }
-    unsigned int cardNumber() const { return idxCard; }           // GCT card number
-    unsigned int fiberNumber() const { return idxFiber; }         // fiber number in card (hardware convention)
-    unsigned int towerNumber() const { return idxTower; }         // tower number in fiber (hardware convention)
+    float etFloat() const { return et() * etLSB(); }
+    unsigned int cardNumber() const { return idxCard; }    // GCT card number
+    unsigned int fiberNumber() const { return idxFiber; }  // fiber number in card (hardware convention)
+    unsigned int towerNumber() const { return idxTower; }  // tower number in fiber (hardware convention)
 
     // Prints
     void print(const std::string location);

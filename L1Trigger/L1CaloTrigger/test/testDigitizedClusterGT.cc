@@ -72,7 +72,6 @@ int passSignedIntegerReprPositive(void) {
   float pt_f = 2048;  // max value is 2047.97
   float phi_f = -0.87266;
   float eta_f = 0.83;
-  float precision = 0.01;
 
   l1tp2::DigitizedClusterGT cGT = l1tp2::DigitizedClusterGT(isValid, pt_f, phi_f, eta_f);
   return ((round_to(cGT.realEta(), 2) == round_to(eta_f, 2)) && (round_to(cGT.realPhi(), 2) == round_to(phi_f, 2)));
