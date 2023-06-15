@@ -1,5 +1,5 @@
-#ifndef L1Trigger_L1CaloTrigger_Phase2L1RCT_h
-#define L1Trigger_L1CaloTrigger_Phase2L1RCT_h
+#ifndef L1Trigger_L1CaloTrigger_Phase2L1RCT
+#define L1Trigger_L1CaloTrigger_Phase2L1RCT
 
 #include "L1Trigger/L1CaloTrigger/interface/Phase2L1CaloEGammaUtils.h"
 
