@@ -9,7 +9,7 @@ namespace l1tp2 {
   class DigitizedClusterCorrelator {
   private:
     // Data
-    ap_uint<64> clusterData;
+    unsigned long long int clusterData;
     unsigned int idxGCTCard;  // 0, 1, or 2
 
     // Constants
