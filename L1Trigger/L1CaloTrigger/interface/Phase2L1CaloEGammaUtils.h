@@ -1250,8 +1250,8 @@ namespace p2eg {
       std::cout << " Creating digitized cluster correlator with towEta, crEta: " << towEta << ", " << crEta << ", with global crystal iEta " << (towEta * CRYSTALS_IN_TOWER_ETA) + crEta << std::endl;
       return l1tp2::DigitizedClusterCorrelator(
           etFloat(),  // technically we are just multiplying and then dividing again by the LSB
-          (towEta * CRYSTALS_IN_TOWER_ETA) + crEta,
-          ((towPhi - corrTowPhiOffset) * CRYSTALS_IN_TOWER_PHI) + crPhi,
+          globalClusteriEta(),
+          ((towPhi - corrTowPhiOffset) * CRYSTALS_IN_TOWER_PHI) + crPhi,  // cannot use globalClusteriPhi() helper function because correlator offset is different than GCT offset
           hoe,
           hoe_flag,
           iso,
