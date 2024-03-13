@@ -112,7 +112,6 @@ namespace l1tp2 {
                                unsigned int shapeFlag,
                                unsigned int brems,
                                int iGCTCard) {
-      std::cout << "input iEtaCr: " << iEtaCr << " iPhiCr " << iPhiCr << " pT " << pt_f << " shapeFlag " << shapeFlag << " isoFlag " << isoFlag << std::endl;
       clusterData = (((ap_uint<64>) digitizePt(pt_f)) | 
                      ((ap_uint<64>) digitizeIEtaCr(iEtaCr) << 12) |
                      ((ap_uint<64>) digitizeIPhiCr(iPhiCr) << 20) |
