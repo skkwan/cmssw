@@ -1015,10 +1015,10 @@ namespace p2eg {
     bool is_iso;
     bool is_looseTkiso;
 
-    unsigned int hoe;      // not defined
-    unsigned int hoe_flag; // not defined
-    unsigned int fb;       // not defined
-    unsigned int timing;   // not defined
+    unsigned int hoe;       // not defined
+    unsigned int hoe_flag;  // not defined
+    unsigned int fb;        // not defined
+    unsigned int timing;    // not defined
     ap_uint<2>
         brems;  // 0 if no brems applied, 1 or 2 if brems applied (one for + direction, one for - direction: check firmware)
 
@@ -1247,18 +1247,20 @@ namespace p2eg {
      * unique to each GCT card.
      */
     l1tp2::DigitizedClusterCorrelator createDigitizedClusterCorrelator(const int corrTowPhiOffset) const {
-      std::cout << " Creating digitized cluster correlator with towEta, crEta: " << towEta << ", " << crEta << ", with global crystal iEta " << (towEta * CRYSTALS_IN_TOWER_ETA) + crEta << std::endl;
+      std::cout << " Creating digitized cluster correlator with towEta, crEta: " << towEta << ", " << crEta
+                << ", with global crystal iEta " << (towEta * CRYSTALS_IN_TOWER_ETA) + crEta << std::endl;
       return l1tp2::DigitizedClusterCorrelator(
           etFloat(),  // technically we are just multiplying and then dividing again by the LSB
           globalClusteriEta(),
-          ((towPhi - corrTowPhiOffset) * CRYSTALS_IN_TOWER_PHI) + crPhi,  // cannot use globalClusteriPhi() helper function because correlator offset is different than GCT offset
+          ((towPhi - corrTowPhiOffset) * CRYSTALS_IN_TOWER_PHI) +
+              crPhi,  // cannot use globalClusteriPhi() helper function because correlator offset is different than GCT offset
           hoe,
           hoe_flag,
           iso,
-          (is_iso) | (is_looseTkiso << 1),   // 2 bits: e.g. 0b10 means is_looseTkiso was true, and is_iso was false
+          (is_iso) | (is_looseTkiso << 1),  // 2 bits: e.g. 0b10 means is_looseTkiso was true, and is_iso was false
           fb,
           timing,
-          (is_ss) | (is_looseTkss << 1), // 2 bits (same as iso flags) is_ss in lowest bit, is_looseTkss in higher bit
+          (is_ss) | (is_looseTkss << 1),  // 2 bits (same as iso flags) is_ss in lowest bit, is_looseTkss in higher bit
           brems,
           nGCTCard);
     }
