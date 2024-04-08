@@ -159,10 +159,16 @@ SAMuon Phase2L1TGMTFwdMuonTranslator::Convertl1tMuon(const l1t::RegionalMuonCand
   if (!isDisplaced && mu.hwPt() > 0)
     pt = round(mu.hwPt() * 0.5 / LSBpt);  // Phase-1 LSB 0.5GeV
   if (isDisplaced && mu.hwPtUnconstrained() > 0)
-    pt = round(mu.hwPtUnconstrained() * 0.5 / LSBpt);  // Phase-1 LSB 0.5GeV
+    pt = round(mu.hwPtUnconstrained() * 1.0 / LSBpt);  // Phase-1 LSB 1.0GeV!!
 
   constexpr double p1phiLSB = 2 * M_PI / 576;
-  ap_int<BITSGTPHI> phi = round(mu.hwPhi() * p1phiLSB / LSBphi);  // Phase-1 LSB (2*pi/576)
+  // From the uGMTConfiguration of OMTF. OMTF send in local phi!!
+  // all others correspond to 60 degree sectors = 96 in int-scale
+  int globPhi = mu.processor() *96 + mu.hwPhi();
+  // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
+  globPhi = (globPhi + 600) % 576;
+  ap_int<BITSGTPHI> phi = round(globPhi* p1phiLSB / LSBphi);  // Phase-1 LSB (2*pi/576)
+
   ap_int<BITSGTETA> eta = round(mu.hwEta() * 0.010875 / LSBeta);  // Phase-1 LSB 0.010875
 
   // FIXME: Below are not well defined in phase1 GMT
@@ -235,7 +241,7 @@ void Phase2L1TGMTFwdMuonTranslator::associateStubs(l1t::SAMuon& mu, const l1t::M
 SAMuon Phase2L1TGMTFwdMuonTranslator::ConvertEMTFTrack(const l1t::phase2::EMTFTrack& track, const int bx_) {
   // Convert EMTF Phi and Theta to Global Phi and Eta
   float track_phi =
-      emtf::phase2::tp::calcPhiGlobRadFromLoc(track.sector(), emtf::phase2::tp::calcPhiLocDegFromInt(track.modelPhi()));
+      emtf::phase2::tp::calcPhiGlobRadFromLoc(track.sector(), emtf::phase2::tp::calcPhiLocRadFromInt(track.modelPhi()));
   float track_theta = emtf::phase2::tp::calcThetaRadFromInt(track.modelEta());
   float track_eta = -1 * std::log(std::tan(track_theta / 2));
 
