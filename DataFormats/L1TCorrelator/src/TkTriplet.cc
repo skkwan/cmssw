@@ -35,12 +35,3 @@ int TkTriplet::bx() const {
   return 0;
 }
 
-int TkTriplet::getTripletCharge() const { return charge_; }
-
-double TkTriplet::getPairMassMax() const { return pair_mass_max_; }
-
-double TkTriplet::getPairMassMin() const { return pair_mass_min_; }
-
-double TkTriplet::getPairDzMax() const { return pair_dz_max_; }
-
-double TkTriplet::getPairDzMin() const { return pair_dz_min_; }

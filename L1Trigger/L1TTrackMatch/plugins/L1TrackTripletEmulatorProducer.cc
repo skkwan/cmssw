@@ -277,14 +277,13 @@ void L1TrackTripletEmulatorProducer::produce(Event &iEvent, const EventSetup &iS
 
   if (!event_pass) {
     iEvent.put(std::move(L1TrackTripletContainer), OutputDigisName);
+    iEvent.put(std::move(L1TrackTripletWordContainer), OutputWordName);
     return;
   }
-
   float tripletPx = (pion1 + pion2 + pion3).Pt() * cos((pion1 + pion2 + pion3).Phi());
   float tripletPy = (pion1 + pion2 + pion3).Pt() * sin((pion1 + pion2 + pion3).Phi());
   float tripletPz = (pion1 + pion2 + pion3).Pt() * sinh((pion1 + pion2 + pion3).Eta());
-  float tripletP = (pion1 + pion2 + pion3).Pt() * cosh((pion1 + pion2 + pion3).Eta());
-
+  float tripletP = sqrt( tripletPx*tripletPx + tripletPy*tripletPy + tripletPz*tripletPz + triplet_mass*triplet_mass);
   TkTriplet trkTriplet(math::XYZTLorentzVector(tripletPx, tripletPy, tripletPz, tripletP),
                        triplet_charge,
                        pair_masses[0],
