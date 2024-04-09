@@ -45,6 +45,9 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   useStubQualInExtr  = cms.bool(True),
   useEndcapStubsRInExtr  = cms.bool(True),
   useFloatingPointExtrapolation  = cms.bool(False),
+
+  ##  XML / PATTERNS file:
+  patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_ExtraplMB1nadMB2DTQualAndEtaFixedP_ValueP1Scale_t20_v1_SingleMu_iPt_and_OneOverPt_classProb17_recalib2_minDP0.xml"),
   extrapolFactorsFilename = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/ExtrapolationFactors_ExtraplMB1nadMB2DTQual_ValueP1Scale_t20.xml"),
   
   sorterType = cms.string("byLLH"),
