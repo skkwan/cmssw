@@ -34,4 +34,3 @@ int TkTriplet::bx() const {
   // in the producer TkJetProducer.cc, we keep only jets with bx = 0
   return 0;
 }
-

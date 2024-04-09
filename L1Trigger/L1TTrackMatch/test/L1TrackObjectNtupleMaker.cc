@@ -284,7 +284,6 @@ private:
   std::vector<float>* m_gen_z0;
   std::vector<float>* m_gen_mother_pdgid;
 
-
   // all L1 tracks (prompt)
   std::vector<float>* m_trk_pt;
   std::vector<float>* m_trk_eta;
@@ -511,33 +510,30 @@ private:
   std::vector<float>* m_triplet_phi;
   std::vector<float>* m_triplet_eta;
   std::vector<float>* m_triplet_pt;
-  std::vector<float>*  m_triplet_mass;
-  std::vector<float>*  m_triplet_charge;
-  std::vector<float>*  m_triplet_dmassmax;
-  std::vector<float>*  m_triplet_dmassmin;
-  std::vector<float>*  m_triplet_dzmax;
-  std::vector<float>*  m_triplet_dzmin;
-  std::vector<float>*  m_triplet_trk1pt;
-  std::vector<float>*  m_triplet_trk1eta;
-  std::vector<float>*  m_triplet_trk1phi;
-  std::vector<float>*  m_triplet_trk1z;
-  std::vector<float>*  m_triplet_trk1npar;
-  std::vector<float>*  m_triplet_trk1mva;
-  std::vector<float>*  m_triplet_trk2pt;
-  std::vector<float>*  m_triplet_trk2eta;
-  std::vector<float>*  m_triplet_trk2phi;
-  std::vector<float>*  m_triplet_trk2z;
-  std::vector<float>*  m_triplet_trk2npar;
-  std::vector<float>*  m_triplet_trk2mva;
-  std::vector<float>*  m_triplet_trk3pt;
-  std::vector<float>*  m_triplet_trk3eta;
-  std::vector<float>*  m_triplet_trk3phi;
-  std::vector<float>*  m_triplet_trk3z;
-  std::vector<float>*  m_triplet_trk3npar;
-  std::vector<float>*  m_triplet_trk3mva;
-
-
-
+  std::vector<float>* m_triplet_mass;
+  std::vector<float>* m_triplet_charge;
+  std::vector<float>* m_triplet_dmassmax;
+  std::vector<float>* m_triplet_dmassmin;
+  std::vector<float>* m_triplet_dzmax;
+  std::vector<float>* m_triplet_dzmin;
+  std::vector<float>* m_triplet_trk1pt;
+  std::vector<float>* m_triplet_trk1eta;
+  std::vector<float>* m_triplet_trk1phi;
+  std::vector<float>* m_triplet_trk1z;
+  std::vector<float>* m_triplet_trk1npar;
+  std::vector<float>* m_triplet_trk1mva;
+  std::vector<float>* m_triplet_trk2pt;
+  std::vector<float>* m_triplet_trk2eta;
+  std::vector<float>* m_triplet_trk2phi;
+  std::vector<float>* m_triplet_trk2z;
+  std::vector<float>* m_triplet_trk2npar;
+  std::vector<float>* m_triplet_trk2mva;
+  std::vector<float>* m_triplet_trk3pt;
+  std::vector<float>* m_triplet_trk3eta;
+  std::vector<float>* m_triplet_trk3phi;
+  std::vector<float>* m_triplet_trk3z;
+  std::vector<float>* m_triplet_trk3npar;
+  std::vector<float>* m_triplet_trk3mva;
 
   std::vector<float>* m_trkjetExt_vz;
   std::vector<float>* m_trkjetExt_p;
@@ -936,12 +932,12 @@ void L1TrackObjectNtupleMaker::endJob() {
   delete m_triplet_eta;
   delete m_triplet_phi;
   delete m_triplet_pt;
-  delete  m_triplet_mass;
-  delete  m_triplet_charge;
-  delete  m_triplet_dmassmax;
-  delete  m_triplet_dmassmin;
-  delete  m_triplet_dzmax;
-  delete  m_triplet_dzmin;
+  delete m_triplet_mass;
+  delete m_triplet_charge;
+  delete m_triplet_dmassmax;
+  delete m_triplet_dmassmin;
+  delete m_triplet_dzmax;
+  delete m_triplet_dzmin;
   delete m_triplet_trk1pt;
   delete m_triplet_trk1eta;
   delete m_triplet_trk1phi;
@@ -960,9 +956,6 @@ void L1TrackObjectNtupleMaker::endJob() {
   delete m_triplet_trk3z;
   delete m_triplet_trk3npar;
   delete m_triplet_trk3mva;
-
-
-
 
   delete m_trkfastjet_eta;
   delete m_trkfastjet_vz;
@@ -1124,7 +1117,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
   m_gen_pt = new std::vector<float>;
   m_gen_phi = new std::vector<float>;
   m_gen_pdgid = new std::vector<float>;
-  m_gen_mother_pdgid  = new std::vector<float>;
+  m_gen_mother_pdgid = new std::vector<float>;
 
   m_gen_z0 = new std::vector<float>;
 
@@ -1200,34 +1193,29 @@ void L1TrackObjectNtupleMaker::beginJob() {
   m_triplet_phi = new std::vector<float>;
   m_triplet_pt = new std::vector<float>;
   m_triplet_mass = new std::vector<float>;
-   m_triplet_charge = new std::vector<float>;
-   m_triplet_dmassmax = new std::vector<float>;
-   m_triplet_dmassmin = new std::vector<float>;
-   m_triplet_dzmax = new std::vector<float>;
-   m_triplet_dzmin = new std::vector<float>;
-   m_triplet_trk1pt  = new std::vector<float>;
-   m_triplet_trk1eta = new std::vector<float>;
-   m_triplet_trk1phi = new std::vector<float>;
-   m_triplet_trk1z = new std::vector<float>;
-   m_triplet_trk1npar = new std::vector<float>;
-   m_triplet_trk1mva = new std::vector<float>;
-   m_triplet_trk2pt  = new std::vector<float>;
-   m_triplet_trk2eta = new std::vector<float>;
-   m_triplet_trk2phi = new std::vector<float>;
-   m_triplet_trk2z = new std::vector<float>;
-   m_triplet_trk2npar = new std::vector<float>;
-   m_triplet_trk2mva = new std::vector<float>;
-   m_triplet_trk3pt  = new std::vector<float>;
-   m_triplet_trk3eta = new std::vector<float>;
-   m_triplet_trk3phi = new std::vector<float>;
-   m_triplet_trk3z = new std::vector<float>;
-   m_triplet_trk3npar = new std::vector<float>;
-   m_triplet_trk3mva = new std::vector<float>;
-
-
-
-
-
+  m_triplet_charge = new std::vector<float>;
+  m_triplet_dmassmax = new std::vector<float>;
+  m_triplet_dmassmin = new std::vector<float>;
+  m_triplet_dzmax = new std::vector<float>;
+  m_triplet_dzmin = new std::vector<float>;
+  m_triplet_trk1pt = new std::vector<float>;
+  m_triplet_trk1eta = new std::vector<float>;
+  m_triplet_trk1phi = new std::vector<float>;
+  m_triplet_trk1z = new std::vector<float>;
+  m_triplet_trk1npar = new std::vector<float>;
+  m_triplet_trk1mva = new std::vector<float>;
+  m_triplet_trk2pt = new std::vector<float>;
+  m_triplet_trk2eta = new std::vector<float>;
+  m_triplet_trk2phi = new std::vector<float>;
+  m_triplet_trk2z = new std::vector<float>;
+  m_triplet_trk2npar = new std::vector<float>;
+  m_triplet_trk2mva = new std::vector<float>;
+  m_triplet_trk3pt = new std::vector<float>;
+  m_triplet_trk3eta = new std::vector<float>;
+  m_triplet_trk3phi = new std::vector<float>;
+  m_triplet_trk3z = new std::vector<float>;
+  m_triplet_trk3npar = new std::vector<float>;
+  m_triplet_trk3mva = new std::vector<float>;
 
   m_trkjetem_pt = new std::vector<float>;
   m_trkjetem_phi = new std::vector<float>;
@@ -1452,7 +1440,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
   eventTree->Branch("gen_pt", &m_gen_pt);
   eventTree->Branch("gen_phi", &m_gen_phi);
   eventTree->Branch("gen_pdgid", &m_gen_pdgid);
-   eventTree->Branch("gen_mother_pdgid", &m_gen_mother_pdgid);
+  eventTree->Branch("gen_mother_pdgid", &m_gen_mother_pdgid);
 
   eventTree->Branch("gen_z0", &m_gen_z0);
 
@@ -1486,31 +1474,30 @@ void L1TrackObjectNtupleMaker::beginJob() {
     eventTree->Branch("triplet_eta", &m_triplet_eta);
     eventTree->Branch("triplet_pt", &m_triplet_pt);
     eventTree->Branch("triplet_phi", &m_triplet_phi);
-    eventTree->Branch( "triplet_mass",& m_triplet_mass);
-    eventTree->Branch("triplet_charge",&m_triplet_charge );
-    eventTree->Branch("triplet_dmassmax",&m_triplet_dmassmax );
-    eventTree->Branch("triplet_dmassmin",&m_triplet_dmassmin );
-    eventTree->Branch("triplet_dzmax",&m_triplet_dzmax ); 
-    eventTree->Branch("triplet_dzmin",&m_triplet_dzmin );
-    eventTree->Branch("triplet_trk1pt", &m_triplet_trk1pt );
-    eventTree->Branch("triplet_trk1eta", &m_triplet_trk1eta );
-    eventTree->Branch( "triplet_trk1phi", &m_triplet_trk1phi );
-    eventTree->Branch( "triplet_trk1z", &m_triplet_trk1z );
-    eventTree->Branch( "triplet_trk1npar", &m_triplet_trk1npar );
-    eventTree->Branch( "triplet_trk1mva", &m_triplet_trk1mva );
-    eventTree->Branch("triplet_trk2pt", &m_triplet_trk2pt );
-    eventTree->Branch("triplet_trk2eta", &m_triplet_trk2eta );
-    eventTree->Branch( "triplet_trk2phi", &m_triplet_trk2phi );
-    eventTree->Branch( "triplet_trk2z", &m_triplet_trk2z );
-    eventTree->Branch( "triplet_trk2npar", &m_triplet_trk2npar );
-    eventTree->Branch( "triplet_trk2mva", &m_triplet_trk2mva );
-    eventTree->Branch("triplet_trk3pt", &m_triplet_trk3pt );
-    eventTree->Branch("triplet_trk3eta", &m_triplet_trk3eta );
-    eventTree->Branch( "triplet_trk3phi", &m_triplet_trk3phi );
-    eventTree->Branch( "triplet_trk3z", &m_triplet_trk3z );
-    eventTree->Branch( "triplet_trk3npar", &m_triplet_trk3npar );
-    eventTree->Branch( "triplet_trk3mva", &m_triplet_trk3mva );
-
+    eventTree->Branch("triplet_mass", &m_triplet_mass);
+    eventTree->Branch("triplet_charge", &m_triplet_charge);
+    eventTree->Branch("triplet_dmassmax", &m_triplet_dmassmax);
+    eventTree->Branch("triplet_dmassmin", &m_triplet_dmassmin);
+    eventTree->Branch("triplet_dzmax", &m_triplet_dzmax);
+    eventTree->Branch("triplet_dzmin", &m_triplet_dzmin);
+    eventTree->Branch("triplet_trk1pt", &m_triplet_trk1pt);
+    eventTree->Branch("triplet_trk1eta", &m_triplet_trk1eta);
+    eventTree->Branch("triplet_trk1phi", &m_triplet_trk1phi);
+    eventTree->Branch("triplet_trk1z", &m_triplet_trk1z);
+    eventTree->Branch("triplet_trk1npar", &m_triplet_trk1npar);
+    eventTree->Branch("triplet_trk1mva", &m_triplet_trk1mva);
+    eventTree->Branch("triplet_trk2pt", &m_triplet_trk2pt);
+    eventTree->Branch("triplet_trk2eta", &m_triplet_trk2eta);
+    eventTree->Branch("triplet_trk2phi", &m_triplet_trk2phi);
+    eventTree->Branch("triplet_trk2z", &m_triplet_trk2z);
+    eventTree->Branch("triplet_trk2npar", &m_triplet_trk2npar);
+    eventTree->Branch("triplet_trk2mva", &m_triplet_trk2mva);
+    eventTree->Branch("triplet_trk3pt", &m_triplet_trk3pt);
+    eventTree->Branch("triplet_trk3eta", &m_triplet_trk3eta);
+    eventTree->Branch("triplet_trk3phi", &m_triplet_trk3phi);
+    eventTree->Branch("triplet_trk3z", &m_triplet_trk3z);
+    eventTree->Branch("triplet_trk3npar", &m_triplet_trk3npar);
+    eventTree->Branch("triplet_trk3mva", &m_triplet_trk3mva);
 
     if (Displaced == "Displaced" || Displaced == "Both") {
       eventTree->Branch("trkfastjetExt_eta", &m_trkfastjetExt_eta);
@@ -1785,7 +1772,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     m_triplet_charge->clear();
     m_triplet_dmassmax->clear();
     m_triplet_dmassmin->clear();
-    m_triplet_dzmax->clear(); 
+    m_triplet_dzmax->clear();
     m_triplet_dzmin->clear();
     m_triplet_trk1pt->clear();
     m_triplet_trk1eta->clear();
@@ -1805,9 +1792,6 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     m_triplet_trk3z->clear();
     m_triplet_trk3npar->clear();
     m_triplet_trk3mva->clear();
-
-
- 
 
     if (Displaced == "Displaced" || Displaced == "Both") {
       m_trkjetExt_eta->clear();
@@ -2016,10 +2000,9 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       m_gen_pt->push_back(genpartIter->pt());
       m_gen_phi->push_back(genpartIter->phi());
       m_gen_pdgid->push_back(genpartIter->pdgId());
-      if (genpartIter->numberOfMothers ()>0 ){
+      if (genpartIter->numberOfMothers() > 0) {
         m_gen_mother_pdgid->push_back(genpartIter->mother(0)->pdgId());
-      }
-      else{
+      } else {
         m_gen_mother_pdgid->push_back(-999);
       }
 
@@ -2287,9 +2270,9 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
           myFake = 1;
 
         myTP_pdgid = my_tp->pdgId();
-        if (my_tp->genParticles().size()>0){
+        if (my_tp->genParticles().size() > 0) {
           myTP_mother_pdgid = my_tp->genParticles().at(0)->mother(0)->pdgId();
-        } 
+        }
         myTP_pt = my_tp->p4().pt();
         myTP_eta = my_tp->p4().eta();
         myTP_phi = my_tp->p4().phi();
@@ -2309,7 +2292,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       m_trk_fake->push_back(myFake);
       m_trk_matchtp_pdgid->push_back(myTP_pdgid);
-      m_trk_matchtp_mother_pdgid->push_back( myTP_mother_pdgid);
+      m_trk_matchtp_mother_pdgid->push_back(myTP_mother_pdgid);
 
       m_trk_matchtp_pt->push_back(myTP_pt);
       m_trk_matchtp_eta->push_back(myTP_eta);
