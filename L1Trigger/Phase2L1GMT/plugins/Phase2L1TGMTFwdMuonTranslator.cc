@@ -100,19 +100,19 @@ void Phase2L1TGMTFwdMuonTranslator::produce(edm::Event& iEvent, const edm::Event
     // Since OMTF is using Phase-1 LSB, will convert to SAMuon locally
     // We should move to passing words in future
     l1t::SAMuon samuon;
-    if (mu.hwPt() > 0)
+    if (mu.hwPt() > 0) {
       samuon = Convertl1tMuon(mu, 0);
-    else if (mu.hwPtUnconstrained() > 0)  //Assume exculsive, need double check
-      samuon = Convertl1tMuon(mu, 0, true);
-
-    //now associate the stubs
-    associateStubs(samuon, stubs);
-
-    // Add To Collections
-    if (mu.hwPt() > 0)
+      //now associate the stubs
+      associateStubs(samuon, stubs);
       prompt.push_back(samuon);
-    else if (mu.hwPtUnconstrained() > 0)
+    }
+    if (mu.hwPtUnconstrained() > 0)  //Assume exculsive, need double check
+    {
+      samuon = Convertl1tMuon(mu, 0, true);
+      //now associate the stubs
+      associateStubs(samuon, stubs);
       displaced.push_back(samuon);
+    }
   }
 
   // Convert EMTF++ Tracks to SAMuons
