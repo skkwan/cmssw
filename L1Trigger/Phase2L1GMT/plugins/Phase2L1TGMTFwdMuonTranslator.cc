@@ -161,14 +161,14 @@ SAMuon Phase2L1TGMTFwdMuonTranslator::Convertl1tMuon(const l1t::RegionalMuonCand
   if (isDisplaced && mu.hwPtUnconstrained() > 0)
     pt = round(mu.hwPtUnconstrained() * 1.0 / LSBpt);  // Phase-1 LSB 1.0GeV!!
 
-  // BEWARE: THIS CONVERSION IS ONLY VALID FOR OMTF  
+  // BEWARE: THIS CONVERSION IS ONLY VALID FOR OMTF
   constexpr double p1phiLSB = 2 * M_PI / 576;
   // From the uGMTConfiguration of OMTF. OMTF send in local phi!!
   // all others correspond to 120 degree sectors = 192 in int-scale
-  int globPhi = mu.processor() *192 + mu.hwPhi(); 
+  int globPhi = mu.processor() * 192 + mu.hwPhi();
   // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
   globPhi = (globPhi + 600) % 576;
-  ap_int<BITSGTPHI> phi = round(globPhi* p1phiLSB / LSBphi);  // Phase-1 LSB (2*pi/576)
+  ap_int<BITSGTPHI> phi = round(globPhi * p1phiLSB / LSBphi);  // Phase-1 LSB (2*pi/576)
 
   ap_int<BITSGTETA> eta = round(mu.hwEta() * 0.010875 / LSBeta);  // Phase-1 LSB 0.010875
 
