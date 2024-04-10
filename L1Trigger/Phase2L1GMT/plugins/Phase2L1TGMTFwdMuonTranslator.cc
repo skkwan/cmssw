@@ -119,19 +119,22 @@ void Phase2L1TGMTFwdMuonTranslator::produce(edm::Event& iEvent, const edm::Event
   for (unsigned int track_id = 0; track_id < emtf_tracks->size(); ++track_id) {
     const auto& track = emtf_tracks->at(track_id);
 
+    // Short-Circuit: Only keep valid tracks that are in BX=0
     if ((track.valid() == 0) || (track.bx() != 0)) {
       continue;
     }
 
+    // Short-Circuit: Only keep tracks with quality above 3 to avoid single hit tracks
+    if (track.emtfQuality() <= 3) {
+      continue;
+    }
+
+    // Short-Circuit: Only keep tracks with the max relevance score (127)
     if (track.emtfRels() != 127) {
       continue;
     }
 
     auto samuon = ConvertEMTFTrack(track, 0);
-
-    // Skip qual == 0 EMTF tracks
-    if (samuon.hwQual() == 0)
-      continue;
 
     //now associate the stubs
     associateStubs(samuon, stubs);
