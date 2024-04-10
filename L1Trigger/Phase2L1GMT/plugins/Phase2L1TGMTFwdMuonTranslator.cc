@@ -123,6 +123,10 @@ void Phase2L1TGMTFwdMuonTranslator::produce(edm::Event& iEvent, const edm::Event
       continue;
     }
 
+    if (track.emtfRels() != 127) {
+      continue;
+    }
+
     auto samuon = ConvertEMTFTrack(track, 0);
 
     // Skip qual == 0 EMTF tracks
@@ -235,7 +239,7 @@ void Phase2L1TGMTFwdMuonTranslator::associateStubs(l1t::SAMuon& mu, const l1t::M
 SAMuon Phase2L1TGMTFwdMuonTranslator::ConvertEMTFTrack(const l1t::phase2::EMTFTrack& track, const int bx_) {
   // Convert EMTF Phi and Theta to Global Phi and Eta
   float track_phi =
-      emtf::phase2::tp::calcPhiGlobRadFromLoc(track.sector(), emtf::phase2::tp::calcPhiLocDegFromInt(track.modelPhi()));
+      emtf::phase2::tp::calcPhiGlobRadFromLoc(track.sector(), emtf::phase2::tp::calcPhiLocRadFromInt(track.modelPhi()));
   float track_theta = emtf::phase2::tp::calcThetaRadFromInt(track.modelEta());
   float track_eta = -1 * std::log(std::tan(track_theta / 2));
 
@@ -247,7 +251,7 @@ SAMuon Phase2L1TGMTFwdMuonTranslator::ConvertEMTFTrack(const l1t::phase2::EMTFTr
   math::PtEtaPhiMLorentzVector p4(track.emtfPt() * LSBpt, track_eta, track_phi, 0.0);
 
   // Quantize Values
-  ap_uint<BITSSAQUAL> qual = track.emtfModeV2();  // Not sure how this should be handled; using mode for now
+  ap_uint<BITSSAQUAL> qual = track.emtfQuality();  // Quality provided by EMTF to GMT
   int charge = track.emtfQ();                     // EMTF uses the same convention
   ap_uint<BITSGTPT> pt = track.emtfPt();          // Quantized by EMTF in the same units
   ap_int<BITSGTPHI> phi = round(track_phi / LSBphi);
