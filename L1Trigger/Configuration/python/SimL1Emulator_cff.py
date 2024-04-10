@@ -191,11 +191,14 @@ from L1Trigger.L1TTrackMatch.l1tTrackFastJets_cfi import *
 from L1Trigger.L1TTrackMatch.l1tTrackerEtMiss_cfi import *
 from L1Trigger.L1TTrackMatch.l1tTrackerHTMiss_cfi import *
 
+
+
 #Selected and Associated tracks for Jets and Emulated Jets
 _phase2_siml1emulator.add(l1tTrackSelectionProducerForJets)
 _phase2_siml1emulator.add(l1tTrackSelectionProducerExtendedForJets)
 _phase2_siml1emulator.add(l1tTrackVertexAssociationProducerForJets)
 _phase2_siml1emulator.add(l1tTrackVertexAssociationProducerExtendedForJets)
+
 
 #Selected and Associated tracks for EtMiss and Emulated EtMiss
 _phase2_siml1emulator.add(l1tTrackSelectionProducerForEtMiss)
@@ -203,12 +206,14 @@ _phase2_siml1emulator.add(l1tTrackSelectionProducerExtendedForEtMiss)
 _phase2_siml1emulator.add(l1tTrackVertexAssociationProducerForEtMiss)
 _phase2_siml1emulator.add(l1tTrackVertexAssociationProducerExtendedForEtMiss)
 
+
 #Track Jets, Track Only Et Miss, Track Only HT Miss
 _phase2_siml1emulator.add(l1tTrackJets)
 _phase2_siml1emulator.add(l1tTrackJetsExtended)
 _phase2_siml1emulator.add(l1tTrackFastJets)
 _phase2_siml1emulator.add(l1tTrackerEtMiss)
 _phase2_siml1emulator.add(l1tTrackerHTMiss)
+
 
 #Emulated Track Jets, Track Only Et Miss, Track Only HT Miss
 from L1Trigger.L1TTrackMatch.l1tTrackJetsEmulation_cfi import *
@@ -221,6 +226,10 @@ _phase2_siml1emulator.add(l1tTrackerEmuEtMiss)
 from L1Trigger.L1TTrackMatch.l1tTrackerEmuHTMiss_cfi import *
 _phase2_siml1emulator.add(l1tTrackerEmuHTMiss)
 _phase2_siml1emulator.add(l1tTrackerEmuHTMissExtended)
+
+from L1Trigger.L1TTrackMatch.l1tTrackTripletEmulation_cfi import *
+_phase2_siml1emulator.add(l1tTrackTripletEmulation)
+
 
 # PF Candidates
 # ########################################################################
