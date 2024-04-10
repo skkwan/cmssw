@@ -106,7 +106,7 @@ void Phase2L1TGMTFwdMuonTranslator::produce(edm::Event& iEvent, const edm::Event
       associateStubs(samuon, stubs);
       prompt.push_back(samuon);
     }
-    if (mu.hwPtUnconstrained() > 0)  //Assume exculsive, need double check
+    if (mu.hwPtUnconstrained() > 0)  
     {
       samuon = Convertl1tMuon(mu, 0, true);
       //now associate the stubs
