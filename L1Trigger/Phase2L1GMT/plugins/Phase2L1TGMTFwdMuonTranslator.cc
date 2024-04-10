@@ -252,8 +252,8 @@ SAMuon Phase2L1TGMTFwdMuonTranslator::ConvertEMTFTrack(const l1t::phase2::EMTFTr
 
   // Quantize Values
   ap_uint<BITSSAQUAL> qual = track.emtfQuality();  // Quality provided by EMTF to GMT
-  int charge = track.emtfQ();                     // EMTF uses the same convention
-  ap_uint<BITSGTPT> pt = track.emtfPt();          // Quantized by EMTF in the same units
+  int charge = track.emtfQ();                      // EMTF uses the same convention
+  ap_uint<BITSGTPT> pt = track.emtfPt();           // Quantized by EMTF in the same units
   ap_int<BITSGTPHI> phi = round(track_phi / LSBphi);
   ap_int<BITSGTETA> eta = round(track_eta / LSBeta);
   ap_int<BITSSAZ0> z0 = track.emtfZ0();  // Quantized by EMTF in the same units
