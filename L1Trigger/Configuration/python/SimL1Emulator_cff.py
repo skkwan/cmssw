@@ -132,7 +132,8 @@ _phase2_siml1emulator.add(L1TCaloJetsTausTask)
 # ########################################################################
 from L1Trigger.L1TMuonOverlapPhase2.fakeOmtfParamsPhase2_cff import *
 from L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_extrapol_cfi import *
-_phase2_siml1emulator.add(omtfConfigurationPhase2)
+#_phase2_siml1emulator.add(omtfParamsSource)
+_phase2_siml1emulator.add(omtfParamsPhase2)
 _phase2_siml1emulator.add(simOmtfPhase2Digis)
 
 from L1Trigger.L1TMuonEndCapPhase2.simCscTriggerPrimitiveDigisForEMTF_cfi import *

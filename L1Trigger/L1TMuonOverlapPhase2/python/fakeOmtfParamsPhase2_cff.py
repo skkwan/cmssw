@@ -15,6 +15,3 @@ omtfParamsPhase2 = cms.ESProducer(
     ),
     configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0209.xml"),
 )
-
-
-omtfConfigurationPhase2=cms.Task(omtfParamsSource, omtfParamsPhase2)
