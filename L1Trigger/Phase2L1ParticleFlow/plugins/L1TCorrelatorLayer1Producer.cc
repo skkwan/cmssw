@@ -25,6 +25,8 @@
 #include "L1Trigger/Phase2L1ParticleFlow/interface/l1-converters/tkinput_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/interface/l1-converters/muonGmtToL1ct_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/interface/l1-converters/hgcalinput_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/interface/l1-converters/gcteminput_ref.h"
+#include "L1Trigger/Phase2L1ParticleFlow/interface/l1-converters/gcthadinput_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/interface/regionizer/regionizer_base_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/interface/regionizer/multififo_regionizer_ref.h"
 #include "L1Trigger/Phase2L1ParticleFlow/interface/regionizer/buffered_folded_multififo_regionizer_ref.h"
@@ -76,6 +78,8 @@ private:
   std::unique_ptr<l1ct::TrackInputEmulator> trackInput_;
   std::unique_ptr<l1ct::GMTMuonDecoderEmulator> muonInput_;
   std::unique_ptr<l1ct::HgcalClusterDecoderEmulator> hgcalInput_;
+  std::unique_ptr<l1ct::GctHadClusterDecoderEmulator> gctHadInput_;
+  std::unique_ptr<l1ct::GctEmClusterDecoderEmulator> gctEmInput_;
   std::unique_ptr<l1ct::RegionizerEmulator> regionizer_;
   std::unique_ptr<l1ct::PFAlgoEmulatorBase> l1pfalgo_;
   std::unique_ptr<l1ct::LinPuppiEmulator> l1pualgo_;
@@ -251,6 +255,20 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
         iConfig.getParameter<edm::ParameterSet>("hgcalInputConversionParameters"));
   } else if (hgcalInAlgo != "Ideal")
     throw cms::Exception("Configuration", "Unsupported hgcalInputConversionAlgo");
+
+  const std::string &gctEmInAlgo = iConfig.getParameter<std::string>("gctEmInputConversionAlgo");
+  if (gctEmInInAlgo == "Emulator") {
+    gctEmInput_ = std::make_unique<l1ct::gctEmClusterDecoderEmulator>(
+        iConfig.getParameter<edm::ParameterSet>("gctEmInputConversionParameters"));
+  } else if (gctEmInAlgo != "Ideal")
+    throw cms::Exception("Configuration", "Unsupported gctEmInputConversionAlgo");
+
+  const std::string &gctHadInAlgo = iConfig.getParameter<std::string>("gctHadInputConversionAlgo");
+  if (gctHadInInAlgo == "Emulator") {
+    gctHadInput_ = std::make_unique<l1ct::gctHadClusterDecoderEmulator>(
+        iConfig.getParameter<edm::ParameterSet>("gctHadInputConversionParameters"));
+  } else if (gctHadInAlgo != "Ideal")
+    throw cms::Exception("Configuration", "Unsupported gctHadInputConversionAlgo");
 
   const std::string &regalgo = iConfig.getParameter<std::string>("regionizerAlgo");
   if (regalgo == "Ideal") {
@@ -656,6 +674,8 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
   event_.decoded.emcalo.clear();
   event_.decoded.hadcalo.clear();
   event_.raw.hgcalcluster.clear();
+  event_.raw.gctEm.clear();
+  event_.raw.gctHad.clear();
 
   for (const edm::ParameterSet &preg : iConfig.getParameter<edm::VParameterSet>("caloSectors")) {
     std::vector<double> etaBoundaries = preg.getParameter<std::vector<double>>("etaBoundaries");
@@ -666,15 +686,18 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     if (phiWidth > 2 * l1ct::Scales::maxAbsPhi())
       throw cms::Exception("Configuration", "caloSectors phi range too large for phi_t data type");
     double phiZero = preg.getParameter<double>("phiZero");
+    double phiExtra = preg.getParameter<double>("phiExtra");
     for (unsigned int ieta = 0, neta = etaBoundaries.size() - 1; ieta < neta; ++ieta) {
       float etaWidth = etaBoundaries[ieta + 1] - etaBoundaries[ieta];
       if (etaWidth > 2 * l1ct::Scales::maxAbsEta())
         throw cms::Exception("Configuration", "caloSectors eta range too large for eta_t data type");
       for (unsigned int iphi = 0; iphi < phiSlices; ++iphi) {
         float phiCenter = reco::reduceRange(iphi * phiWidth + phiZero);
-        event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
-        event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
-        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
+        event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
+        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
+        event_.raw.gctEm.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
+        event_.raw.gctHad.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
       }
     }
   }
