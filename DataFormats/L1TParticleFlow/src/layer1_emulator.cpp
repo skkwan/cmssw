@@ -161,6 +161,22 @@ bool l1ct::RawInputs::read(std::fstream& from) {
       return false;
   }
 
+  if (!readVar(from, number))
+    return false;
+  gctHad.resize(number);
+  for (auto& v : gctHad) {
+    if (!(v.region.read(from) && readMany(from, v.obj)))
+      return false;
+  }
+
+  if (!readVar(from, number))
+    return false;
+  gctEm.resize(number);
+  for (auto& v : gctEm) {
+    if (!(v.region.read(from) && readMany(from, v.obj)))
+      return false;
+  }
+
   return true;
 }
 
@@ -186,6 +202,21 @@ bool l1ct::RawInputs::write(std::fstream& to) const {
       return false;
   }
 
+  number = gctHad.size();
+  if (!writeVar(number, to))
+    return false;
+  for (const auto& v : gctHad) {
+    if (!(v.region.write(to) && writeMany(v.obj, to)))
+      return false;
+  }
+
+  number = gctEm.size();
+  if (!writeVar(number, to))
+    return false;
+  for (const auto& v : gctEm) {
+    if (!(v.region.write(to) && writeMany(v.obj, to)))
+      return false;
+  }
   return true;
 }
 void l1ct::RawInputs::clear() {
@@ -194,6 +225,11 @@ void l1ct::RawInputs::clear() {
   muon.clear();
   for (auto& h : hgcalcluster)
     h.clear();
+  for (auto& h : gctHad)
+    h.clear();
+  for (auto& h : gctEm)
+    h.clear();
+
 }
 
 bool l1ct::RegionizerDecodedInputs::read(std::fstream& from) {
