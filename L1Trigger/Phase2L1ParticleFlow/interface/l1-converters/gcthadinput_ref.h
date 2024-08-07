@@ -18,6 +18,8 @@ namespace l1ct {
 
     ~GctHadClusterDecoderEmulator();
 
+    double fracPart(const double total, const unsigned int hoe) const;
+
     static edm::ParameterSetDescription getParameterSetDescription();
 
     l1ct::HadCaloObjEmu decode(const ap_uint<64> &in) const;

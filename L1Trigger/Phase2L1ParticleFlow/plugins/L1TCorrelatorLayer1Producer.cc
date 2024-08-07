@@ -257,15 +257,15 @@ L1TCorrelatorLayer1Producer::L1TCorrelatorLayer1Producer(const edm::ParameterSet
     throw cms::Exception("Configuration", "Unsupported hgcalInputConversionAlgo");
 
   const std::string &gctEmInAlgo = iConfig.getParameter<std::string>("gctEmInputConversionAlgo");
-  if (gctEmInInAlgo == "Emulator") {
-    gctEmInput_ = std::make_unique<l1ct::gctEmClusterDecoderEmulator>(
+  if (gctEmInAlgo == "Emulator") {
+    gctEmInput_ = std::make_unique<l1ct::GctEmClusterDecoderEmulator>(
         iConfig.getParameter<edm::ParameterSet>("gctEmInputConversionParameters"));
   } else if (gctEmInAlgo != "Ideal")
     throw cms::Exception("Configuration", "Unsupported gctEmInputConversionAlgo");
 
   const std::string &gctHadInAlgo = iConfig.getParameter<std::string>("gctHadInputConversionAlgo");
-  if (gctHadInInAlgo == "Emulator") {
-    gctHadInput_ = std::make_unique<l1ct::gctHadClusterDecoderEmulator>(
+  if (gctHadInAlgo == "Emulator") {
+    gctHadInput_ = std::make_unique<l1ct::GctHadClusterDecoderEmulator>(
         iConfig.getParameter<edm::ParameterSet>("gctHadInputConversionParameters"));
   } else if (gctHadInAlgo != "Ideal")
     throw cms::Exception("Configuration", "Unsupported gctHadInputConversionAlgo");
