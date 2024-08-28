@@ -16,17 +16,17 @@ edm::ParameterSetDescription l1ct::GctEmClusterDecoderEmulator::getParameterSetD
 l1ct::GctEmClusterDecoderEmulator::~GctEmClusterDecoderEmulator() {}
 
 l1ct::EmCaloObjEmu l1ct::GctEmClusterDecoderEmulator::decode(const ap_uint<64> &in) const {
-  ap_uint<12> w_pt = in(11, 0);
-  ap_int<8> w_eta = in(19, 12);
-  ap_int<7> w_phi = in(26, 73);
+  ap_uint<12> pt = in(11, 0);
+  ap_int<8> eta = in(19, 12);
+  ap_int<7> phi = in(26, 20);
 
   // need to add emid
 
   l1ct::EmCaloObjEmu out;
   out.clear();
-  out.hwPt = w_pt * l1ct::pt_t(0.5);  // the LSB for GCT objects
-  out.hwEta = w_eta * 4;
-  out.hwPhi = w_phi * 4;
+  out.hwPt = pt * l1ct::pt_t(0.5);  // the LSB for GCT objects
+  out.hwEta = eta * 4;
+  out.hwPhi = phi * 4;
 
   // need to add emid
 
