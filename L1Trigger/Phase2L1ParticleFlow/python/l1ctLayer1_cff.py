@@ -95,7 +95,7 @@ l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     caloSectors = cms.VPSet(
         cms.PSet( 
             etaBoundaries = cms.vdouble(-1.5, 1.5),
-            phiSlices     = cms.uint32(6),
+            phiSlices     = cms.uint32(3),
             phiExtra      = cms.double(math.pi/6),
             phiZero       = cms.double(math.pi/18)
         )
