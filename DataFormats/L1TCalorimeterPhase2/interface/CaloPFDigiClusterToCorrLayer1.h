@@ -30,12 +30,12 @@ namespace l1tp2 {
                                ap_uint<4> hoe) {
       // iEta is an unsigned quantity, in bits 12 through 18 (7 bits)
       ap_uint<64> temp_data_eta = 0x0; 
-      temp_data_eta |= ((0x7F & abs(etaCr)) << 12);  
+      temp_data_eta |= ((ap_uint<64>) ((0x7F & abs(etaCr)) << 12));  
 
       // Repeat for phi, which is bits 20 through 26 (7 bits). The sign bit is 26, leaving 6 bits for the magnitude
       ap_uint<64> temp_data_phi = 0x0;
-      if (phiCr > 0) temp_data_phi |= (0x1 << 25);   // set bit 26 to 1 if iPhi is positive 
-      temp_data_phi |= ((0x3F & abs(phiCr)) << 19);   // 0x3F is 0b111111 (six 1's)
+      if (phiCr > 0) temp_data_phi |= ((ap_uint<64>) (0x1 << 25));   // set bit 26 to 1 if iPhi is positive 
+      temp_data_phi |= ((ap_uint<64>) ((0x3F & abs(phiCr)) << 19));   // 0x3F is 0b111111 (six 1's)
 
       clusterData = ((ap_uint<64>)pt) | temp_data_eta | temp_data_phi |
                     (((ap_uint<64>)hoe) << 26);

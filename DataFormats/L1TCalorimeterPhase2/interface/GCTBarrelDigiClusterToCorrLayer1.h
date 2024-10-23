@@ -36,17 +36,17 @@ namespace l1tp2 {
                                ap_uint<2> brems) {
       // iEta is an unsigned quantity in bits 12 through 18 (7 bits)
       ap_uint<64> temp_data_eta = 0x0; 
-      temp_data_eta |= ((0x7F & abs(etaCr)) << 12);  
+      temp_data_eta |= ((ap_uint<64>) ((0x7F & abs(etaCr)) << 12));  
 
       // Repeat for phi, which is bits 19 through 25 (7 bits). The sign bit is 25, leaving 6 bits for the magnitude
       ap_uint<64> temp_data_phi = 0x0;
-      if (phiCr > 0) temp_data_phi |= (0x1 << 25);   // set bit 26 to 1 if iPhi is positive 
-      temp_data_phi |= ((0x3F & abs(phiCr)) << 19);   // 0x3F is 0b111111 (six 1's)
+      if (phiCr > 0) temp_data_phi |= ((ap_uint<64>) (0x1 << 25));   // set bit 26 to 1 if iPhi is positive 
+      temp_data_phi |= ((ap_uint<64>) ((0x3F & abs(phiCr)) << 19));   // 0x3F is 0b111111 (six 1's)
 
       clusterData = ((ap_uint<64>)pt) | temp_data_eta | temp_data_phi |
-                    (((ap_uint<64>)hoe) << 26) | (((ap_uint<64>)hoeFlag) << 31) | (((ap_uint<64>)iso) << 35) |
-                    (((ap_uint<64>)isoFlag) << 37) | (((ap_uint<64>)fb) << 43) | (((ap_uint<64>)timing) << 48) |
-                    (((ap_uint<64>)shapeFlag << 50)) | (((ap_uint<64>)brems << 52));
+                    (((ap_uint<64>)hoe) << 26) | (((ap_uint<64>)hoeFlag) << 30) | (((ap_uint<64>)iso) << 32) |
+                    (((ap_uint<64>)isoFlag) << 35) | (((ap_uint<64>)fb) << 37) | (((ap_uint<64>)timing) << 43) |
+                    (((ap_uint<64>)shapeFlag << 48)) | (((ap_uint<64>)brems << 50));
     }
 
     // Getters
@@ -76,11 +76,11 @@ namespace l1tp2 {
     ap_uint<2> hoeFlag() const { return ((clusterData >> 30) & 0x3); }  // (two 1's) 0b11 = 0x3
 
     // Raw isolation sum: not saved in the emulator
-    ap_uint<3> iso() const { return ((clusterData >> 35) & 0x7); }
+    ap_uint<3> iso() const { return ((clusterData >> 32) & 0x7); }
 
     // iso flag: two bits, least significant bit is the standalone WP (true or false), second bit is the looseTk WP (true or false)
     // e.g. 0b01 : standalone iso flag passed, loose Tk iso flag did not pass
-    ap_uint<2> isoFlags() const { return ((clusterData >> 37) & 0x3); }  // (two 1's) 0b11 = 0x3
+    ap_uint<2> isoFlags() const { return ((clusterData >> 35) & 0x3); }  // (two 1's) 0b11 = 0x3
     bool passes_iso() const { return (isoFlags() & 0x1); }               // standalone iso WP
     bool passes_looseTkiso() const { return (isoFlags() & 0x2); }        // loose Tk iso WP
 
