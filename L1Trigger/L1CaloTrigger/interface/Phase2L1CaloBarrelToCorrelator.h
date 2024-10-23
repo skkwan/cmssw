@@ -1,7 +1,9 @@
 #ifndef PHASE_2_L1_CALO_BARREL_TO_CORRELATOR
 #define PHASE_2_L1_CALO_BARREL_TO_CORRELATOR
 
+#include "DataFormats/L1TCalorimeterPhase2/interface/CaloPFDigiClusterToCorrLayer1.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/GCTBarrelDigiClusterToCorrLayer1.h"
+
 #include "L1Trigger/L1CaloTrigger/interface/Phase2L1CaloEGammaUtils.h"
 
 /* 
