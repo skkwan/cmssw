@@ -21,6 +21,7 @@
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTBarrelDigiClusterToCorrLayer1.h"
 
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
@@ -93,6 +94,9 @@ namespace p2eg {
   static constexpr int GCTCARD_2_TOWER_IPHI_OFFSET = 68;
 
   static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 5;  // window size of isolation sum (5x5 in towers)
+
+  // Output to correlator: fixed number of EG clusters per output SLR
+  static constexpr int N_EG_CLUSTERS_PER_SLR = 6;
 
   //////////////////////////////////////////////////////////////////////////
   // RCT: indexing helper functions
@@ -1660,6 +1664,13 @@ namespace p2eg {
       int fiberEnd,
       int corrFiberIndexOffset,
       int corrTowPhiOffset);
+
+  /*******************************************************************************************/
+  /* Interface to correlator helper functions (defined in Phase2L1CaloBarrelToCorrelator.h)  */
+  /*******************************************************************************************/
+  bool compareBarrelDigiClusterCorrelatorET(const l1tp2::GCTBarrelDigiClusterToCorrLayer1& lhs, const l1tp2::GCTBarrelDigiClusterToCorrLayer1& rhs);
+  void sortAndPadSLR(l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection& thisSLR);
+
 
 }  // namespace p2eg
 

@@ -181,7 +181,6 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
             }
         }
-
         // Repeat for PF Clusters
         for (auto &pfIn : *inputPFClusters.product()) {
             l1tp2::CaloPFDigiClusterToCorrLayer1 pfOut;
@@ -200,7 +199,7 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                 float eta_LSB = p2eg::ECAL_eta_range / (p2eg::N_GCTTOWERS_FIBER * p2eg::CRYSTALS_IN_TOWER_ETA);
                 int temp_iEta_signed = pfIn.clusterEta() / eta_LSB;
                 // Default value (for positive eta)
-                temp iEta = temp_iEta_signed;
+                int iEta = temp_iEta_signed;
                 // If cluster is in negative eta, instead of from -5, -4, -3, -2, -1, we want 4, 3, 2, 1, 0
                 if (temp_iEta_signed < 0) {
                     // If in negative eta, convert to an absolute value, with 0 being the crystal nearest real eta = 0
@@ -225,6 +224,12 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
             }
         }
     }
+
+    // TODO: Within each SLR, sort the egamma clusters in descending pT order and add zero-padding
+    p2eg::sortAndPadSLR(out_eg_GCT1_SLR1_posEta);
+
+    // TODO: Within each SLR, sort the PF clusters in descending pT order and add zero-padding
+
 
     // Need to push these back in a specific order
     outputClustersFromBarrel->push_back(out_eg_GCT1_SLR1_posEta);
