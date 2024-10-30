@@ -89,6 +89,7 @@ private:
   // Region dump
   const std::string regionDumpName_;
   bool writeRawHgcalCluster_;
+  bool writeRawGCTCluster_;
   std::fstream fRegionDump_;
   const edm::VParameterSet patternWriterConfigs_;
   std::vector<std::unique_ptr<L1TCorrelatorLayer1PatternFileWriter>> patternWriters_;
@@ -169,11 +170,13 @@ private:
     // NOTE: the calibration can actually make hoe become negative....we add a small protection for now
     // We use ap_ufixed to handle saturation and rounding
     ap_ufixed<10, 5, AP_RND_CONV, AP_SAT> w_hoe = c.hOverE();
+
     cwrd(13, 0) = w_pt.range();
     cwrd(27, 14) = w_empt;
     cwrd(72, 64) = w_eta;
     cwrd(81, 73) = w_phi;
     cwrd(115, 106) = w_qual;
+
     // FIXME: we add the variables use by composite-ID. The definitin will have to be reviewd once the
     // hgc format is better defined. For now we use
     // hwMeanZ = word 1 bits 30-19
@@ -410,14 +413,14 @@ void L1TCorrelatorLayer1Producer::fillDescriptions(edm::ConfigurationDescription
   desc.ifValue(edm::ParameterDescription<std::string>("muonInputConversionAlgo", "Ideal", true),
                "Ideal" >> emptyGroup or "Emulator" >> getParDesc<l1ct::GMTMuonDecoderEmulator>("muonInputConversion"));
   desc.ifValue(
+      edm::ParameterDescription<std::string>("hgcalInputConversionAlgo", "Ideal", true),
+      "Ideal" >> emptyGroup or "Emulator" >> getParDesc<l1ct::HgcalClusterDecoderEmulator>("hgcalInputConversion"));
+  desc.ifValue(
       edm::ParameterDescription<std::string>("gctEmInputConversionAlgo", "Ideal", true),
       "Ideal" >> emptyGroup or "Emulator" >> getParDesc<l1ct::GctEmClusterDecoderEmulator>("gcdEmInputConversion"));
   desc.ifValue(
       edm::ParameterDescription<std::string>("gctHadInputConversionAlgo", "Ideal", true),
       "Ideal" >> emptyGroup or "Emulator" >> getParDesc<l1ct::GctHadClusterDecoderEmulator>("gcdHadInputConversion"));
-  desc.ifValue(
-      edm::ParameterDescription<std::string>("hgcalInputConversionAlgo", "Ideal", true),
-      "Ideal" >> emptyGroup or "Emulator" >> getParDesc<l1ct::HgcalClusterDecoderEmulator>("hgcalInputConversion"));
   // Regionizer
   auto idealRegPD = getParDesc<l1ct::RegionizerEmulator>("regionizerAlgo");
   auto tdrRegPD = getParDesc<l1ct::TDRRegionizerEmulator>("regionizerAlgo");
@@ -449,7 +452,6 @@ void L1TCorrelatorLayer1Producer::fillDescriptions(edm::ConfigurationDescription
   caloSectorPSD.add<std::vector<double>>("etaBoundaries");
   caloSectorPSD.add<uint32_t>("phiSlices", 3);
   caloSectorPSD.add<double>("phiZero", 0.);
-  caloSectorPSD.add<double>("phiExtra", 0.);
   desc.addVPSet("caloSectors", caloSectorPSD);
   // geometry: regions
   edm::ParameterSetDescription regionPSD;
@@ -532,7 +534,7 @@ void L1TCorrelatorLayer1Producer::produce(edm::Event &iEvent, const edm::EventSe
       continue;
     addMuon(mu, l1t::PFCandidate::MuonRef(muons, i));
   }
-  // ------ READ CALOS -----
+  // ------ READ HG CALOS -----
   edm::Handle<l1t::PFClusterCollection> caloHandle;
   for (const auto &tag : emCands_) {
     iEvent.getByToken(tag, caloHandle);
@@ -723,18 +725,17 @@ void L1TCorrelatorLayer1Producer::initSectorsAndRegions(const edm::ParameterSet 
     if (phiWidth > 2 * l1ct::Scales::maxAbsPhi())
       throw cms::Exception("Configuration", "caloSectors phi range too large for phi_t data type");
     double phiZero = preg.getParameter<double>("phiZero");
-    double phiExtra = preg.getParameter<double>("phiExtra");
     for (unsigned int ieta = 0, neta = etaBoundaries.size() - 1; ieta < neta; ++ieta) {
       float etaWidth = etaBoundaries[ieta + 1] - etaBoundaries[ieta];
       if (etaWidth > 2 * l1ct::Scales::maxAbsEta())
         throw cms::Exception("Configuration", "caloSectors eta range too large for eta_t data type");
       for (unsigned int iphi = 0; iphi < phiSlices; ++iphi) {
         float phiCenter = reco::reduceRange(iphi * phiWidth + phiZero);
-        event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
-        event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
-        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
-        event_.raw.gctEm.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
-        event_.raw.gctHad.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth, phiExtra);
+        event_.decoded.hadcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.decoded.emcalo.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.raw.hgcalcluster.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.raw.gctEm.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
+        event_.raw.gctHad.emplace_back(etaBoundaries[ieta], etaBoundaries[ieta + 1], phiCenter, phiWidth);
       }
     }
   }
@@ -807,6 +808,8 @@ void L1TCorrelatorLayer1Producer::addHadCalo(const l1t::PFCluster &c, l1t::PFClu
       addDecodedHadCalo(sec, c);
       if (writeRawHgcalCluster_)
         addRawHgcalCluster(event_.raw.hgcalcluster[sidx], c);
+      if (writeRawGCTCluster_)
+        addGCTHadCluster(event_.raw.gctHad[sidx], c);
     }
     sidx++;
   }
@@ -879,13 +882,11 @@ void L1TCorrelatorLayer1Producer::addDecodedMuon(l1ct::DetectorSector<l1ct::MuOb
 void L1TCorrelatorLayer1Producer::addDecodedHadCalo(l1ct::DetectorSector<l1ct::HadCaloObjEmu> &sec,
                                                     const l1t::PFCluster &c) {
   l1ct::HadCaloObjEmu calo;
-  ap_uint<256> word = 0;
-  rawHgcalClusterEncode(word, sec, c);
   if (hgcalInput_) {
-    calo = hgcalInput_->decode(word);
+    ap_uint<256> word = 0;
     rawHgcalClusterEncode(word, sec, c);
+    calo = hgcalInput_->decode(word);
   } else if (gctHadInput_) {
-    // FIXME: I think here we want to fill with a non-zero value
     ap_uint<64> word = 0;
   } else {
     calo.hwPt = l1ct::Scales::makePtFromFloat(c.pt());
