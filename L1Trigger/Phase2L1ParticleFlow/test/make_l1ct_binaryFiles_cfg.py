@@ -1,5 +1,6 @@
 import argparse
 import sys
+import math
 
 # example: cmsRun L1Trigger/Phase2L1ParticleFlow/test/make_l1ct_patternFiles_cfg.py --patternFilesOFF
 # example: cmsRun L1Trigger/Phase2L1ParticleFlow/test/make_l1ct_patternFiles_cfg.py --dumpFilesOFF --serenity
@@ -63,11 +64,14 @@ from L1Trigger.L1CaloTrigger.l1tPhase2L1CaloEGammaEmulator_cfi import l1tPhase2L
 process.l1tPhase2L1CaloEGammaEmulator = l1tPhase2L1CaloEGammaEmulator.clone()
 from L1Trigger.L1CaloTrigger.l1tPhase2CaloPFClusterEmulator_cfi import l1tPhase2CaloPFClusterEmulator
 process.l1tPhase2CaloPFClusterEmulator = l1tPhase2CaloPFClusterEmulator.clone()
+from L1Trigger.L1CaloTrigger.l1tPhase2GCTBarrelToCorrelatorLayer1Emulator_cfi import l1tPhase2GCTBarrelToCorrelatorLayer1Emulator
+process.l1tPhase2GCTBarrelToCorrelatorLayer1Emulator = l1tPhase2GCTBarrelToCorrelatorLayer1Emulator.clone()
 
 process.L1TInputTask = cms.Task(
     process.l1tSAMuonsGmt,
     process.l1tPhase2L1CaloEGammaEmulator,
-    process.l1tPhase2CaloPFClusterEmulator
+    process.l1tPhase2CaloPFClusterEmulator,
+    process.l1tPhase2GCTBarrelToCorrelatorLayer1Emulator
 )
 
 
@@ -92,6 +96,17 @@ process.l1tLayer1BarrelTDR.regionizerAlgoParameters = cms.PSet(
         doSort = cms.bool(False),
         bigRegionEdges = cms.vint32(-560, -80, 400, -560)
     )
+process.l1tLayer1BarrelTDR.pfAlgoParameters.nTrack = 22
+process.l1tLayer1BarrelTDR.pfAlgoParameters.nSelCalo = 15
+process.l1tLayer1BarrelTDR.pfAlgoParameters.nCalo = 15
+process.l1tLayer1BarrelTDR.pfAlgoParameters.nAllNeutral = 27
+process.l1tLayer1BarrelTDR.puAlgoParameters.nTrack = 22
+process.l1tLayer1BarrelTDR.puAlgoParameters.nIn = 27
+process.l1tLayer1BarrelTDR.puAlgoParameters.nOut = 27
+process.l1tLayer1BarrelTDR.puAlgoParameters.finalSortAlgo = "BitonicVHDL"
+process.l1tLayer1BarrelTDR.tkEgAlgoParameters.nTRACK_EGIN = 22
+process.l1tLayer1BarrelTDR.tkEgAlgoParameters.nEMCALO_EGIN = 12
+
 
 process.l1tLayer1BarrelSerenity = process.l1tLayer1Barrel.clone()
 process.l1tLayer1BarrelSerenity.regionizerAlgo = "MultififoBarrel"
@@ -214,3 +229,4 @@ if args.tm18:
                 getattr(process, 'l1tLayer1'+det).dumpFileName = cms.untracked.string("TTbar_PU200_"+det+".dump")
 
 process.source.fileNames  = [ '/store/cmst3/group/l1tr/cerminar/14_0_X/fpinputs_131X/v3/TTbar_PU200/inputs131X_1.root' ]
+

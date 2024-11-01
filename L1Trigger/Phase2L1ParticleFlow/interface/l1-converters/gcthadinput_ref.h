@@ -10,10 +10,9 @@ namespace edm {
 
 namespace l1ct {
   class GctHadClusterDecoderEmulator {
-    bool slim_;
 
   public:
-    GctHadClusterDecoderEmulator(bool slim = false) : slim_{slim} {};
+    GctHadClusterDecoderEmulator() {};
     GctHadClusterDecoderEmulator(const edm::ParameterSet &pset);
 
     ~GctHadClusterDecoderEmulator();
