@@ -12,8 +12,8 @@ from L1Trigger.Phase2L1ParticleFlow.l1TkEgAlgoEmulator_cfi import tkEgAlgoParame
 l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('l1tPFTracksFromL1Tracks'),
     muons = cms.InputTag('l1tSAMuonsGmt','prompt'),
-    emRawClusters = cms.VInputTag(cms.InputTag('GCTBarrelDigiClustersToCorrLayer1')),
-    hadRawClusters = cms.VInputTag(cms.InputTag('CaloPFDigiClusterToCorrLayer1')),
+    emRawClusters = cms.VInputTag(cms.InputTag('l1tPhase2GCTBarrelToCorrelatorLayer1Emulator', 'GCTBarrelDigiClustersToCorrLayer1')),
+    hadRawClusters = cms.VInputTag(cms.InputTag('l1tPhase2GCTBarrelToCorrelatorLayer1Emulator', 'CaloPFDigiClusterToCorrLayer1')),
     vtxCollection = cms.InputTag("l1tVertexFinderEmulator","L1VerticesEmulation"),
     nVtx = cms.int32(1),
     emPtCut = cms.double(0.5),
@@ -120,7 +120,6 @@ l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         cms.PSet(
               regions = cms.vuint32(*[6+9*ie+i for ie in range(6) for i in range(3)])), # phi splitting
     )
-    writeRawGCTCluster = cms.untracked.bool(True)
 )
 
 l1tLayer1BarrelExtended = l1tLayer1Barrel.clone(tracks = cms.InputTag('l1tPFTracksFromL1TracksExtended'))

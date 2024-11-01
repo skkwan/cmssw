@@ -29,7 +29,7 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True), allowUnscheduled = cms.untracked.bool(False) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1))
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 process.source = cms.Source("PoolSource",
@@ -145,9 +145,10 @@ if not args.patternFilesOFF:
     process.l1tLayer1HF.patternWriters = cms.untracked.VPSet(*hfWriterConfigs)
 
 process.runPF = cms.Path( 
-        # process.l1tSAMuonsGmt + 
-        # process.l1tPhase2L1CaloEGammaEmulator + 
-        # process.l1tPhase2CaloPFClusterEmulator +
+        process.l1tSAMuonsGmt + 
+        process.l1tPhase2L1CaloEGammaEmulator + 
+        process.l1tPhase2CaloPFClusterEmulator +
+        process.l1tPhase2GCTBarrelToCorrelatorLayer1Emulator + 
         process.l1tGTTInputProducer +
         process.l1tTrackSelectionProducer +
         process.l1tVertexFinderEmulator +
@@ -166,7 +167,7 @@ process.runPF = cms.Path(
         # process.l1tLayer2SeedConeJetWriter +
         process.l1tLayer2EG
     )
-process.runPF.associate(process.L1TInputTask)
+# process.runPF.associate(process.L1TInputTask)
 process.runPF.associate(process.L1TLayer1TaskInputsTask)
 
 #####################################################################################################################
