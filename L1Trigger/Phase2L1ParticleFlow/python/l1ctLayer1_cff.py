@@ -12,8 +12,8 @@ from L1Trigger.Phase2L1ParticleFlow.l1TkEgAlgoEmulator_cfi import tkEgAlgoParame
 l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     tracks = cms.InputTag('l1tPFTracksFromL1Tracks'),
     muons = cms.InputTag('l1tSAMuonsGmt','prompt'),
-    emClusters = cms.VInputTag(cms.InputTag('l1tPFClustersFromL1EGClusters:selected')),
-    hadClusters = cms.VInputTag(cms.InputTag('l1tPFClustersFromCombinedCaloHCal:calibrated')),
+    emRawClusters = cms.VInputTag(cms.InputTag('GCTBarrelDigiClustersToCorrLayer1')),
+    hadRawClusters = cms.VInputTag(cms.InputTag('CaloPFDigiClusterToCorrLayer1')),
     vtxCollection = cms.InputTag("l1tVertexFinderEmulator","L1VerticesEmulation"),
     nVtx = cms.int32(1),
     emPtCut = cms.double(0.5),
@@ -36,6 +36,8 @@ l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
         dPhiBarrelRInvPostShift = cms.uint32(4),
         ),
     muonInputConversionAlgo = cms.string("Emulator"),
+    gctEmInputConversionAlgo = cms.string("Emulator"),
+    gctHadInputConversionAlgo = cms.string("Emulator"),
     regionizerAlgo = cms.string("Ideal"),
     pfAlgo = cms.string("PFAlgo3"),
     pfAlgoParameters = cms.PSet(
@@ -94,9 +96,14 @@ l1tLayer1Barrel = cms.EDProducer("L1TCorrelatorLayer1Producer",
     ),
     caloSectors = cms.VPSet(
         cms.PSet(
-            etaBoundaries = cms.vdouble(-1.5, 1.5),
+            etaBoundaries = cms.vdouble(-1.5, 0, 1.5),
             phiSlices     = cms.uint32(3),
             phiZero       = cms.double(math.pi/18)
+        ),
+        cms.PSet(
+            etaBoundaries = cms.vdouble(-1.5, 0, 1.5),
+            phiSlices     = cms.uint32(3),
+            phiZero       = cms.double(math.pi*7/18)
         )
     ),
     regions = cms.VPSet(

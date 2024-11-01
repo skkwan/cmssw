@@ -10,10 +10,9 @@ namespace edm {
 
 namespace l1ct {
   class GctEmClusterDecoderEmulator {
-    bool slim_;
 
   public:
-    GctEmClusterDecoderEmulator(bool slim = false) : slim_{slim} {};
+    GctEmClusterDecoderEmulator() {};
     GctEmClusterDecoderEmulator(const edm::ParameterSet &pset);
 
     ~GctEmClusterDecoderEmulator();
