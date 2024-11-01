@@ -144,11 +144,7 @@ if not args.patternFilesOFF:
     process.l1tLayer1HGCalNoTK.patternWriters = cms.untracked.VPSet(*hgcalNoTKWriterConfigs)
     process.l1tLayer1HF.patternWriters = cms.untracked.VPSet(*hfWriterConfigs)
 
-process.runPF = cms.Path( 
-        process.l1tSAMuonsGmt + 
-        process.l1tPhase2L1CaloEGammaEmulator + 
-        process.l1tPhase2CaloPFClusterEmulator +
-        process.l1tPhase2GCTBarrelToCorrelatorLayer1Emulator + 
+process.runPF = cms.Path(
         process.l1tGTTInputProducer +
         process.l1tTrackSelectionProducer +
         process.l1tVertexFinderEmulator +
@@ -167,7 +163,7 @@ process.runPF = cms.Path(
         # process.l1tLayer2SeedConeJetWriter +
         process.l1tLayer2EG
     )
-# process.runPF.associate(process.L1TInputTask)
+process.runPF.associate(process.L1TInputTask)
 process.runPF.associate(process.L1TLayer1TaskInputsTask)
 
 #####################################################################################################################
