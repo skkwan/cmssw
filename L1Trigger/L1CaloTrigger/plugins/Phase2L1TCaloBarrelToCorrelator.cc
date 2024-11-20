@@ -103,24 +103,49 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
     l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection out_eg_GCT3_SLR3_posEta;
     l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection out_eg_GCT3_SLR3_negEta;
 
+
+    // Temporary arrays used to represent the four RCT cards in one SLR one side of eta (positive or eta)
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT1_SLR1_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT1_SLR1_negEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT1_SLR3_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT1_SLR3_negEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT2_SLR1_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT2_SLR1_negEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT2_SLR3_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT2_SLR3_negEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT3_SLR1_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT3_SLR1_negEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT3_SLR3_posEta[4];
+    l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection buffer_eg_GCT3_SLR3_negEta[4];
+
+
     // PF Clusters output by GCT SLR (duplicates included)
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT1_SLR1_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT1_SLR1_negEta;
-
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT1_SLR3_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT1_SLR3_negEta;
-
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT2_SLR1_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT2_SLR1_negEta;
-
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT2_SLR3_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT2_SLR3_negEta;
-
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT3_SLR1_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT3_SLR1_negEta;
-
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT3_SLR3_posEta;
     l1tp2::CaloPFDigiClusterToCorrLayer1Collection out_pf_GCT3_SLR3_negEta;
+
+    // Temporary arrays used to represent the four RCT cards in one SLR one side of eta (positive or eta)
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT1_SLR1_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT1_SLR1_negEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT1_SLR3_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT1_SLR3_negEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT2_SLR1_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT2_SLR1_negEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT2_SLR3_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT2_SLR3_negEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT3_SLR1_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT3_SLR1_negEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT3_SLR3_posEta[4];
+    l1tp2::CaloPFDigiClusterToCorrLayer1Collection buffer_pf_GCT3_SLR3_negEta[4];
 
     //***************************************************//
     // Loop over the regions: in order: GCT1 SLR1, GCT1 SLR3, GCT2 SLR1, GCT2 SLR3, GCT3 SLR1, GCT3SLR3
@@ -131,6 +156,7 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
     for (int i = 0; i < nRegions; i++) {
 
+        std::cout << ">>>> Phase2L1TCaloBarrelToCorrelator: Doing " << i << std::endl;
         // EG Clusters
         for (auto &clusterIn : *inputGCTBarrelClusters.product()) {
 
@@ -170,12 +196,22 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                     clusterIn.brems()
                 );
 
-                if (i == 0)      { if (temp_iEta_signed < 0) { out_eg_GCT1_SLR1_negEta.push_back(clusterOut); } else { out_eg_GCT1_SLR1_posEta.push_back(clusterOut);} }
-                else if (i == 1) { if (temp_iEta_signed < 0) { out_eg_GCT1_SLR3_negEta.push_back(clusterOut); } else { out_eg_GCT1_SLR3_posEta.push_back(clusterOut);} }
-                else if (i == 2) { if (temp_iEta_signed < 0) { out_eg_GCT2_SLR1_negEta.push_back(clusterOut); } else { out_eg_GCT2_SLR1_posEta.push_back(clusterOut);} }
-                else if (i == 3) { if (temp_iEta_signed < 0) { out_eg_GCT2_SLR3_negEta.push_back(clusterOut); } else { out_eg_GCT2_SLR3_posEta.push_back(clusterOut);} }
-                else if (i == 4) { if (temp_iEta_signed < 0) { out_eg_GCT3_SLR1_negEta.push_back(clusterOut); } else { out_eg_GCT3_SLR1_posEta.push_back(clusterOut);} }
-                else if (i == 5) { if (temp_iEta_signed < 0) { out_eg_GCT3_SLR3_negEta.push_back(clusterOut); } else { out_eg_GCT3_SLR3_posEta.push_back(clusterOut);} }
+                // Check which RCT card this falls into, ordered 0, 1, 2, 3 counting from the most negative phi (real phi or iPhi) to the most positive 
+                // so RCT card 0 is -60 to -30 degrees in phi from the center, RCT card 1 is -30 to 0 degrees in phi from the center, RCT card 2 is 0 to +30 degrees in phi from the center, RCT card 3 is +30 to +60 degrees in phi from the center
+                int whichRCTcard = 0;
+                if (phiDifference < -30) { whichRCTcard = 0; }
+                else if (phiDifference < 0) { whichRCTcard = 1; }
+                else if (phiDifference < 30) { whichRCTcard = 2; }
+                else { whichRCTcard = 3; }
+
+                std::cout << "For phi diff " << phiDifference << " got RCT card " << whichRCTcard;
+
+                if (i == 0)      { if (temp_iEta_signed < 0) { buffer_eg_GCT1_SLR1_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT1_SLR1_posEta[whichRCTcard].push_back(clusterOut);} }
+                else if (i == 1) { if (temp_iEta_signed < 0) { buffer_eg_GCT1_SLR3_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT1_SLR3_posEta[whichRCTcard].push_back(clusterOut);} }
+                else if (i == 2) { if (temp_iEta_signed < 0) { buffer_eg_GCT2_SLR1_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT2_SLR1_posEta[whichRCTcard].push_back(clusterOut);} }
+                else if (i == 3) { if (temp_iEta_signed < 0) { buffer_eg_GCT2_SLR3_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT2_SLR3_posEta[whichRCTcard].push_back(clusterOut);} }
+                else if (i == 4) { if (temp_iEta_signed < 0) { buffer_eg_GCT3_SLR1_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT3_SLR1_posEta[whichRCTcard].push_back(clusterOut);} }
+                else if (i == 5) { if (temp_iEta_signed < 0) { buffer_eg_GCT3_SLR3_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT3_SLR3_posEta[whichRCTcard].push_back(clusterOut);} }
 
             }
         }
@@ -186,7 +222,7 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
             l1tp2::CaloPFDigiClusterToCorrLayer1 pfOut;
 
-            // Check if this cluster falls into each card 
+            // Check if this cluster falls into each GCT card 
             float clusterRealPhiAsDegree =  pfIn.clusterPhi() * 180/M_PI; 
             float differenceInPhi = p2eg::deltaPhiInDegrees(clusterRealPhiAsDegree, regionCentersInDegrees[i]);
             if ( std::abs(differenceInPhi) < (p2eg::PHI_RANGE_PER_SLR_DEGREES/2) ) {
@@ -214,45 +250,97 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                     0  // no HoE value in PF Cluster
                 );
 
-                if (i == 0)      { if (temp_iEta_signed < 0) { out_pf_GCT1_SLR1_negEta.push_back(pfOut); } else { out_pf_GCT1_SLR1_posEta.push_back(pfOut); }}
-                else if (i == 1) { if (temp_iEta_signed < 0) { out_pf_GCT1_SLR3_negEta.push_back(pfOut); } else { out_pf_GCT1_SLR3_posEta.push_back(pfOut); }}
-                else if (i == 2) { if (temp_iEta_signed < 0) { out_pf_GCT2_SLR1_negEta.push_back(pfOut); } else { out_pf_GCT2_SLR1_posEta.push_back(pfOut); }}
-                else if (i == 3) { if (temp_iEta_signed < 0) { out_pf_GCT2_SLR3_negEta.push_back(pfOut); } else { out_pf_GCT2_SLR3_posEta.push_back(pfOut); }}
-                else if (i == 4) { if (temp_iEta_signed < 0) { out_pf_GCT3_SLR1_negEta.push_back(pfOut); } else { out_pf_GCT3_SLR1_posEta.push_back(pfOut); }}
-                else if (i == 5) { if (temp_iEta_signed < 0) { out_pf_GCT3_SLR3_negEta.push_back(pfOut); } else { out_pf_GCT3_SLR3_posEta.push_back(pfOut); }}
+                // Check which RCT card this falls into, ordered 0, 1, 2, 3 counting from the most negative phi (real phi or iPhi) to the most positive 
+                // so RCT card 0 is -60 to -30 degrees in phi from the center, RCT card 1 is -30 to 0 degrees in phi from the center, RCT card 2 is 0 to +30 degrees in phi from the center, RCT card 3 is +30 to +60 degrees in phi from the center
+                int whichRCTcard = 0;
+                if (phiDifference < -30) { whichRCTcard = 0; }
+                else if (phiDifference < 0) { whichRCTcard = 1; }
+                else if (phiDifference < 30) { whichRCTcard = 2; }
+                else { whichRCTcard = 3; }
+
+                std::cout << "For phi diff " << phiDifference << " got RCT card " << whichRCTcard;
+
+                if (i == 0)      { if (temp_iEta_signed < 0) { buffer_pf_GCT1_SLR1_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT1_SLR1_posEta[whichRCTcard].push_back(pfOut); }}
+                else if (i == 1) { if (temp_iEta_signed < 0) { buffer_pf_GCT1_SLR3_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT1_SLR3_posEta[whichRCTcard].push_back(pfOut); }}
+                else if (i == 2) { if (temp_iEta_signed < 0) { buffer_pf_GCT2_SLR1_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT2_SLR1_posEta[whichRCTcard].push_back(pfOut); }}
+                else if (i == 3) { if (temp_iEta_signed < 0) { buffer_pf_GCT2_SLR3_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT2_SLR3_posEta[whichRCTcard].push_back(pfOut); }}
+                else if (i == 4) { if (temp_iEta_signed < 0) { buffer_pf_GCT3_SLR1_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT3_SLR1_posEta[whichRCTcard].push_back(pfOut); }}
+                else if (i == 5) { if (temp_iEta_signed < 0) { buffer_pf_GCT3_SLR3_negEta[whichRCTcard].push_back(pfOut); } else { buffer_pf_GCT3_SLR3_posEta[whichRCTcard].push_back(pfOut); }}
             }
         }
     }
 
-    // Within each egamma SLR, sort the egamma clusters in descending pT order and add zero-padding
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT1_SLR1_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT1_SLR3_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT2_SLR1_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT2_SLR3_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT3_SLR1_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT3_SLR3_negEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT1_SLR1_posEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT1_SLR3_posEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT2_SLR1_posEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT2_SLR3_posEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT3_SLR1_posEta);
-    p2eg::sortAndPad_eg_SLR(out_eg_GCT3_SLR3_posEta);
+    // Within each RCT card, sort the egamma clusters in descending pT order and add zero-padding
+    for (int iRCT = 0; iRCT < 4; iRCT++) {
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR3_posEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR3_posEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR3_posEta[iRCT]);
+    }
 
-    // Within each PF SLR, sort the PF clusters in descending pT order and add zero-padding
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT1_SLR1_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT1_SLR3_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT2_SLR1_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT2_SLR3_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT3_SLR1_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT3_SLR3_negEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT1_SLR1_posEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT1_SLR3_posEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT2_SLR1_posEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT2_SLR3_posEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT3_SLR1_posEta);
-    p2eg::sortAndPad_pf_SLR(out_pf_GCT3_SLR3_posEta);
+    // Then build the container for each egamma SLR, by pushing back, in order, the four RCT cards (starting from most negative phi to most positive phi)
+    for (int iRCT = 0; iRCT < 4; iRCT++) {
+        for (int iCluster = 0; iCluster < p2eg::N_EG_CLUSTERS_PER_RCT_CARD; iCluster++) {
+            // outer loop is over RCT cards, inner loop is over the clusters in each RCT card
+            out_eg_GCT1_SLR1_posEta.push_back(buffer_eg_GCT1_SLR1_posEta[iRCT][iCluster]);
+            out_eg_GCT1_SLR1_negEta.push_back(buffer_eg_GCT1_SLR1_negEta[iRCT][iCluster]);
+            out_eg_GCT1_SLR3_posEta.push_back(buffer_eg_GCT1_SLR3_posEta[iRCT][iCluster]);
+            out_eg_GCT1_SLR3_negEta.push_back(buffer_eg_GCT1_SLR3_negEta[iRCT][iCluster]);
+            out_eg_GCT2_SLR1_posEta.push_back(buffer_eg_GCT2_SLR1_posEta[iRCT][iCluster]);
+            out_eg_GCT2_SLR1_negEta.push_back(buffer_eg_GCT2_SLR1_negEta[iRCT][iCluster]);
+            out_eg_GCT2_SLR3_posEta.push_back(buffer_eg_GCT2_SLR3_posEta[iRCT][iCluster]);
+            out_eg_GCT2_SLR3_negEta.push_back(buffer_eg_GCT2_SLR3_negEta[iRCT][iCluster]);
+            out_eg_GCT3_SLR1_posEta.push_back(buffer_eg_GCT3_SLR1_posEta[iRCT][iCluster]);
+            out_eg_GCT3_SLR1_negEta.push_back(buffer_eg_GCT3_SLR1_negEta[iRCT][iCluster]);
+            out_eg_GCT3_SLR3_posEta.push_back(buffer_eg_GCT3_SLR3_posEta[iRCT][iCluster]);
+            out_eg_GCT3_SLR3_negEta.push_back(buffer_eg_GCT3_SLR3_negEta[iRCT][iCluster]);
+        }
+    }
 
-    // Need to push these back in a specific order
+    // Repeat for PF: Within each RCT card, sort the PF clusters in descending pT order and add zero-padding
+    for (int iRCT = 0; iRCT < 4; iRCT++) {
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT1_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT1_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT2_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT2_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT3_SLR1_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT3_SLR3_negEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT1_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT1_SLR3_posEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT2_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT2_SLR3_posEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT3_SLR1_posEta[iRCT]);
+        p2eg::sortAndPad_pf_SLR(buffer_pf_GCT3_SLR3_posEta[iRCT]);
+    }
+
+    // Then build the container for each PF SLR, by pushing back, in order, the four RCT cards (starting from most negative phi to most positive phi)
+    for (int iRCT = 0; iRCT < 4; iRCT++) {
+        for (int iCluster = 0; iCluster < p2eg::N_PF_CLUSTERS_PER_RCT_CARD; iCluster++) {
+            // outer loop is over RCT cards, inner loop is over clusters
+            out_pf_GCT1_SLR1_posEta.push_back(buffer_pf_GCT1_SLR1_posEta[iRCT][iCluster]);
+            out_pf_GCT1_SLR1_negEta.push_back(buffer_pf_GCT1_SLR1_negEta[iRCT][iCluster]);
+            out_pf_GCT1_SLR3_posEta.push_back(buffer_pf_GCT1_SLR3_posEta[iRCT][iCluster]);
+            out_pf_GCT1_SLR3_negEta.push_back(buffer_pf_GCT1_SLR3_negEta[iRCT][iCluster]);
+            out_pf_GCT2_SLR1_posEta.push_back(buffer_pf_GCT2_SLR1_posEta[iRCT][iCluster]);
+            out_pf_GCT2_SLR1_negEta.push_back(buffer_pf_GCT2_SLR1_negEta[iRCT][iCluster]);
+            out_pf_GCT2_SLR3_posEta.push_back(buffer_pf_GCT2_SLR3_posEta[iRCT][iCluster]);
+            out_pf_GCT2_SLR3_negEta.push_back(buffer_pf_GCT2_SLR3_negEta[iRCT][iCluster]);
+            out_pf_GCT3_SLR1_posEta.push_back(buffer_pf_GCT3_SLR1_posEta[iRCT][iCluster]);
+            out_pf_GCT3_SLR1_negEta.push_back(buffer_pf_GCT3_SLR1_negEta[iRCT][iCluster]);
+            out_pf_GCT3_SLR3_posEta.push_back(buffer_pf_GCT3_SLR3_posEta[iRCT][iCluster]);
+            out_pf_GCT3_SLR3_negEta.push_back(buffer_pf_GCT3_SLR3_negEta[iRCT][iCluster]);
+        }
+    }
+
+    // Finally, push back the SLR containers 
     outputClustersFromBarrel->push_back(out_eg_GCT1_SLR1_posEta);
     outputClustersFromBarrel->push_back(out_eg_GCT1_SLR1_negEta);
     outputClustersFromBarrel->push_back(out_eg_GCT1_SLR3_posEta);

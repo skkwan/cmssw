@@ -43,17 +43,17 @@ void p2eg::sortAndPad_eg_SLR(l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection &
     int nClusters = thisSLR.size();
 
     // If there are fewer than the designated number of clusters, pad with zeros
-    if (nClusters < p2eg::N_EG_CLUSTERS_PER_SLR) {
+    if (nClusters < p2eg::N_EG_CLUSTERS_PER_RCT_CARD) {
         // do padding. if size == 2, push back four clusters
-        for (int i = 0; i < (p2eg::N_EG_CLUSTERS_PER_SLR - nClusters); i++) {
+        for (int i = 0; i < (p2eg::N_EG_CLUSTERS_PER_RCT_CARD - nClusters); i++) {
             l1tp2::GCTBarrelDigiClusterToCorrLayer1 zeroCluster;
             thisSLR.push_back(zeroCluster);
         }
     }
     // If there are more than the designated number of clusters, truncate the vector
-    else if (nClusters > p2eg::N_EG_CLUSTERS_PER_SLR) {
+    else if (nClusters > p2eg::N_EG_CLUSTERS_PER_RCT_CARD) {
         // Get the iterator to the sixth element and delete til the end of the vector
-        thisSLR.erase(thisSLR.begin() + p2eg::N_EG_CLUSTERS_PER_SLR, thisSLR.end());
+        thisSLR.erase(thisSLR.begin() + p2eg::N_EG_CLUSTERS_PER_RCT_CARD, thisSLR.end());
     }
 }
 
@@ -73,16 +73,16 @@ void p2eg::sortAndPad_pf_SLR(l1tp2::CaloPFDigiClusterToCorrLayer1Collection &thi
     int nClusters = thisSLR.size();
 
     // If there are fewer than the designated number of clusters, pad with zeros
-    if (nClusters < p2eg::N_PF_CLUSTERS_PER_SLR) {
-        for (int i = 0; i < (p2eg::N_PF_CLUSTERS_PER_SLR - nClusters); i++) {
+    if (nClusters < p2eg::N_PF_CLUSTERS_PER_RCT_CARD) {
+        for (int i = 0; i < (p2eg::N_PF_CLUSTERS_PER_RCT_CARD - nClusters); i++) {
             l1tp2::CaloPFDigiClusterToCorrLayer1 zeroCluster;
             thisSLR.push_back(zeroCluster);
         }
     }
     // If there are more than the designated number of clusters, truncate the vector
-    else if (nClusters > p2eg::N_EG_CLUSTERS_PER_SLR) {
+    else if (nClusters > p2eg::N_EG_CLUSTERS_PER_RCT_CARD) {
         // Get the iterator to the sixth element and delete til the end of the vector
-        thisSLR.erase(thisSLR.begin() + p2eg::N_EG_CLUSTERS_PER_SLR, thisSLR.end());
+        thisSLR.erase(thisSLR.begin() + p2eg::N_EG_CLUSTERS_PER_RCT_CARD, thisSLR.end());
     }
 }
 

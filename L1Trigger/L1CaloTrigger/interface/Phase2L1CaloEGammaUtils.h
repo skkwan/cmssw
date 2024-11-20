@@ -97,9 +97,9 @@ namespace p2eg {
   static constexpr int N_GCTTOWERS_CLUSTER_ISO_ONESIDE = 5;  // window size of isolation sum (5x5 in towers)
 
   // Outputs to correlator
-  // Fixed number of EG and PF clusters per output SLR
-  static constexpr int N_EG_CLUSTERS_PER_SLR = 9;
-  static constexpr int N_PF_CLUSTERS_PER_SLR = 12;
+  // Fixed number of EG and PF clusters per RCT card in each output SLR
+  static constexpr int N_EG_CLUSTERS_PER_RCT_CARD = 9;
+  static constexpr int N_PF_CLUSTERS_PER_RCT_CARD = 12;
   // Height of one SLR region in phi in degrees
   static constexpr float PHI_RANGE_PER_SLR_DEGREES = 120; 
 
