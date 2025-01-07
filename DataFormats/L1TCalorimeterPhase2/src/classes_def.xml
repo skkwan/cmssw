@@ -25,12 +25,12 @@
   <class name="l1tp2::CaloPFClusterCollection" />
   <class name="edm::Wrapper<l1tp2::CaloPFClusterCollection>" />
 
-  <class name="l1tp2::CaloPFDigiClusterToCorrLayer1" />
-  <class name="std::vector<l1tp2::CaloPFDigiClusterToCorrLayer1>" />
-  <class name="l1tp2::CaloPFDigiClusterToCorrLayer1Collection" />
-  <class name="edm::Wrapper<l1tp2::CaloPFDigiClusterToCorrLayer1Collection>" />
-  <class name="l1tp2::CaloPFDigiClusterToCorrLayer1CollectionFullDetector" />
-  <class name="edm::Wrapper<std::vector<std::vector<l1tp2::CaloPFDigiClusterToCorrLayer1> > >" /> 
+  <class name="l1tp2::HadDigiCluster" />
+  <class name="std::vector<l1tp2::HadDigiCluster>" />
+  <class name="l1tp2::HadDigiClusterLink" />
+  <class name="edm::Wrapper<l1tp2::HadDigiClusterLink>" />
+  <class name="l1tp2::HadDigiClusterCollection" />
+  <class name="edm::Wrapper<std::vector<std::vector<l1tp2::HadDigiCluster> > >" /> 
 
   <class name="l1tp2::CaloTower"  ClassVersion="3">
          <version ClassVersion="3" checksum="2608605419"/>
@@ -61,11 +61,11 @@
   <class name="l1tp2::DigitizedTowerCorrelatorCollection" />
   <class name="edm::Wrapper<l1tp2::DigitizedTowerCorrelatorCollection>" />
 
-  <class name="l1tp2::GCTBarrelDigiClusterToCorrLayer1" />
-  <class name="std::vector<l1tp2::GCTBarrelDigiClusterToCorrLayer1>" />
-  <class name="l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection" />
-  <class name="std::vector<l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection>" />
-  <class name="edm::Wrapper<std::vector<std::vector<l1tp2::GCTBarrelDigiClusterToCorrLayer1> > >" />  
+  <class name="l1tp2::EmDigiCluster" />
+  <class name="std::vector<l1tp2::EmDigiCluster>" />
+  <class name="l1tp2::EmDigiClusterLink" />
+  <class name="std::vector<l1tp2::EmDigiClusterLink>" />
+  <class name="edm::Wrapper<std::vector<std::vector<l1tp2::EmDigiCluster> > >" />  
 
   <class name="l1tp2::Phase2L1CaloJet"  ClassVersion="3">
          <version ClassVersion="3" checksum="289384850"/>

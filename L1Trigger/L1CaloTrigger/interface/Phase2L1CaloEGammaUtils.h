@@ -18,11 +18,11 @@
 // Output collections
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloTower.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/CaloPFDigiClusterToCorrLayer1.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/GCTBarrelDigiClusterToCorrLayer1.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
 
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
@@ -1673,10 +1673,10 @@ namespace p2eg {
   /*******************************************************************************************/
   /* Interface to correlator helper functions (defined in Phase2L1CaloBarrelToCorrelator.h)  */
   /*******************************************************************************************/
-  bool compareBarrelDigiClusterCorrelatorET(const l1tp2::GCTBarrelDigiClusterToCorrLayer1& lhs, const l1tp2::GCTBarrelDigiClusterToCorrLayer1& rhs);
-  void sortAndPad_eg_SLR(l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection& thisSLR);
-  bool compareBarrelPFClustersET(const l1tp2::CaloPFDigiClusterToCorrLayer1& lhs, const l1tp2::CaloPFDigiClusterToCorrLayer1& rhs);
-  void sortAndPad_pf_SLR(l1tp2::CaloPFDigiClusterToCorrLayer1Collection &thisSLR);
+  bool compareEmDigiClusterET(const l1tp2::EmDigiCluster& lhs, const l1tp2::EmDigiCluster& rhs);
+  void sortAndPad_eg_SLR(l1tp2::EmDigiClusterLink& thisSLR);
+  bool compareHadDigiClusterET(const l1tp2::HadDigiCluster& lhs, const l1tp2::HadDigiCluster& rhs);
+  void sortAndPad_had_SLR(l1tp2::HadDigiClusterLink &thisSLR);
   float deltaPhiInDegrees(float phi1, float phi2, const float c);
   float wrappedPhiInDegrees(float phi);
 

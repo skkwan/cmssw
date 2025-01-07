@@ -1,12 +1,12 @@
-#ifndef DataFormats_L1TCalorimeterPhase2_CaloPFDigiClusterToCorrLayer1_h
-#define DataFormats_L1TCalorimeterPhase2_CaloPFDigiClusterToCorrLayer1_h
+#ifndef DataFormats_L1TCalorimeterPhase2_HadDigiCluster_h
+#define DataFormats_L1TCalorimeterPhase2_HadDigiCluster_h
 
 #include <ap_int.h>
 #include <vector>
 
 namespace l1tp2 {
 
-  class CaloPFDigiClusterToCorrLayer1 {
+  class HadDigiCluster {
   private:
     // Data (note: positional information is entirely encoded in the location in the output array)
     unsigned long long int clusterData;
@@ -18,12 +18,12 @@ namespace l1tp2 {
     static constexpr int n_bits_unused_start = 31; 
 
   public:
-    CaloPFDigiClusterToCorrLayer1() { clusterData = 0; }
+    HadDigiCluster() { clusterData = 0; }
 
-    CaloPFDigiClusterToCorrLayer1(ap_uint<64> data) { clusterData = data; }
+    HadDigiCluster(ap_uint<64> data) { clusterData = data; }
 
     // Note types of the constructor
-    CaloPFDigiClusterToCorrLayer1(
+    HadDigiCluster(
                                ap_uint<12> pt,
                                int etaCr,
                                int phiCr,
@@ -65,8 +65,8 @@ namespace l1tp2 {
   };
 
   // Collection typedef
-  typedef std::vector<l1tp2::CaloPFDigiClusterToCorrLayer1> CaloPFDigiClusterToCorrLayer1Collection;
-  typedef std::vector<l1tp2::CaloPFDigiClusterToCorrLayer1Collection> CaloPFDigiClusterToCorrLayer1CollectionFullDetector;
+  typedef std::vector<l1tp2::HadDigiCluster> HadDigiClusterLink;
+  typedef std::vector<l1tp2::HadDigiClusterLink> HadDigiClusterCollection;
 
 }  // namespace l1tp2
 

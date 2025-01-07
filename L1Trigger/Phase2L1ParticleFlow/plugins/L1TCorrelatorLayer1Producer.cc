@@ -19,8 +19,9 @@
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "DataFormats/L1Trigger/interface/VertexWord.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/CaloPFDigiClusterToCorrLayer1.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/GCTBarrelDigiClusterToCorrLayer1.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
+
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
@@ -51,11 +52,11 @@
 #include "DataFormats/L1TCorrelator/interface/TkEm.h"
 #include "DataFormats/L1TCorrelator/interface/TkEmFwd.h"
 
-using rawEMClusterCollections = l1tp2::GCTBarrelDigiClusterToCorrLayer1CollectionFullDetector;
-using rawHadClusterCollections = l1tp2::CaloPFDigiClusterToCorrLayer1CollectionFullDetector;
+using rawEMClusterCollections = l1tp2::EmDigiClusterCollection;
+using rawHadClusterCollections = l1tp2::HadDigiClusterCollection;
 
-using rawEMClusterCollection = l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection;
-using rawHadClusterCollection = l1tp2::CaloPFDigiClusterToCorrLayer1Collection;
+using rawEMClusterCollection = l1tp2::EmDigiClusterLink;
+using rawHadClusterCollection = l1tp2::HadDigiClusterLink;
 
 using emCaloRef = edm::Ref<rawEMClusterCollections>;
 using hadCaloRef = edm::Ref<rawHadClusterCollections>;
@@ -879,8 +880,6 @@ void L1TCorrelatorLayer1Producer::addHadCalo(const l1t::PFCluster &c, l1t::PFClu
       addDecodedHadCalo(sec, c);
       if (writeRawHgcalCluster_)
         addRawHgcalCluster(event_.raw.hgcalcluster[sidx], c);
-      if (writeRawGCTCluster_)
-        addGCTHadCluster(event_.raw.gctHad[sidx], c);
     }
     sidx++;
   }

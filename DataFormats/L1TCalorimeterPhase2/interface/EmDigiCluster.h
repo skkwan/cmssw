@@ -1,12 +1,12 @@
-#ifndef DataFormats_L1TCalorimeterPhase2_GCTBarrelDigiClusterToCorrLayer1_h
-#define DataFormats_L1TCalorimeterPhase2_GCTBarrelDigiClusterToCorrLayer1_h
+#ifndef DataFormats_L1TCalorimeterPhase2_EmDigiCluster_h
+#define DataFormats_L1TCalorimeterPhase2_EmDigiCluster_h
 
 #include <ap_int.h>
 #include <vector>
 
 namespace l1tp2 {
 
-  class GCTBarrelDigiClusterToCorrLayer1 {
+  class EmDigiCluster {
   private:
     // Data (note: positional information is entirely encoded in the location in the output array)
     unsigned long long int clusterData;
@@ -18,11 +18,11 @@ namespace l1tp2 {
     static constexpr int n_bits_unused_start = 52; 
 
   public:
-    GCTBarrelDigiClusterToCorrLayer1() { clusterData = 0; }
+    EmDigiCluster() { clusterData = 0; }
 
-    GCTBarrelDigiClusterToCorrLayer1(ap_uint<64> data) { clusterData = data; }
+    EmDigiCluster(ap_uint<64> data) { clusterData = data; }
 
-    GCTBarrelDigiClusterToCorrLayer1(
+    EmDigiCluster(
                                ap_uint<12> pt,
                                int etaCr,
                                int phiCr,
@@ -103,8 +103,8 @@ namespace l1tp2 {
   };
 
   // Collection typedef
-  typedef std::vector<l1tp2::GCTBarrelDigiClusterToCorrLayer1> GCTBarrelDigiClusterToCorrLayer1Collection;
-  typedef std::vector<l1tp2::GCTBarrelDigiClusterToCorrLayer1Collection> GCTBarrelDigiClusterToCorrLayer1CollectionFullDetector;
+  typedef std::vector<l1tp2::EmDigiCluster> EmDigiClusterLink;
+  typedef std::vector<l1tp2::EmDigiClusterLink> EmDigiClusterCollection;
 
 }  // namespace l1tp2
 
