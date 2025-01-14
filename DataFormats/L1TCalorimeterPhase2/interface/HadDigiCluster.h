@@ -4,6 +4,8 @@
 #include <ap_int.h>
 #include <vector>
 
+#include "DataFormats/L1TCalorimeterPhase2/interface/CaloPFCluster.h"
+
 namespace l1tp2 {
 
   class HadDigiCluster {
@@ -16,6 +18,9 @@ namespace l1tp2 {
 
     // start of the unused bits 
     static constexpr int n_bits_unused_start = 31; 
+
+    // reference to corresponding float cluster
+    edm::Ref<l1tp2::CaloPFClusterCollection> refFloat;
 
   public:
     HadDigiCluster() { clusterData = 0; }
@@ -41,6 +46,10 @@ namespace l1tp2 {
       clusterData = temp_data;
     }
 
+    // Setters
+    void setRef(const edm::Ref<l1tp2::CaloPFClusterCollection> &thisRef) {
+      refFloat = thisRef;
+    }
     // Getters
     ap_uint<64> data() const { return clusterData; }
 
@@ -61,6 +70,11 @@ namespace l1tp2 {
     // Check that unused bits are zero
     const int unusedBitsStart() const { return n_bits_unused_start; }
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0); }
+
+    // Get the underlying ref
+    edm::Ref<l1tp2::CaloPFClusterCollection> base() const {
+      return refFloat;
+    }
 
   };
 

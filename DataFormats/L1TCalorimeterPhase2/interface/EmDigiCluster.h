@@ -4,6 +4,8 @@
 #include <ap_int.h>
 #include <vector>
 
+#include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
+
 namespace l1tp2 {
 
   class EmDigiCluster {
@@ -16,6 +18,9 @@ namespace l1tp2 {
 
     // start of the unused bits 
     static constexpr int n_bits_unused_start = 52; 
+
+    // reference to corresponding float cluster
+    edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> clusterRef_;
 
   public:
     EmDigiCluster() { clusterData = 0; }
@@ -52,6 +57,11 @@ namespace l1tp2 {
       temp_data.range(51, 50) = brems.range();
 
       clusterData = temp_data;
+    }
+
+    // Setters
+    void setRef(const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& clusterRef) {
+      clusterRef_ = clusterRef;
     }
 
     // Getters
@@ -100,6 +110,11 @@ namespace l1tp2 {
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0); }
 
     // Note: not possible to get real eta and phi without knowing the link
+
+    // Get the underlying ref
+    const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& base() const {
+      return clusterRef_;
+    }
   };
 
   // Collection typedef
