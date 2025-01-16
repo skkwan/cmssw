@@ -112,7 +112,7 @@ namespace l1tp2 {
     // Note: not possible to get real eta and phi without knowing the link
 
     // Get the underlying ref
-    const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& base() const {
+    const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& clusterRef() const {
       return clusterRef_;
     }
   };

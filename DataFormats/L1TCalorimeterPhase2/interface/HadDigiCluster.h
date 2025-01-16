@@ -20,7 +20,7 @@ namespace l1tp2 {
     static constexpr int n_bits_unused_start = 31; 
 
     // reference to corresponding float cluster
-    edm::Ref<l1tp2::CaloPFClusterCollection> refFloat;
+    edm::Ref<l1tp2::CaloPFClusterCollection> clusterRef_;
 
   public:
     HadDigiCluster() { clusterData = 0; }
@@ -47,8 +47,8 @@ namespace l1tp2 {
     }
 
     // Setters
-    void setRef(const edm::Ref<l1tp2::CaloPFClusterCollection> &thisRef) {
-      refFloat = thisRef;
+    void setRef(const edm::Ref<l1tp2::CaloPFClusterCollection> &clusterRef) {
+      clusterRef_ = clusterRef;
     }
     // Getters
     ap_uint<64> data() const { return clusterData; }
@@ -72,8 +72,8 @@ namespace l1tp2 {
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0); }
 
     // Get the underlying ref
-    edm::Ref<l1tp2::CaloPFClusterCollection> base() const {
-      return refFloat;
+    edm::Ref<l1tp2::CaloPFClusterCollection> clusterRef() const {
+      return clusterRef_;
     }
 
   };
