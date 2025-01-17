@@ -50,7 +50,8 @@ private:
   void produce(edm::Event&, const edm::EventSetup&) override;
 
   // ----------member data ---------------------------
-  const edm::EDGetTokenT<l1tp2::DigitizedClusterCorrelatorCollection> digiInputClusterToken_;
+  const edm::EDGetTokenT<l1tp2::CaloCrystalClusterCollection> gctClusterSrc_;
+  const edm::EDGetTokenT<l1tp2::DigitizedClusterCorrelatorCollection> digiInputClusterSrc_;
   const edm::EDGetTokenT<l1tp2::CaloPFClusterCollection> caloPFClustersSrc_;
 };
 
@@ -58,8 +59,8 @@ private:
 // constructors and destructor
 //
 Phase2GCTBarrelToCorrelatorLayer1::Phase2GCTBarrelToCorrelatorLayer1(const edm::ParameterSet& iConfig) 
-  // gctClustersSrc_(consumes<l1tp2::CaloCrystalClusterCollection >(cfg.getParameter<edm::InputTag>("gctClusters"))),
-  : digiInputClusterToken_(consumes<l1tp2::DigitizedClusterCorrelatorCollection>(iConfig.getParameter<edm::InputTag>("gctDigiClustersInput"))),
+  : gctClusterSrc_(consumes<l1tp2::CaloCrystalClusterCollection >(iConfig.getParameter<edm::InputTag>("gctClustersInput"))),
+    digiInputClusterSrc_(consumes<l1tp2::DigitizedClusterCorrelatorCollection>(iConfig.getParameter<edm::InputTag>("gctDigiClustersInput"))),
     caloPFClustersSrc_(consumes<l1tp2::CaloPFClusterCollection>(iConfig.getParameter<edm::InputTag>("gctPFclusters")))
 {
   produces<l1tp2::EmDigiClusterCollection>("emDigiClusters");
@@ -73,8 +74,11 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
     //***************************************************//
     // Get the GCT digitized clusters and PF clusters
     //***************************************************//
-    edm::Handle<l1tp2::DigitizedClusterCorrelatorCollection> inputGCTBarrelClusters;
-    iEvent.getByToken(digiInputClusterToken_, inputGCTBarrelClusters);
+    edm::Handle<l1tp2::CaloCrystalClusterCollection> inputGCTClusters; 
+    iEvent.getByToken(gctClusterSrc_, inputGCTClusters);
+
+    edm::Handle<l1tp2::DigitizedClusterCorrelatorCollection> inputGCTDigiClusters;
+    iEvent.getByToken(digiInputClusterSrc_, inputGCTDigiClusters);
 
     edm::Handle<l1tp2::CaloPFClusterCollection> inputPFClusters;
     iEvent.getByToken(caloPFClustersSrc_, inputPFClusters);
@@ -155,10 +159,9 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
     for (int iRegion = 0; iRegion < nRegions; iRegion++) {
 
-        std::cout << ">>>> Phase2L1TCaloBarrelToCorrelator: Doing " << iRegion << std::endl;
         // EM digi clusters
-        for (size_t iCluster = 0; iCluster < inputGCTBarrelClusters->size(); ++iCluster) {
-            l1tp2::DigitizedClusterCorrelator clusterIn = inputGCTBarrelClusters->at(iCluster);
+        for (size_t iCluster = 0; iCluster < inputGCTDigiClusters->size(); ++iCluster) {
+            l1tp2::DigitizedClusterCorrelator clusterIn = inputGCTDigiClusters->at(iCluster);
 
             // Check if this cluster falls into each SLR region, i.e. if the cluster is within 120/2 = 60 degrees of the center of the SLR in phi 
             float clusterRealPhiAsDegree = clusterIn.realPhi() * 180/M_PI; 
@@ -193,8 +196,11 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                     clusterIn.shapeFlags(),
                     clusterIn.brems()
                 );
-                edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> thisRef(inputGCTBarrelClusters, iCluster);
+                // there is a 1-to-1 mapping between the original float clusters and the first step of digitization, so we can build a ref to the same cluster
+                edm::Ref<l1tp2::CaloCrystalClusterCollection> thisRef(inputGCTClusters, iCluster);
                 clusterOut.setRef(thisRef);
+                edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> thisDigiRef(inputGCTDigiClusters, iCluster);
+                clusterOut.setDigiRef(thisDigiRef);
                 
                 // Check which RCT card this falls into, ordered 0, 1, 2, 3 counting from the most negative phi (real phi or iPhi) to the most positive 
                 // so RCT card 0 is -60 to -30 degrees in phi from the center, RCT card 1 is -30 to 0 degrees in phi from the center, RCT card 2 is 0 to +30 degrees in phi from the center, RCT card 3 is +30 to +60 degrees in phi from the center
@@ -203,8 +209,6 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                 else if (phiDifference < 0) { whichRCTcard = 1; }
                 else if (phiDifference < 30) { whichRCTcard = 2; }
                 else { whichRCTcard = 3; }
-
-                std::cout << "For phi diff " << phiDifference << " got RCT card " << whichRCTcard;
 
                 if (iRegion == 0)      { if (temp_iEta_signed < 0) { buffer_eg_GCT1_SLR1_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT1_SLR1_posEta[whichRCTcard].push_back(clusterOut);} }
                 else if (iRegion == 1) { if (temp_iEta_signed < 0) { buffer_eg_GCT1_SLR3_negEta[whichRCTcard].push_back(clusterOut); } else { buffer_eg_GCT1_SLR3_posEta[whichRCTcard].push_back(clusterOut);} }
@@ -260,8 +264,6 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                 else if (phiDifference < 0) { whichRCTcard = 1; }
                 else if (phiDifference < 30) { whichRCTcard = 2; }
                 else { whichRCTcard = 3; }
-
-                std::cout << "For phi diff " << phiDifference << " got RCT card " << whichRCTcard;
 
                 if (iRegion == 0)      { if (temp_iEta_signed < 0) { buffer_had_GCT1_SLR1_negEta[whichRCTcard].push_back(pfOut); } else { buffer_had_GCT1_SLR1_posEta[whichRCTcard].push_back(pfOut); }}
                 else if (iRegion == 1) { if (temp_iEta_signed < 0) { buffer_had_GCT1_SLR3_negEta[whichRCTcard].push_back(pfOut); } else { buffer_had_GCT1_SLR3_posEta[whichRCTcard].push_back(pfOut); }}

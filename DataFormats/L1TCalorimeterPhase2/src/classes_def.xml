@@ -10,6 +10,7 @@
   <class name="std::vector<l1tp2::CaloCrystalCluster>" />
   <class name="l1tp2::CaloCrystalClusterCollection" />
   <class name="edm::Wrapper<l1tp2::CaloCrystalClusterCollection>" />
+  <class name="edm::Ref<l1tp2::CaloCrystalClusterCollection>" />
 
   <class name="l1tp2::CaloJet"  ClassVersion="3">
          <version ClassVersion="3" checksum="2520028496"/>

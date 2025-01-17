@@ -4,6 +4,7 @@
 #include <ap_int.h>
 #include <vector>
 
+#include "DataFormats/L1TCalorimeterPhase2/interface/CaloCrystalCluster.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 
 namespace l1tp2 {
@@ -19,8 +20,11 @@ namespace l1tp2 {
     // start of the unused bits 
     static constexpr int n_bits_unused_start = 52; 
 
-    // reference to corresponding float cluster
-    edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> clusterRef_;
+    // Reference to the original float cluster
+    edm::Ref<l1tp2::CaloCrystalClusterCollection> clusterRef_;
+
+    // reference to the original digitized cluster (before duplication in the output links)
+    edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> digiClusterRef_;
 
   public:
     EmDigiCluster() { clusterData = 0; }
@@ -60,8 +64,12 @@ namespace l1tp2 {
     }
 
     // Setters
-    void setRef(const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& clusterRef) {
+    void setRef(const edm::Ref<l1tp2::CaloCrystalClusterCollection>& clusterRef) {
       clusterRef_ = clusterRef;
+    }
+
+    void setDigiRef(const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& digiClusterRef) {
+      digiClusterRef_ = digiClusterRef;
     }
 
     // Getters
@@ -111,9 +119,13 @@ namespace l1tp2 {
 
     // Note: not possible to get real eta and phi without knowing the link
 
-    // Get the underlying ref
-    const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& clusterRef() const {
+    // Get the underlying float cluster
+    const edm::Ref<l1tp2::CaloCrystalClusterCollection>& clusterRef() const {
       return clusterRef_;
+    }
+    // Get the underlying digitized cluster (before duplication and zero-padding)
+    const edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection>& digiClusterRef() const {
+      return digiClusterRef_;
     }
   };
 
