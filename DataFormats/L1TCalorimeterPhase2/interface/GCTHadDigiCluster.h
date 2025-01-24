@@ -1,5 +1,5 @@
-#ifndef DataFormats_L1TCalorimeterPhase2_HadDigiCluster_h
-#define DataFormats_L1TCalorimeterPhase2_HadDigiCluster_h
+#ifndef DataFormats_L1TCalorimeterPhase2_GCTHadDigiCluster_h
+#define DataFormats_L1TCalorimeterPhase2_GCTHadDigiCluster_h
 
 #include <ap_int.h>
 #include <vector>
@@ -8,9 +8,9 @@
 
 namespace l1tp2 {
 
-  class HadDigiCluster {
+  class GCTHadDigiCluster {
   private:
-    // Data (note: positional information is entirely encoded in the location in the output array)
+    // Data
     unsigned long long int clusterData;
 
     // Constants
@@ -23,12 +23,12 @@ namespace l1tp2 {
     edm::Ref<l1tp2::CaloPFClusterCollection> clusterRef_;
 
   public:
-    HadDigiCluster() { clusterData = 0; }
+    GCTHadDigiCluster() { clusterData = 0; }
 
-    HadDigiCluster(ap_uint<64> data) { clusterData = data; }
+    GCTHadDigiCluster(ap_uint<64> data) { clusterData = data; }
 
     // Note types of the constructor
-    HadDigiCluster(
+    GCTHadDigiCluster(
                                ap_uint<12> pt,
                                int etaCr,
                                int phiCr,
@@ -78,9 +78,15 @@ namespace l1tp2 {
 
   };
 
-  // Collection typedef
-  typedef std::vector<l1tp2::HadDigiCluster> HadDigiClusterLink;
-  typedef std::vector<l1tp2::HadDigiClusterLink> HadDigiClusterCollection;
+  // Collection typedefs
+
+  // This represents the 36 GCTHadDigiClusters in one link (one link spans 4 RCT cards, each RCT card sends 9 clusters (zero-padded and sorted by decreasing pT)
+  // The ordering of the 4 RCT cards in this std::vector is, e.g. for GCT1.SLR3, real phi -50 to -20 degrees, then real phi -20 to 10 degrees, then real phi 10 to 40 degrees, and lastly real phi 40 to 70 degrees
+  typedef std::vector<l1tp2::GCTHadDigiCluster> GCTHadDigiClusterLink;
+
+  // This represents the 12 links sending GCTHadDigiClusters in the full barrel: there are 12 links = (3 GCT cards) * (two SLRs per GCT) * (one positive eta link and one negative eta link)
+  // The ordering of the links in this std::vector is (GCT1.SLR1 negEta, GCT.SLR1 posEta, GCT1.SLR3 negEta, GCT1.SLR3 posEta, then analogously for GCT2 and GCT3)
+  typedef std::vector<l1tp2::GCTHadDigiClusterLink> GCTHadDigiClusterCollection;
 
 }  // namespace l1tp2
 

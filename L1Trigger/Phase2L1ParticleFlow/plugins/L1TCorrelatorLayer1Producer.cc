@@ -19,8 +19,8 @@
 #include "DataFormats/L1TParticleFlow/interface/PFCandidate.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 #include "DataFormats/L1Trigger/interface/VertexWord.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTEmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTHadDigiCluster.h"
 
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 
@@ -52,11 +52,11 @@
 #include "DataFormats/L1TCorrelator/interface/TkEm.h"
 #include "DataFormats/L1TCorrelator/interface/TkEmFwd.h"
 
-using rawEMClusterCollections = l1tp2::EmDigiClusterCollection;
-using rawHadClusterCollections = l1tp2::HadDigiClusterCollection;
+using rawEMClusterCollections = l1tp2::GCTEmDigiClusterCollection;
+using rawHadClusterCollections = l1tp2::GCTHadDigiClusterCollection;
 
-using rawEMClusterCollection = l1tp2::EmDigiClusterLink;
-using rawHadClusterCollection = l1tp2::HadDigiClusterLink;
+using rawEMClusterCollection = l1tp2::GCTEmDigiClusterLink;
+using rawHadClusterCollection = l1tp2::GCTHadDigiClusterLink;
 
 using emCaloRef = edm::Ref<rawEMClusterCollections>;
 using hadCaloRef = edm::Ref<rawHadClusterCollections>;

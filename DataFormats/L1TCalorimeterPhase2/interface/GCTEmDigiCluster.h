@@ -1,5 +1,5 @@
-#ifndef DataFormats_L1TCalorimeterPhase2_EmDigiCluster_h
-#define DataFormats_L1TCalorimeterPhase2_EmDigiCluster_h
+#ifndef DataFormats_L1TCalorimeterPhase2_GCTEmDigiCluster_h
+#define DataFormats_L1TCalorimeterPhase2_GCTEmDigiCluster_h
 
 #include <ap_int.h>
 #include <vector>
@@ -9,9 +9,9 @@
 
 namespace l1tp2 {
 
-  class EmDigiCluster {
+  class GCTEmDigiCluster {
   private:
-    // Data (note: positional information is entirely encoded in the location in the output array)
+    // Data
     unsigned long long int clusterData;
 
     // Constants
@@ -27,11 +27,11 @@ namespace l1tp2 {
     edm::Ref<l1tp2::DigitizedClusterCorrelatorCollection> digiClusterRef_;
 
   public:
-    EmDigiCluster() { clusterData = 0; }
+    GCTEmDigiCluster() { clusterData = 0; }
 
-    EmDigiCluster(ap_uint<64> data) { clusterData = data; }
+    GCTEmDigiCluster(ap_uint<64> data) { clusterData = data; }
 
-    EmDigiCluster(
+    GCTEmDigiCluster(
                                ap_uint<12> pt,
                                int etaCr,
                                int phiCr,
@@ -80,10 +80,12 @@ namespace l1tp2 {
     ap_uint<12> pt() const { return data().range(11, 0); }
     float ptFloat() const { return pt() * ptLSB(); }
 
-    // crystal eta (unsigned, 7 bits)
+    // crystal eta (unsigned, 7 bits), starting at 0 at real eta = 0, and increasing in the direction of larger abs(real eta)
+    // to convert to real eta, need to know which link this cluster is in
     int eta() const { return (ap_uint<7>) data().range(18, 12); }  
 
-    // crystal phi (signed, 7 bits)
+    // crystal phi (signed, 7 bits), relative to center of the SLR 
+    // to convert to real phi, need to know which SLR this cluster is in
     int phi() const { return (ap_int<7>) data().range(25, 19); }
 
     // HoE value and flag: not defined yet in the emulator
@@ -117,8 +119,6 @@ namespace l1tp2 {
     const int unusedBitsStart() const { return n_bits_unused_start; }
     bool passNullBitsCheck(void) const { return ((data() >> unusedBitsStart()) == 0); }
 
-    // Note: not possible to get real eta and phi without knowing the link
-
     // Get the underlying float cluster
     const edm::Ref<l1tp2::CaloCrystalClusterCollection>& clusterRef() const {
       return clusterRef_;
@@ -129,9 +129,15 @@ namespace l1tp2 {
     }
   };
 
-  // Collection typedef
-  typedef std::vector<l1tp2::EmDigiCluster> EmDigiClusterLink;
-  typedef std::vector<l1tp2::EmDigiClusterLink> EmDigiClusterCollection;
+  // Collection typedefs
+  
+  // This represents the 36 GCTEmDigiClusters in one link (one link spans 4 RCT cards, each RCT card sends 9 clusters (zero-padded and sorted by decreasing pT))
+  // The ordering of the 4 RCT cards in the link is, e.g. for GCT1.SLR3, real phi -50 to -20 degrees, then real phi -20 to 10 degrees, then real phi 10 to 40 degrees, and lastly real phi 40 to 70 degrees
+  typedef std::vector<l1tp2::GCTEmDigiCluster> GCTEmDigiClusterLink;
+
+  // This represents the 12 links sending GCTEmDigiClusters in the full barrel: there are 12 links = (3 GCT cards) * (two SLRs per GCT) * (one positive eta link and one negative eta link)
+  // The ordering of the links in this std::vector is (GCT1.SLR1 negEta, GCT.SLR1 posEta, GCT1.SLR3 negEta, GCT1.SLR3 posEta, then analogously for GCT2 and GCT3)
+  typedef std::vector<l1tp2::GCTEmDigiClusterLink> GCTEmDigiClusterCollection;
 
 }  // namespace l1tp2
 

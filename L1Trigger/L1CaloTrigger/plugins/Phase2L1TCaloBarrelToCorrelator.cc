@@ -26,8 +26,8 @@
 #include "DataFormats/L1TCalorimeterPhase2/interface/CaloPFCluster.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 
-#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTEmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTHadDigiCluster.h"
 
 #include <ap_int.h>
 #include <fstream>
@@ -63,8 +63,8 @@ Phase2GCTBarrelToCorrelatorLayer1::Phase2GCTBarrelToCorrelatorLayer1(const edm::
     digiInputClusterSrc_(consumes<l1tp2::DigitizedClusterCorrelatorCollection>(iConfig.getParameter<edm::InputTag>("gctDigiClustersInput"))),
     caloPFClustersSrc_(consumes<l1tp2::CaloPFClusterCollection>(iConfig.getParameter<edm::InputTag>("gctPFclusters")))
 {
-  produces<l1tp2::EmDigiClusterCollection>("emDigiClusters");
-  produces<l1tp2::HadDigiClusterCollection>("hadDigiClusters");
+  produces<l1tp2::GCTEmDigiClusterCollection>("GCTEmDigiClusters");
+  produces<l1tp2::GCTHadDigiClusterCollection>("GCTHadDigiClusters");
 }
 
 void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -88,67 +88,67 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
     //***************************************************//
 
     // Em digi cluster output
-    auto outputEmClusters = std::make_unique<l1tp2::EmDigiClusterCollection>();
+    auto outputEmClusters = std::make_unique<l1tp2::GCTEmDigiClusterCollection>();
     // Had digi cluster output
-    auto outputHadClusters = std::make_unique<l1tp2::HadDigiClusterCollection>();
+    auto outputHadClusters = std::make_unique<l1tp2::GCTHadDigiClusterCollection>();
 
     // EG Clusters output by GCT SLR (duplicates included)
-    l1tp2::EmDigiClusterLink out_eg_GCT1_SLR1_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT1_SLR1_negEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT1_SLR3_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT1_SLR3_negEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT2_SLR1_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT2_SLR1_negEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT2_SLR3_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT2_SLR3_negEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT3_SLR1_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT3_SLR1_negEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT3_SLR3_posEta;
-    l1tp2::EmDigiClusterLink out_eg_GCT3_SLR3_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT1_SLR1_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT1_SLR1_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT1_SLR3_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT1_SLR3_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT2_SLR1_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT2_SLR1_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT2_SLR3_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT2_SLR3_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT3_SLR1_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT3_SLR1_negEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT3_SLR3_posEta;
+    l1tp2::GCTEmDigiClusterLink out_eg_GCT3_SLR3_negEta;
 
 
     // Temporary arrays used to represent the four RCT cards in one SLR one side of eta (positive or eta)
-    l1tp2::EmDigiClusterLink buffer_eg_GCT1_SLR1_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT1_SLR1_negEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT1_SLR3_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT1_SLR3_negEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT2_SLR1_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT2_SLR1_negEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT2_SLR3_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT2_SLR3_negEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT3_SLR1_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT3_SLR1_negEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT3_SLR3_posEta[4];
-    l1tp2::EmDigiClusterLink buffer_eg_GCT3_SLR3_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT1_SLR1_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT1_SLR1_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT1_SLR3_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT1_SLR3_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT2_SLR1_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT2_SLR1_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT2_SLR3_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT2_SLR3_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT3_SLR1_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT3_SLR1_negEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT3_SLR3_posEta[4];
+    l1tp2::GCTEmDigiClusterLink buffer_eg_GCT3_SLR3_negEta[4];
 
 
     // PF Clusters output by GCT SLR (duplicates included)
-    l1tp2::HadDigiClusterLink out_had_GCT1_SLR1_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT1_SLR1_negEta;
-    l1tp2::HadDigiClusterLink out_had_GCT1_SLR3_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT1_SLR3_negEta;
-    l1tp2::HadDigiClusterLink out_had_GCT2_SLR1_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT2_SLR1_negEta;
-    l1tp2::HadDigiClusterLink out_had_GCT2_SLR3_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT2_SLR3_negEta;
-    l1tp2::HadDigiClusterLink out_had_GCT3_SLR1_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT3_SLR1_negEta;
-    l1tp2::HadDigiClusterLink out_had_GCT3_SLR3_posEta;
-    l1tp2::HadDigiClusterLink out_had_GCT3_SLR3_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT1_SLR1_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT1_SLR1_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT1_SLR3_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT1_SLR3_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT2_SLR1_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT2_SLR1_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT2_SLR3_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT2_SLR3_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT3_SLR1_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT3_SLR1_negEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT3_SLR3_posEta;
+    l1tp2::GCTHadDigiClusterLink out_had_GCT3_SLR3_negEta;
 
     // Temporary arrays used to represent the four RCT cards in one SLR one side of eta (positive or eta)
-    l1tp2::HadDigiClusterLink buffer_had_GCT1_SLR1_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT1_SLR1_negEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT1_SLR3_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT1_SLR3_negEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT2_SLR1_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT2_SLR1_negEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT2_SLR3_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT2_SLR3_negEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT3_SLR1_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT3_SLR1_negEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT3_SLR3_posEta[4];
-    l1tp2::HadDigiClusterLink buffer_had_GCT3_SLR3_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT1_SLR1_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT1_SLR1_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT1_SLR3_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT1_SLR3_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT2_SLR1_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT2_SLR1_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT2_SLR3_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT2_SLR3_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT3_SLR1_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT3_SLR1_negEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT3_SLR3_posEta[4];
+    l1tp2::GCTHadDigiClusterLink buffer_had_GCT3_SLR3_negEta[4];
 
     //***************************************************//
     // Loop over the regions: in order: GCT1 SLR1, GCT1 SLR3, GCT2 SLR1, GCT2 SLR3, GCT3 SLR1, GCT3SLR3
@@ -183,7 +183,7 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                 }
 
                 // Initialize the new cluster and set the edm::Ref pointing to the underlying float
-                l1tp2::EmDigiCluster clusterOut = l1tp2::EmDigiCluster(
+                l1tp2::GCTEmDigiCluster clusterOut = l1tp2::GCTEmDigiCluster(
                     clusterIn.pt(),
                     iEta,
                     iPhiCrystalDifference,
@@ -249,7 +249,7 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
                 }
 
                 // Initialize the new cluster
-                l1tp2::HadDigiCluster pfOut = l1tp2::HadDigiCluster(
+                l1tp2::GCTHadDigiCluster pfOut = l1tp2::GCTHadDigiCluster(
                     pfIn.clusterEt() / p2eg::ECAL_LSB,  // convert to integer
                     iEta,
                     iPhiCrystalDifference,
@@ -372,8 +372,8 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
     outputHadClusters->push_back(out_had_GCT3_SLR3_posEta);
     outputHadClusters->push_back(out_had_GCT3_SLR3_negEta);
 
-    iEvent.put(std::move(outputEmClusters), "emDigiClusters");
-    iEvent.put(std::move(outputHadClusters), "hadDigiClusters");
+    iEvent.put(std::move(outputEmClusters), "GCTEmDigiClusters");
+    iEvent.put(std::move(outputHadClusters), "GCTHadDigiClusters");
 }
 
 //define this as a plug-in

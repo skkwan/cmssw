@@ -21,8 +21,8 @@
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedTowerCorrelator.h"
 #include "DataFormats/L1TCalorimeterPhase2/interface/DigitizedClusterGT.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTEmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTHadDigiCluster.h"
 
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
@@ -1673,10 +1673,10 @@ namespace p2eg {
   /*******************************************************************************************/
   /* Interface to correlator helper functions (defined in Phase2L1CaloBarrelToCorrelator.h)  */
   /*******************************************************************************************/
-  bool compareEmDigiClusterET(const l1tp2::EmDigiCluster& lhs, const l1tp2::EmDigiCluster& rhs);
-  void sortAndPad_eg_SLR(l1tp2::EmDigiClusterLink& thisSLR);
-  bool compareHadDigiClusterET(const l1tp2::HadDigiCluster& lhs, const l1tp2::HadDigiCluster& rhs);
-  void sortAndPad_had_SLR(l1tp2::HadDigiClusterLink &thisSLR);
+  bool compareGCTEmDigiClusterET(const l1tp2::GCTEmDigiCluster& lhs, const l1tp2::GCTEmDigiCluster& rhs);
+  void sortAndPad_eg_SLR(l1tp2::GCTEmDigiClusterLink& thisSLR);
+  bool compareGCTHadDigiClusterET(const l1tp2::GCTHadDigiCluster& lhs, const l1tp2::GCTHadDigiCluster& rhs);
+  void sortAndPad_had_SLR(l1tp2::GCTHadDigiClusterLink &thisSLR);
   float deltaPhiInDegrees(float phi1, float phi2, const float c);
   float wrappedPhiInDegrees(float phi);
 

@@ -1,15 +1,15 @@
 #ifndef PHASE_2_L1_CALO_BARREL_TO_CORRELATOR
 #define PHASE_2_L1_CALO_BARREL_TO_CORRELATOR
 
-#include "DataFormats/L1TCalorimeterPhase2/interface/EmDigiCluster.h"
-#include "DataFormats/L1TCalorimeterPhase2/interface/HadDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTEmDigiCluster.h"
+#include "DataFormats/L1TCalorimeterPhase2/interface/GCTHadDigiCluster.h"
 
 #include "L1Trigger/L1CaloTrigger/interface/Phase2L1CaloEGammaUtils.h"
 
 /* 
  * Comparators for sorting EG clusters
  */
-inline bool p2eg::compareEmDigiClusterET(const l1tp2::EmDigiCluster& lhs, const l1tp2::EmDigiCluster& rhs) {
+inline bool p2eg::compareGCTEmDigiClusterET(const l1tp2::GCTEmDigiCluster& lhs, const l1tp2::GCTEmDigiCluster& rhs) {
     return (lhs.ptFloat() > rhs.ptFloat());
 }
 
@@ -37,16 +37,16 @@ float p2eg::wrappedPhiInDegrees(float phi) {
 /*
  * Sort the clusters in each egamma SLR in descending pT, then pad any zero clusters so that the total number of clusters in the SLR is six
  */
-void p2eg::sortAndPad_eg_SLR(l1tp2::EmDigiClusterLink &thisSLR) {
+void p2eg::sortAndPad_eg_SLR(l1tp2::GCTEmDigiClusterLink &thisSLR) {
     // input is a vector and can be sorted
-    std::sort(thisSLR.begin(), thisSLR.end(), p2eg::compareEmDigiClusterET);
+    std::sort(thisSLR.begin(), thisSLR.end(), p2eg::compareGCTEmDigiClusterET);
     int nClusters = thisSLR.size();
 
     // If there are fewer than the designated number of clusters, pad with zeros
     if (nClusters < p2eg::N_EG_CLUSTERS_PER_RCT_CARD) {
         // do padding. if size == 2, push back four clusters
         for (int i = 0; i < (p2eg::N_EG_CLUSTERS_PER_RCT_CARD - nClusters); i++) {
-            l1tp2::EmDigiCluster zeroCluster;
+            l1tp2::GCTEmDigiCluster zeroCluster;
             thisSLR.push_back(zeroCluster);
         }
     }
@@ -60,22 +60,22 @@ void p2eg::sortAndPad_eg_SLR(l1tp2::EmDigiClusterLink &thisSLR) {
 /* 
  * Comparators for sorting PF clusters
  */
-inline bool p2eg::compareHadDigiClusterET(const l1tp2::HadDigiCluster& lhs, const l1tp2::HadDigiCluster& rhs) {
+inline bool p2eg::compareGCTHadDigiClusterET(const l1tp2::GCTHadDigiCluster& lhs, const l1tp2::GCTHadDigiCluster& rhs) {
     return (lhs.ptFloat() > rhs.ptFloat());
 }
 
 /*
  * Sort the clusters in each PF SLR in descending pT, then pad any zero clusters so that the total number of clusters in the SLR is six
  */
-void p2eg::sortAndPad_had_SLR(l1tp2::HadDigiClusterLink &thisSLR) {
+void p2eg::sortAndPad_had_SLR(l1tp2::GCTHadDigiClusterLink &thisSLR) {
     // input is a vector and can be sorted
-    std::sort(thisSLR.begin(), thisSLR.end(), p2eg::compareHadDigiClusterET);
+    std::sort(thisSLR.begin(), thisSLR.end(), p2eg::compareGCTHadDigiClusterET);
     int nClusters = thisSLR.size();
 
     // If there are fewer than the designated number of clusters, pad with zeros
     if (nClusters < p2eg::N_PF_CLUSTERS_PER_RCT_CARD) {
         for (int i = 0; i < (p2eg::N_PF_CLUSTERS_PER_RCT_CARD - nClusters); i++) {
-            l1tp2::HadDigiCluster zeroCluster;
+            l1tp2::GCTHadDigiCluster zeroCluster;
             thisSLR.push_back(zeroCluster);
         }
     }
