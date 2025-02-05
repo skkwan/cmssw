@@ -8,7 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.utils.crabhelper import inputFiles
 from PhysicsTools.NanoAODTools.postprocessing.examples.exampleModule import *
 p = PostProcessor(".",
                   inputFiles(),
-                  "Jet_pt>200",
+                  "((nMuons >= 2) || (nElectron >= 2)",
                   modules=[exampleModuleConstr()],
                   provenance=True,
                   fwkJobReport=True,

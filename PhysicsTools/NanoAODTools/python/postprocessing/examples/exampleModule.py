@@ -35,17 +35,23 @@ class exampleProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        electrons = Collection(event, "Electron")
-        muons = Collection(event, "Muon")
-        jets = Collection(event, "Jet")
-        eventSum = ROOT.TLorentzVector()
-        for lep in muons:
-            eventSum += lep.p4()
-        for lep in electrons:
-            eventSum += lep.p4()
-        for j in filter(self.jetSel, jets):
-            eventSum += j.p4()
-        self.out.fillBranch("EventMass", eventSum.M())
+        # Configuration 2:
+        # electrons = Collection(event, "Electron")
+        # muons = Collection(event, "Muon")
+        # return ((len(muons) >= 2) or (len(electrons) >= 2))
+
+        # Remainder of the example, which also computed a branch EventMass
+        # electrons = Collection(event, "Electron")
+        # muons = Collection(event, "Muon")
+        # jets = Collection(event, "Jet")
+        # eventSum = ROOT.TLorentzVector()
+        # for lep in muons:
+        #     eventSum += lep.p4()
+        # for lep in electrons:
+        #     eventSum += lep.p4()
+        # for j in filter(self.jetSel, jets):
+        #     eventSum += j.p4()
+        # self.out.fillBranch("EventMass", eventSum.M())
         return True
 
 
