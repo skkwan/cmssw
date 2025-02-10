@@ -75,11 +75,14 @@ class exampleProducer(Module):
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
 
-higgsinoSkimModule = lambda: exampleProducer(jetSelection=lambda j: j.pt > 25,
-                                             # muons: identical to sel_ms_mask except no cut on muon isolation: muon_iso="miniisotight", in case we want to anti-iso muons later?
-                                             muoSelection=lambda m: (m.pt > 20) and m.mediumId and (abs(m.eta) < 2.5) and (abs(m.ip3d) < 0.1) and (abs(m.dz) < 0.2),
-                                             # electrons: use 0.10 max ip3d (it's max 0.05 in the barrel and max 0.10 in the endcap)
-                                             #            use 0.2 max dz (it's max 0.1 in the barrel and max 0.2 in the endcap)
-                                             #            No isolation for now?
-                                             eleSelection=lambda e: (e.pt > 20) and (abs(e.eta) < 2.5) and (abs(e.ip3d) < 0.10) and (abs(e.dz) < 0.2))
+higgsinoSkimModule = lambda: exampleProducer(jetSelection=lambda j: j.pt > 25, 
+                                             # muons: see https://gitlab.cern.ch/mrherrma/zhmet/-/blob/main/src/chai/processors/tchizh.py#L327-338
+                                             #            - TChiZH.py code says miniisotight, which is miniPFRelIso_all < 0.1
+                                             muoSelection=lambda m: m.mediumId and (m.miniPFRelIso_all < 0.1) and (m.pt > 20) and (abs(m.eta) < 2.5) and (abs(m.ip3d) < 0.1) and (abs(m.dz) < 0.2),
+                                             # electrons: see https://gitlab.cern.ch/mrherrma/zhmet/-/blob/main/src/chai/processors/tchizh.py#L343-362
+                                             #            - Electron ID: Iso_WP90
+                                             #            - Isolation: TChiZH.py code says iso of 0.1 to match miniisotight for muons
+                                             #            - use 0.10 max ip3d (it's max 0.05 in the barrel and max 0.10 in the endcap)
+                                             #            - use 0.2 max dz (it's max 0.1 in the barrel and max 0.2 in the endcap)
+                                             eleSelection=lambda e: (e.mvaFall17V2Iso_WP90) and (e.miniPFRelIso_all < 0.1) and (e.pt > 20) and (abs(e.eta) < 2.5) and (abs(e.ip3d) < 0.10) and (abs(e.dz) < 0.2))
 
