@@ -42,17 +42,25 @@ class exampleProducer(Module):
         muons = Collection(event, "Muon")
         jets = Collection(event, "Jet")
 
-        # reminder: currently there are no isolation selections here, can change this
-        # might be time-consuming to convert this to a list
-        nElectronsPassing = sum(1 for e in filter(self.eleSel, electrons))
-        nMuonsPassing = sum(1 for m in filter(self.muoSel, muons))
-        nJetsPassing = sum(1 for j in filter(self.jetSel, jets))
-
-        print(f"{nElectronsPassing}, {nMuonsPassing}, {nJetsPassing}")
+        # First count the number of electrons, muons, and jets passing the baseline selections 
+        filteredEle = filter(self.eleSel, electrons) 
+        filteredMuo = filter(self.muoSel, muons)
+        filteredJet = filter(self.jetSel, jets)
+        nElectronsPassing = sum(1 for e in filteredEle)
+        nMuonsPassing = sum(1 for m in filteredMuo)
+        nJetsPassing = sum(1 for j in filteredJet)
 
         # In the full processor we will do more advanced checks like cleaning the jets from the electrons and muons,
         # but at the minimum we need at least two jets
-        return ((nJetsPassing >= 2) and ((nElectronsPassing >= 2) or (nMuonsPassing >= 2)))
+        if not ((nJetsPassing >= 2) and ((nElectronsPassing >= 2) or (nMuonsPassing >= 2))):
+            return False
+
+        # # Next, find the leading pair 
+        # bool hasLeadingPairElEl = False
+        # bool hasLeadingPairMuMu = False
+
+        # Do combinations 
+
 
         # return ((len(muons) >= 2) or (len(electrons) >= 2))
 
@@ -70,7 +78,7 @@ class exampleProducer(Module):
 
         # self.out.fillBranch("EventMass", eventSum.M())
 
-        # return True
+        return True
 
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
@@ -81,8 +89,9 @@ higgsinoSkimModule = lambda: exampleProducer(jetSelection=lambda j: j.pt > 25,
                                              muoSelection=lambda m: m.mediumId and (m.miniPFRelIso_all < 0.1) and (m.pt > 20) and (abs(m.eta) < 2.5) and (abs(m.ip3d) < 0.1) and (abs(m.dz) < 0.2),
                                              # electrons: see https://gitlab.cern.ch/mrherrma/zhmet/-/blob/main/src/chai/processors/tchizh.py#L343-362
                                              #            - Electron ID: Iso_WP90
-                                             #            - Isolation: TChiZH.py code says iso of 0.1 to match miniisotight for muons
+                                             #            - Isolation: TChiZH.py code says iso of 0.1 to match miniisotight for muons, slides say 0.2
                                              #            - use 0.10 max ip3d (it's max 0.05 in the barrel and max 0.10 in the endcap)
                                              #            - use 0.2 max dz (it's max 0.1 in the barrel and max 0.2 in the endcap)
-                                             eleSelection=lambda e: (e.mvaFall17V2Iso_WP90) and (e.miniPFRelIso_all < 0.1) and (e.pt > 20) and (abs(e.eta) < 2.5) and (abs(e.ip3d) < 0.10) and (abs(e.dz) < 0.2))
+                                             eleSelection=lambda e: (e.mvaFall17V2Iso_WP90) and (e.miniPFRelIso_all < 0.1) and (e.pt > 20) and (abs(e.eta) < 2.5) and (abs(e.ip3d) < 0.10) and (abs(e.dz) < 0.2)
+)
 

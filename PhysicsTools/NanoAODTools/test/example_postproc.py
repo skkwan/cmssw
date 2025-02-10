@@ -3,6 +3,9 @@
 # Example of running the postprocessor to skim events with a cut, and 
 # adding a new variable using a Module.
 #
+# Usage:
+#   python3 example_postproc.py
+#
 from PhysicsTools.NanoAODTools.postprocessing.examples.exampleModule import *
 from PhysicsTools.NanoAODTools.postprocessing.examples.higgsinoSkimModule import *
 
@@ -32,10 +35,10 @@ fnames = ["root://cms-xrd-global.cern.ch///store/data/Run2018A/DoubleMuon/NANOAO
 
 p = PostProcessor(outputDir=".",
                   inputFiles=fnames,
-                  cut="((nMuon >= 2) || (nElectron >= 2)) && (nJet >= 2)",
+                  cut="((nMuon >= 2) || (nElectron >= 2)) && (nJet >= 2) && (MET_pt > 50)",
                   modules=[higgsinoSkimModule()],
                   provenance=True,
-                  maxEntries=1000, #just read the first maxEntries events
+                  maxEntries=10000, #just read the first maxEntries events
                   )
 p.run()
 
