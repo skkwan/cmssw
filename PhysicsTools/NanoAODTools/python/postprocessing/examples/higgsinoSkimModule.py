@@ -11,9 +11,11 @@
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from .helper import findLeadingPair, invariantMass
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
+from itertools import combinations
 
 class exampleProducer(Module):
     def __init__(self, jetSelection, muoSelection, eleSelection):
@@ -30,53 +32,61 @@ class exampleProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("EventMass", "F")
+        self.out.branch("nMuonsPassing", "I")
+        self.out.branch("nElectronsPassing", "I")
+        self.out.branch("m_dimuon", "D")
+        self.out.branch("m_diele", "D")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
+        # Initialize
+        eventPasses = False 
 
         electrons = Collection(event, "Electron")
         muons = Collection(event, "Muon")
         jets = Collection(event, "Jet")
 
         # First count the number of electrons, muons, and jets passing the baseline selections 
-        filteredEle = filter(self.eleSel, electrons) 
-        filteredMuo = filter(self.muoSel, muons)
-        filteredJet = filter(self.jetSel, jets)
-        nElectronsPassing = sum(1 for e in filteredEle)
-        nMuonsPassing = sum(1 for m in filteredMuo)
-        nJetsPassing = sum(1 for j in filteredJet)
+        filteredEle = list(filter(self.eleSel, electrons))
+        filteredMuo = list(filter(self.muoSel, muons))
+        filteredJet = list(filter(self.jetSel, jets))
+        nElectronsPassing = len(filteredEle)
+        nMuonsPassing = len(filteredMuo)
+        nJetsPassing = len(filteredJet)
+
+        # Initialize these branches
+        m_dimuon = 0
+        m_diele = 0
 
         # In the full processor we will do more advanced checks like cleaning the jets from the electrons and muons,
-        # but at the minimum we need at least two jets
+        # but at the minimum we need at least two jets. 
         if not ((nJetsPassing >= 2) and ((nElectronsPassing >= 2) or (nMuonsPassing >= 2))):
-            return False
+            return False 
 
-        # # Next, find the leading pair 
-        # bool hasLeadingPairElEl = False
-        # bool hasLeadingPairMuMu = False
+        # Do combinations, if there are two or more muons
+        if (nMuonsPassing >= 2):
+            leadingMuons = findLeadingPair(filteredMuo)
+            m_dimuon = invariantMass(leadingMuons)
+            print(f"Found leading muon pair with pT {leadingMuons[0].pt} and {leadingMuons[1].pt}, total mass of {m_dimuon}")
 
-        # Do combinations 
+        # Do combinations if there are two or more electrons
+        if (nElectronsPassing >= 2):
+            leadingElectrons = findLeadingPair(filteredEle)
+            m_diele = invariantMass(leadingElectrons)
+            print(f"Found leading electron pair with pT {leadingElectrons[0].pt} and {leadingElectrons[1].pt}, total mass of {m_diele}")
 
+        # There must be >= 2 muons with OS and m_ll > 50, or >=2 electrons with OS and m_ee > 50
+        if not (((nMuonsPassing >= 2) and (m_dimuon > 50)) or ((nElectronsPassing >= 2) and (m_diele > 50))):
+            return False 
 
-        # return ((len(muons) >= 2) or (len(electrons) >= 2))
-
-        # Remainder of the example, which also computed a branch EventMass
-        # electrons = Collection(event, "Electron")
-        # muons = Collection(event, "Muon")
-        # jets = Collection(event, "Jet")
-        # eventSum = ROOT.TLorentzVector()
-        # for lep in muons:
-        #     eventSum += lep.p4()
-        # for lep in electrons:
-        #     eventSum += lep.p4()
-        # for j in filter(self.jetSel, jets):
-        #     eventSum += j.p4()
-
-        # self.out.fillBranch("EventMass", eventSum.M())
+        # Fill branches 
+        self.out.fillBranch("nMuonsPassing", nMuonsPassing)
+        self.out.fillBranch("m_dimuon", m_dimuon)
+        self.out.fillBranch("nElectronsPassing", nElectronsPassing)
+        self.out.fillBranch("m_diele", m_diele)
 
         return True
 

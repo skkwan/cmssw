@@ -18,12 +18,12 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 # DY1Jets
 # /DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
-# fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/120000/13374A29-B61F-7443-AF78-C0C04D479595.root"]
+fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/120000/13374A29-B61F-7443-AF78-C0C04D479595.root"]
 
 
 # TTTo2L2Nu:
 # 2018: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
-# fnames = []
+# fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/130000/0804DEBA-97D5-BE46-BB9D-B1125570966E.root"]
 # 2017: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM
 
 # Signal:
@@ -31,7 +31,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 # fnames = []
 
 # Data
-fnames = ["root://cms-xrd-global.cern.ch///store/data/Run2018A/DoubleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v1/270000/C489C20E-FD93-8B42-9F63-0AB2FB0F5C39.root"]
+# fnames = ["root://cms-xrd-global.cern.ch///store/data/Run2018A/DoubleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v1/270000/C489C20E-FD93-8B42-9F63-0AB2FB0F5C39.root"]
 
 p = PostProcessor(outputDir=".",
                   inputFiles=fnames,
