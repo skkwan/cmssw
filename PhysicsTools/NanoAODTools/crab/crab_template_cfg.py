@@ -18,7 +18,6 @@ config.JobType.psetName   = 'PSet.py'
 config.JobType.scriptExe  = 'crab_script.sh'
 # config.JobType.scriptArgs = ['script=CRAB_SCRIPT_PYTHON_NAME']
 config.JobType.inputFiles = ['crab_script.py'] # separated by list
-#config.JobType.sendPythonFolder = True
 
 config.section_("Data")
 config.Data.inputDataset = 'DAS_NAME'
@@ -27,7 +26,7 @@ config.Data.splitting    = 'FileBased'
 config.Data.unitsPerJob  = 1
 # config.Data.splitting    = 'Automatic'
 
-config.Data.outLFNDirBase    = '/store/user/skkwan/HiggsinoSkimTest'
+config.Data.outLFNDirBase    = '/store/user/skkwan/test_2025_02_10'
 config.Data.publication      = True
 config.Data.outputDatasetTag = 'OUTPUT_TAG'
 
