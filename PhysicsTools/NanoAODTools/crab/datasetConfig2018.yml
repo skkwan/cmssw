@@ -2,60 +2,43 @@
 
 requestname: "TestSkim"
 
-#-------------------------------------------------------------#
-mc_2018:
+samples_2018:
    year:     2018
    # character limit of 100, reduce length of prodtag
    prodtag:  RunIISummer20UL18NanoAODv9   
    inputDBS: global
    datasets: 
-      # TTTo2L2Nu: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
-      DY1JetsToLL_M-50: /DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # Main backgrounds
+      DYJetsToLL_M-50: /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-70to100: /DYJetsToLL_M-50_HT-70to100_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-100to200: /DYJetsToLL_M-50_HT-100to200_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-200to400: /DYJetsToLL_M-50_HT-200to400_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-400to600: /DYJetsToLL_M-50_HT-400to600_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-600to800: /DYJetsToLL_M-50_HT-600to800_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-800to1200: /DYJetsToLL_M-50_HT-800to1200_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-1200to2500: /DYJetsToLL_M-50_HT-1200to2500_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # DYJetsToLL_M-50_HT-2500toInf: /DYJetsToLL_M-50_HT-2500toInf_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
 
-# #-------------------------------------------------------------#
-data_2018_A:
-   year:     2018
-   script:   crabJobConfigs/2018/crab_script_2018DataA.py   
-   bash:     crabJobConfigs/2018/crab_bash_2018DataA.sh
-   prodtag:  UL2018_MiniAODv2_NanoAODv9
-   inputDBS: global
-   datasets:
-      SingleMuon-Run2018A: /SingleMuon/Run2018A-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
-      EGamma-Run2018A: /EGamma/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
-      MuonEG-Run2018A: /MuonEG/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD    
-      
+      WJetsToLNu: /WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      TTTo2L2Nu: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      TTZToLLNuNu_M-10: /TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM 
+      TTWJetsToLNu: /TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM 
 
-data_2018_B:
-   year:     2018
-   script:   crabJobConfigs/2018/crab_script_2018DataB.py   
-   bash:     crabJobConfigs/2018/crab_bash_2018DataB.sh
-   prodtag:  UL2018_MiniAODv2_NanoAODv9
-   inputDBS: global
-   datasets:
-      SingleMuon-Run2018B: /SingleMuon/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
-      EGamma-Run2018B: /EGamma/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
-      MuonEG-Run2018B: /MuonEG/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      # Data
+      DoubleMuon_Run2018A: /DoubleMuon/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      DoubleMuon_Run2018B: /DoubleMuon/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      DoubleMuon_Run2018C: /DoubleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      DoubleMuon_Run2018D: /DoubleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
 
-data_2018_C:
-   year:     2018
-   script:   crabJobConfigs/2018/crab_script_2018DataC.py   
-   bash:     crabJobConfigs/2018/crab_bash_2018DataC.sh
-   prodtag:  UL2018_MiniAODv2_NanoAODv9
-   inputDBS: global
-   datasets:
-      SingleMuon-Run2018C: /SingleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD
-      EGamma-Run2018C: /EGamma/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
-      MuonEG-Run2018C: /MuonEG/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      EGamma_Run2018A: /EGamma/Run2018A-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      EGamma_Run2018B: /EGamma/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      EGamma_Run2018C: /EGamma/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
+      EGamma_Run2018D: /EGamma/Run2018D-UL2018_MiniAODv2_NanoAODv9-v3/NANOAOD
 
-data_2018_D:
-   year:     2018
-   script:   crabJobConfigs/2018/crab_script_2018DataD.py   
-   bash:     crabJobConfigs/2018/crab_bash_2018DataD.sh
-   prodtag:  UL2018_MiniAODv2_NanoAODv9
-   inputDBS: global
-   datasets:
-      SingleMuon-Run2018D: /SingleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
-      EGamma-Run2018D: /EGamma/Run2018D-UL2018_MiniAODv2_NanoAODv9-v3/NANOAOD
-      MuonEG-Run2018D: /MuonEG/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD
-
-# #-------------------------------------------------------------#
+      # Diboson
+      # WminusH_HToBB_WToLNu_M-125: /WminusH_HToBB_WToLNu_M-125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
+      # WplusH_HToBB_WToLNu_M-125: /WplusH_HToBB_WToLNu_M-125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM 
+      # WWTo2L2Nu: /WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM 
+      # WZTo3LNu: /WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM 
+      # ZH_HToBB_ZToNuNu_M-125: /ZH_HToBB_ZToNuNu_M-125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM 
+      # ZZ: /ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM 
