@@ -343,18 +343,18 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
   // Within each RCT card, sort the egamma clusters in descending pT order and add zero-padding
   for (int iRCT = 0; iRCT < 4; iRCT++) {
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT1_SLR3_posEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT2_SLR3_posEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_eg_SLR(buffer_eg_GCT3_SLR3_posEta[iRCT]);
+    p2eg::sortAndPadSLR(buffer_eg_GCT1_SLR1_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT1_SLR3_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT2_SLR1_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT2_SLR3_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT3_SLR1_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT3_SLR3_negEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT1_SLR1_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT1_SLR3_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT2_SLR1_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT2_SLR3_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT3_SLR1_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_eg_GCT3_SLR3_posEta[iRCT], p2eg::N_EG_CLUSTERS_PER_RCT_CARD);
   }
 
   // Then build the container for each egamma SLR, by pushing back, in order, the four RCT cards (starting from most negative phi to most positive phi)
@@ -378,18 +378,18 @@ void Phase2GCTBarrelToCorrelatorLayer1::produce(edm::Event& iEvent, const edm::E
 
   // Repeat for PF: Within each RCT card, sort the PF clusters in descending pT order and add zero-padding
   for (int iRCT = 0; iRCT < 4; iRCT++) {
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT1_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT1_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT2_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT2_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT3_SLR1_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT3_SLR3_negEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT1_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT1_SLR3_posEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT2_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT2_SLR3_posEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT3_SLR1_posEta[iRCT]);
-    p2eg::sortAndPad_had_SLR(buffer_had_GCT3_SLR3_posEta[iRCT]);
+    p2eg::sortAndPadSLR(buffer_had_GCT1_SLR1_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT1_SLR3_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT2_SLR1_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT2_SLR3_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT3_SLR1_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT3_SLR3_negEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT1_SLR1_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT1_SLR3_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT2_SLR1_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT2_SLR3_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT3_SLR1_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
+    p2eg::sortAndPadSLR(buffer_had_GCT3_SLR3_posEta[iRCT], p2eg::N_PF_CLUSTERS_PER_RCT_CARD);
   }
 
   // Then build the container for each PF SLR, by pushing back, in order, the four RCT cards (starting from most negative phi to most positive phi)

@@ -98,8 +98,8 @@ namespace p2eg {
 
   // Outputs to correlator
   // Fixed number of EG and PF clusters per RCT card in each output SLR
-  static constexpr int N_EG_CLUSTERS_PER_RCT_CARD = 9;
-  static constexpr int N_PF_CLUSTERS_PER_RCT_CARD = 12;
+  static const int N_EG_CLUSTERS_PER_RCT_CARD = 9;
+  static const int N_PF_CLUSTERS_PER_RCT_CARD = 12;
   // Height of one SLR region in phi in degrees
   static constexpr float PHI_RANGE_PER_SLR_DEGREES = 120;
 
@@ -1673,12 +1673,41 @@ namespace p2eg {
   /*******************************************************************************************/
   /* Interface to correlator helper functions (defined in Phase2L1CaloBarrelToCorrelator.h)  */
   /*******************************************************************************************/
-  bool compareGCTEmDigiClusterET(const l1tp2::GCTEmDigiCluster& lhs, const l1tp2::GCTEmDigiCluster& rhs);
-  void sortAndPad_eg_SLR(l1tp2::GCTEmDigiClusterLink& thisSLR);
-  bool compareGCTHadDigiClusterET(const l1tp2::GCTHadDigiCluster& lhs, const l1tp2::GCTHadDigiCluster& rhs);
-  void sortAndPad_had_SLR(l1tp2::GCTHadDigiClusterLink& thisSLR);
   float deltaPhiInDegrees(float phi1, float phi2, const float c);
   float wrappedPhiInDegrees(float phi);
+
+  /*
+   * Generic function to compare hadronic (had) or EM digi clusters.
+   */
+  template <typename T>
+  bool compareGCTDigiClusterET(const T& lhs, const T& rhs) {
+    return (lhs.ptFloat() > rhs.ptFloat());
+  }
+
+  /*
+  * Generic function to sort a vector of hadronic or EM digi clusters in each SLR in descending pT,
+  * then if there are fewer than nMaxClustersInSLR clusters in the vector, pad the vector with null clusters,
+  * or truncate the vector if there are more than nMaxClustersInSLR clusters.
+  */
+  template <typename T>
+  void sortAndPadSLR(std::vector<T>& thisSLR, const int nMaxClustersInSLR) {
+    // input is a vector and can be sorted
+    std::sort(thisSLR.begin(), thisSLR.end(), compareGCTDigiClusterET<T>);
+    int nClusters = thisSLR.size();
+
+    // If there are fewer than the designated number of clusters, pad with zeros
+    if (nClusters < nMaxClustersInSLR) {
+      for (int i = 0; i < (nMaxClustersInSLR - nClusters); i++) {
+        T zeroCluster;
+        thisSLR.push_back(zeroCluster);
+      }
+    }
+    // If there are more than the designated number of clusters, truncate the vector
+    else if (nClusters > nMaxClustersInSLR) {
+      // Get the iterator to the sixth element and delete til the end of the vector
+      thisSLR.erase(thisSLR.begin() + nMaxClustersInSLR, thisSLR.end());
+    }
+  }
 
 }  // namespace p2eg
 
