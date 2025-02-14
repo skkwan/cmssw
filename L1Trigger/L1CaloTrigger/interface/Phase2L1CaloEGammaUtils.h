@@ -98,8 +98,8 @@ namespace p2eg {
 
   // Outputs to correlator
   // Fixed number of EG and PF clusters per RCT card in each output SLR
-  static constexpr int N_EG_CLUSTERS_PER_RCT_CARD = 9;
-  static constexpr int N_PF_CLUSTERS_PER_RCT_CARD = 12;
+  static const int N_EG_CLUSTERS_PER_RCT_CARD = 9;
+  static const int N_PF_CLUSTERS_PER_RCT_CARD = 12;
   // Height of one SLR region in phi in degrees
   static constexpr float PHI_RANGE_PER_SLR_DEGREES = 120;
 
@@ -1677,6 +1677,10 @@ namespace p2eg {
   void sortAndPad_eg_SLR(l1tp2::GCTEmDigiClusterLink& thisSLR);
   bool compareGCTHadDigiClusterET(const l1tp2::GCTHadDigiCluster& lhs, const l1tp2::GCTHadDigiCluster& rhs);
   void sortAndPad_had_SLR(l1tp2::GCTHadDigiClusterLink& thisSLR);
+
+  template<typename T> bool compareGCTDigiClusterET(const T& lhs, const T& rhs);
+  template<typename T> void sortAndPadSLR(T& thisSLR, const int maxClustersInSLR); 
+
   float deltaPhiInDegrees(float phi1, float phi2, const float c);
   float wrappedPhiInDegrees(float phi);
 

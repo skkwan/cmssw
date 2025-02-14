@@ -13,6 +13,11 @@ inline bool p2eg::compareGCTEmDigiClusterET(const l1tp2::GCTEmDigiCluster& lhs, 
   return (lhs.ptFloat() > rhs.ptFloat());
 }
 
+template<typename T> 
+inline bool p2eg::compareGCTDigiClusterET(const T& lhs, const T& rhs) {
+  return (lhs.ptFloat() > rhs.ptFloat());
+}
+
 /*
  * Returns the difference in the azimuth coordinates of phi1 and phi2 (all in degrees not radians), taking the wrap-around at 180 degrees into account
  */
@@ -30,6 +35,29 @@ inline float p2eg::deltaPhiInDegrees(float phi1, float phi2, const float c = 180
  * For a given phi in degrees (e.g. computed from some difference), return the phi (in degrees) which takes the wrap-around at 180 degrees into account
  */
 inline float p2eg::wrappedPhiInDegrees(float phi) { return p2eg::deltaPhiInDegrees(phi, 0); }
+
+/*
+ * Sort the clusters in each egamma SLR in descending pT, then pad any zero clusters so that the total number of clusters in the SLR is six
+ */
+template<typename T>
+inline void sortAndPadSLR(T& thisSLR, const int nMaxClustersInSLR) {
+  // input is a vector and can be sorted
+  std::sort(thisSLR.begin(), thisSLR.end(), p2eg::compareGCTDigiClusterET);
+  int nClusters = thisSLR.size();
+
+  // If there are fewer than the designated number of clusters, pad with zeros
+  if (nClusters < nMaxClustersInSLR) {
+    for (int i = 0; i < (nMaxClustersInSLR - nClusters); i++) {
+      typename T::value_type zeroCluster;
+      thisSLR.push_back(zeroCluster);
+    }
+  }
+  // If there are more than the designated number of clusters, truncate the vector
+  else if (nClusters > nMaxClustersInSLR) {
+    // Get the iterator to the sixth element and delete til the end of the vector
+    thisSLR.erase(thisSLR.begin() + nMaxClustersInSLR, thisSLR.end());
+  }
+}
 
 /*
  * Sort the clusters in each egamma SLR in descending pT, then pad any zero clusters so that the total number of clusters in the SLR is six
@@ -77,9 +105,9 @@ inline void p2eg::sortAndPad_had_SLR(l1tp2::GCTHadDigiClusterLink& thisSLR) {
     }
   }
   // If there are more than the designated number of clusters, truncate the vector
-  else if (nClusters > p2eg::N_EG_CLUSTERS_PER_RCT_CARD) {
+  else if (nClusters > p2eg::N_PF_CLUSTERS_PER_RCT_CARD) {
     // Get the iterator to the sixth element and delete til the end of the vector
-    thisSLR.erase(thisSLR.begin() + p2eg::N_EG_CLUSTERS_PER_RCT_CARD, thisSLR.end());
+    thisSLR.erase(thisSLR.begin() + p2eg::N_PF_CLUSTERS_PER_RCT_CARD, thisSLR.end());
   }
 }
 
