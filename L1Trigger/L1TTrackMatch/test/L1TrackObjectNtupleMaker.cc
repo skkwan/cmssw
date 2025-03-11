@@ -2041,8 +2041,10 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
   }
 
   if (SimVertexHandle.isValid()) {
-    const SimVertex simPVh = *(SimVertexHandle->begin());
-    m_pv_MC->push_back(simPVh.position().z());
+    if ((*SimVertexHandle).size() > 0) {
+      const SimVertex simPVh = *(SimVertexHandle->begin());
+      m_pv_MC->push_back(simPVh.position().z());
+    }
   } else {
     edm::LogWarning("DataNotFound") << "\nWarning: SimVertexHandle not found in the event" << std::endl;
   }
