@@ -26,7 +26,7 @@ config.Data.splitting    = 'FileBased'
 config.Data.unitsPerJob  = 1
 # config.Data.splitting    = 'Automatic'
 
-config.Data.outLFNDirBase    = '/store/user/skkwan/test_2025_02_10'
+config.Data.outLFNDirBase    = '/store/user/skkwan/HiggsinoSkim'
 config.Data.publication      = True
 config.Data.outputDatasetTag = 'OUTPUT_TAG'
 
