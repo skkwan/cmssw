@@ -59,7 +59,7 @@ l1tTrackSelectionProducerForJets = l1tTrackSelectionProducer.clone(
                     nStubsMin = 4, # number of stubs must be greater than or equal to this value
                     nPSStubsMin = 0, # the number of stubs in the PS Modules must be greater than or equal to this value
 
-                    promptMVAMin = 0.6, # MVA must be greater than this value
+                    promptMVAMin = 0.1, # MVA must be greater than this value
                     reducedBendChi2Max = 999.9, # bend chi2 must be less than this value
                     reducedChi2RZMax = 999.9, # chi2rz/dof must be less than this value
                     reducedChi2RPhiMax = 999.9, # chi2rphi/dof must be less than this value
@@ -80,7 +80,7 @@ l1tTrackSelectionProducerExtendedForJets = l1tTrackSelectionProducerExtended.clo
                     nStubsMin = 4, # number of stubs must be greater than or equal to this value
                     nPSStubsMin = 0, # the number of stubs in the PS Modules must be greater than or equal to this value
 
-                    promptMVAMin = 0.6, # MVA must be greater than this value
+                    promptMVAMin = -1.0, # MVA must be greater than this value
                     reducedBendChi2Max = 999.9, # bend chi2 must be less than this value
                     reducedChi2RZMax = 999.9, # chi2rz/dof must be less than this value
                     reducedChi2RPhiMax = 999.9, # chi2rphi/dof must be less than this value
@@ -96,5 +96,3 @@ l1tTrackSelectionProducerExtendedForJets = l1tTrackSelectionProducerExtended.clo
 l1tTrackSelectionProducerForEtMiss = l1tTrackSelectionProducer.clone()
 
 l1tTrackSelectionProducerExtendedForEtMiss = l1tTrackSelectionProducerExtended.clone()
-
-
