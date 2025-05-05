@@ -58,8 +58,8 @@ l1tTrackSelectionProducerForJets = l1tTrackSelectionProducer.clone(
                     absZ0Max = 15.0, # z0 must be less than this value, [cm]
                     nStubsMin = 4, # number of stubs must be greater than or equal to this value
                     nPSStubsMin = 0, # the number of stubs in the PS Modules must be greater than or equal to this value
-
-                    promptMVAMin = 0.1, # MVA must be greater than this value
+                    # TODO: testing
+                    promptMVAMin = 0.6, # MVA must be greater than this value
                     reducedBendChi2Max = 999.9, # bend chi2 must be less than this value
                     reducedChi2RZMax = 999.9, # chi2rz/dof must be less than this value
                     reducedChi2RPhiMax = 999.9, # chi2rphi/dof must be less than this value
@@ -93,6 +93,28 @@ l1tTrackSelectionProducerExtendedForJets = l1tTrackSelectionProducerExtended.clo
                     ),
 )
 
-l1tTrackSelectionProducerForEtMiss = l1tTrackSelectionProducer.clone()
+# CMSSW defaults match slide 2 of https://indico.cern.ch/event/1419676/contributions/5973137/attachments/2863734/5011648/GTT_5_24_24.pdf 
+# But we want slide 4's "re-optimizing cuts": 1) MVA cut >= 0.6
+#                                             2) eta-dependent delta Z cut
+l1tTrackSelectionProducerForEtMiss = l1tTrackSelectionProducer.clone(
+  cutSet = dict(
+                    ptMin = cms.double(2.0), # pt must be greater than this value, [GeV]
+                    absEtaMax = cms.double(2.4), # absolute value of eta must be less than this value
+                    absZ0Max = cms.double(15.0), # z0 must be less than this value, [cm]
+                    nStubsMin = cms.int32(4), # number of stubs must be greater than or equal to this value
+                    nPSStubsMin = cms.int32(0), # the number of stubs in the PS Modules must be greater than or equal to this value
+                    # matches slide 4 "re-optimizing cuts": MVA cut >= 0.6
+                    promptMVAMin = cms.double(0.6), # MVA must be greater than this value
+                    reducedBendChi2Max = cms.double(2.25), # bend chi2 must be less than this value
+                    reducedChi2RZMax = cms.double(5.0), # chi2rz/dof must be less than this value
+                    reducedChi2RPhiMax = cms.double(20.0), # chi2rphi/dof must be less than this value
+                    reducedChi2RZMaxNstub4 = cms.double(999.9), # chi2rz/dof with nstub==4 must be less than this value
+                    reducedChi2RZMaxNstub5 = cms.double(999.9), # chi2rz/dof with nstub>4 must be less than this value
+                    reducedChi2RPhiMaxNstub4 = cms.double(999.9), # chi2rphi/dof with nstub==4 must be less than this value
+                    reducedChi2RPhiMaxNstub5 = cms.double(999.9), # chi2rphi/dof with nstub>4 must be less than this value
+                    reducedBendChi2MaxNstub4 = cms.double(999.9), # bend chi2 with nstub==4 must be less than this value
+                    reducedBendChi2MaxNstub5 = cms.double(999.9), # bend chi2 with nstub>4 must be less than this value
+  ),
+)
 
-l1tTrackSelectionProducerExtendedForEtMiss = l1tTrackSelectionProducerExtended.clone()
+l1tTrackSelectionProducerExtendedForEtMiss = l1tTrackSelectionProducerForEtMiss.clone()
