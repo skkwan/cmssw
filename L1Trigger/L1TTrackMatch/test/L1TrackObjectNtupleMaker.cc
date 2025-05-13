@@ -270,6 +270,7 @@ private:
   // tree & branches for mini-ntuple
   bool available_;  // ROOT file for histograms is open.
   TTree* eventTree;
+  int run, lumi, event;
 
   // primary vertex
   std::vector<float>* m_pv_L1reco;
@@ -1276,6 +1277,9 @@ void L1TrackObjectNtupleMaker::beginJob() {
 
   // ntuple
   eventTree = fs->make<TTree>("eventTree", "Event tree");
+  eventTree->Branch("run",    &run,     "run/I");
+  eventTree->Branch("lumi",   &lumi,    "lumi/I");
+  eventTree->Branch("event",  &event,   "event/I");
   if (SaveAllTracks && (Displaced == "Prompt" || Displaced == "Both")) {
     eventTree->Branch("trk_pt", &m_trk_pt);
     eventTree->Branch("trk_eta", &m_trk_eta);
@@ -1577,6 +1581,10 @@ void L1TrackObjectNtupleMaker::beginJob() {
 void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if (not available_)
     return;  // No ROOT file open.
+
+  run = iEvent.id().run();
+  lumi = iEvent.id().luminosityBlock();
+  event = iEvent.id().event();
 
   if (!(MyProcess == 13 || MyProcess == 11 || MyProcess == 211 || MyProcess == 6 || MyProcess == 15 ||
         MyProcess == 1)) {
