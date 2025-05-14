@@ -7,7 +7,8 @@
 #   python3 example_postproc.py
 #
 from PhysicsTools.NanoAODTools.postprocessing.examples.exampleModule import *
-from PhysicsTools.NanoAODTools.postprocessing.examples.higgsinoSkimModule import *
+# from PhysicsTools.NanoAODTools.postprocessing.examples.higgsinoSkimModule import *
+from PhysicsTools.NanoAODTools.postprocessing.examples.oppositeFlavorModule import *
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from importlib import import_module
@@ -18,12 +19,12 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 # DY1Jets
 # /DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
-fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/120000/13374A29-B61F-7443-AF78-C0C04D479595.root"]
+# fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/120000/13374A29-B61F-7443-AF78-C0C04D479595.root"]
 
 
 # TTTo2L2Nu:
 # 2018: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM
-# fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/130000/0804DEBA-97D5-BE46-BB9D-B1125570966E.root"]
+fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/130000/0804DEBA-97D5-BE46-BB9D-B1125570966E.root"]
 # 2017: /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM
 
 # Signal:
@@ -31,14 +32,14 @@ fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/D
 # fnames = []
 
 # Data
-# fnames = ["root://cms-xrd-global.cern.ch///store/data/Run2018A/DoubleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v1/270000/C489C20E-FD93-8B42-9F63-0AB2FB0F5C39.root"]
+# fnames = ["root://cms-xrd-global.cern.ch///store/mc/RunIISummer20UL18NanoAODv9/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/70000/B715A9DC-A458-3946-B3F6-34A0A8F44766.root"]
 
 p = PostProcessor(outputDir=".",
                   inputFiles=fnames,
-                  cut="((nMuon >= 2) || (nElectron >= 2)) && (nJet >= 2) && (MET_pt > 50)",
-                  modules=[higgsinoSkimModule()],
+                  cut="(nMuon > 0) && (nElectron > 0) && (nJet >= 2) && (MET_pt > 50)",
+                  modules=[oppositeFlavourModule()],
                   provenance=True,
-                  maxEntries=10000, #just read the first maxEntries events
+                  maxEntries=1000, #just read the first maxEntries events
                   )
 p.run()
 
