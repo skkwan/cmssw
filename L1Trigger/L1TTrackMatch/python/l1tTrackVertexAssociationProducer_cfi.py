@@ -59,8 +59,12 @@ l1tTrackVertexAssociationProducerForJets = l1tTrackVertexAssociationProducer.clo
   cutSet = cms.PSet(
                     #deltaZMaxEtaBounds = cms.vdouble(0.0, absEtaMax.value), # these values define the bin boundaries in |eta|
                     #deltaZMax = cms.vdouble(0.5), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
-                    deltaZMaxEtaBounds = cms.vdouble(0.0, 2.4), # these values define the bin boundaries in |eta|
-                    deltaZMax = cms.vdouble(0.55), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
+                    # deltaZMaxEtaBounds = cms.vdouble(0.0, 2.4), # these values define the bin boundaries in |eta|
+                    # deltaZMax = cms.vdouble(0.55), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
+
+                     # TODO: this will match "Re-optimizing cuts" for MET on slide 4 of https://indico.cern.ch/event/1419676/contributions/5973137/attachments/2863734/5011648/GTT_5_24_24.pdf
+                    deltaZMaxEtaBounds = cms.vdouble(0.0, 1.6, 2.4), # these values define the bin boundaries in |eta|
+                    deltaZMax = cms.vdouble(0.5, 1.0), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
                     ),
 )
 

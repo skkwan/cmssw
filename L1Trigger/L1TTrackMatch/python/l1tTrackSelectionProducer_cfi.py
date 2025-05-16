@@ -105,9 +105,9 @@ l1tTrackSelectionProducerForEtMiss = l1tTrackSelectionProducer.clone(
                     nPSStubsMin = cms.int32(0), # the number of stubs in the PS Modules must be greater than or equal to this value
                     # matches slide 4 "re-optimizing cuts": MVA cut >= 0.6
                     promptMVAMin = cms.double(0.6), # MVA must be greater than this value
-                    reducedBendChi2Max = cms.double(2.25), # bend chi2 must be less than this value
-                    reducedChi2RZMax = cms.double(5.0), # chi2rz/dof must be less than this value
-                    reducedChi2RPhiMax = cms.double(20.0), # chi2rphi/dof must be less than this value
+                    reducedBendChi2Max = cms.double(999.9), # bend chi2 must be less than this value // TODO: loosened these chi2 cuts, only apply MVA
+                    reducedChi2RZMax = cms.double(999.9), # chi2rz/dof must be less than this value
+                    reducedChi2RPhiMax = cms.double(999.9), # chi2rphi/dof must be less than this value
                     reducedChi2RZMaxNstub4 = cms.double(999.9), # chi2rz/dof with nstub==4 must be less than this value
                     reducedChi2RZMaxNstub5 = cms.double(999.9), # chi2rz/dof with nstub>4 must be less than this value
                     reducedChi2RPhiMaxNstub4 = cms.double(999.9), # chi2rphi/dof with nstub==4 must be less than this value
