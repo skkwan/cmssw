@@ -11,14 +11,12 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import *
 from PhysicsTools.NanoAODTools.postprocessing.utils.crabhelper import inputFiles, runsAndLumis
 
 from PhysicsTools.NanoAODTools.postprocessing.examples.exampleModule import *
-from PhysicsTools.NanoAODTools.postprocessing.examples.higgsinoSkimModule import *
-
+from PhysicsTools.NanoAODTools.postprocessing.examples.higgsinoSkimAllFlavoursModule import * 
 
 p = PostProcessor(".",
                   inputFiles(),
-                  cut="((nMuon >= 2) || (nElectron >= 2)) && (nJet >= 2) && (MET_pt > 50)",
-#                  modules=[higgsinoSkimModule()],
-                  modules=[higgsinoSkimModule()],
+                  cut="(MET_pt > 50)",
+                  modules=[higgsinoSkimAllFlavoursModule()],
                   provenance=True,
                   fwkJobReport=True,
                   jsonInput=runsAndLumis())

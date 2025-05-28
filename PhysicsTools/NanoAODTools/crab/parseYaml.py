@@ -10,7 +10,7 @@ config = yaml.safe_load(config_file)
 
 #-------------------------------------------------------#
 
-for eraType in ["mc_2018"]:
+for eraType in ["samples_2018"]:
    for d in config[eraType]["datasets"]:
 
       dir = "crabJobConfigs/" + str(config[eraType]["year"]) + "/" 
@@ -22,7 +22,7 @@ for eraType in ["mc_2018"]:
       requestName      = config["requestname"] + "_" + d + "_" + config[eraType]["prodtag"]  
       dasName          = config[eraType]["datasets"][d] # DAS name
       inputDBS         = config[eraType]["inputDBS"]    # inputDBS
-      outputTag        = 'NanoSkimTest_' + d + "_" + config[eraType]["prodtag"]  
+      outputTag        = 'skimTest_' + d + "_" + config[eraType]["prodtag"]  
 
       # Make one new template file per dataset
       with open('crab_template_cfg.py', 'r') as templatefile:
