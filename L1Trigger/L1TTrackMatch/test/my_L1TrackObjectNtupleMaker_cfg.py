@@ -43,7 +43,7 @@ process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(40))
 
 readFiles = cms.untracked.vstring(
     'root://cms-xrd-global.cern.ch///store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root',
@@ -95,9 +95,11 @@ process.load("L1Trigger.L1TTrackMatch.l1tTrackerEtMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuEtMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerHTMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuHTMiss_cfi")
+process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuHT_cfi") # new 
 process.load("L1Trigger.L1TTrackMatch.l1tTrackTripletEmulation_cfi")
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
 process.load('L1Trigger.L1TTrackMatch.DisplacedVertexProducer_cfi')
+
 
 ############################################################
 # Primary vertex
@@ -149,6 +151,7 @@ if (L1TRKALGO == 'HYBRID'):
     process.pTkMETEmu = cms.Path(process.l1tTrackerEmuEtMiss)
     process.pTkMHT = cms.Path(process.l1tTrackerHTMiss)
     process.pTkMHTEmulator = cms.Path(process.l1tTrackerEmuHTMiss)
+    process.pTkHTEmulator = cms.Path(process.l1tTrackerEmuHT) # new 
     process.pL1TrackTripletEmulator = cms.Path(process.l1tTrackTripletEmulation)
     DISPLACED = 'Prompt'
 
@@ -169,7 +172,8 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED'):
     process.pL1TrackJetsEmu = cms.Path(process.l1tTrackJetsExtendedEmulation)
     process.pTkMET = cms.Path(process.l1tTrackerEtMissExtended)
     process.pTkMHT = cms.Path(process.l1tTrackerHTMissExtended)
-    process.pTkMHTEmulator = cms.Path(process.l1tTrackerEmuHTMissExtended)
+    process.pTkMHTEmulator = cms.Path(process.l1tTrackerEmuHTMissExtended) 
+    process.pTkHTEmulator = cms.Path(process.l1tTrackerEmuHTExtended) # new
     if(runDispVert):
         process.DispVert = cms.Path(process.DisplacedVertexProducer)
     DISPLACED = 'Displaced'#
@@ -192,6 +196,7 @@ elif (L1TRKALGO == 'HYBRID_PROMPTANDDISP'):
     process.pTkMETEmu = cms.Path(process.l1tTrackerEmuEtMiss)
     process.pTkMHT = cms.Path(process.l1tTrackerHTMiss*process.l1tTrackerHTMissExtended)
     process.pTkMHTEmulator = cms.Path(process.l1tTrackerEmuHTMiss*process.l1tTrackerEmuHTMissExtended)
+    process.pTkHTEmulator = cms.Path(process.l1tTrackerEmuHT*process.l1tTrackerEmuHTExtended)  # new
     process.pL1TrackTripletEmulator = cms.Path(process.l1tTrackTripletEmulation)
     if(runDispVert):
         process.DispVert = cms.Path(process.DisplacedVertexProducer)
@@ -279,8 +284,10 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         TrackMETEmuInputTag = cms.InputTag("l1tTrackerEmuEtMiss","L1TrackerEmuEtMiss"),
         TrackMHTInputTag = cms.InputTag("l1tTrackerHTMiss","L1TrackerHTMiss"), #includes HT
         TrackMHTExtendedInputTag = cms.InputTag("l1tTrackerHTMissExtended","L1TrackerHTMissExtended"),
+
         TrackMHTEmuInputTag = cms.InputTag("l1tTrackerEmuHTMiss",process.l1tTrackerEmuHTMiss.L1MHTCollectionName.value()),
         TrackMHTEmuExtendedInputTag = cms.InputTag("l1tTrackerEmuHTMissExtended",process.l1tTrackerEmuHTMissExtended.L1MHTCollectionName.value()),
+        TrackHTEmuInputTag = cms.InputTag("l1tTrackerEmuHT",process.l1tTrackerEmuHT.L1HTCollectionName.value()), 
         SimVertexInputTag = cms.InputTag("g4SimHits",""),
         GenParticleInputTag = cms.InputTag("genParticles",""),
         RecoVertexInputTag=cms.InputTag("l1tVertexFinder", "L1Vertices"),
@@ -308,7 +315,14 @@ process.pOut = cms.EndPath(process.out)
 # use this if cluster/stub associators not available
 # process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)
 
-process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.dtc, process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pL1TrackSelection, process.pPV, process.pPVemu,process.pL1TrackVertexAssociation, process.pL1TrackJets, process.pL1TrackJetsEmu,process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator,process.pL1TrackTripletEmulator,process.ntuple)
+process.schedule = cms.Schedule(process.pL1GTTInput, process.pL1TrackSelection, process.pPV, process.pPVemu,process.pL1TrackVertexAssociation, process.pL1TrackJets, process.pL1TrackJetsEmu,process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator, process.pTkHTEmulator, process.pL1TrackTripletEmulator, process.ntuple)
+
+# 1. TODO: try older CMSSW release
+# 2. TODO: remove everything before p.L1GTTInput (try not re-running tracking)
+# 3. TODO: only have one HT emulator file  
+
+# process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.dtc, process.TTTracksEmuWithTruth, process.pL1GTTInput, process.pL1TrackSelection, process.pPV, process.pPVemu,process.pL1TrackVertexAssociation, process.pL1TrackJets, process.pL1TrackJetsEmu,process.pL1TrackFastJets, process.pTkMET, process.pTkMETEmu, process.pTkMHT, process.pTkMHTEmulator,process.pL1TrackTripletEmulator,process.ntuple)
+
 
 if(runDispVert):
     process.schedule.append(process.DispVert)
