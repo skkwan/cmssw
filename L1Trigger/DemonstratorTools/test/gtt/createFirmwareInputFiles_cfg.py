@@ -2,6 +2,11 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.ParameterSet.VarParsing as VarParsing
 
+
+###---
+# cmsRun createFirmwareInputFiles_cfg.py format=APx maxEvents=10 inputFiles="/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root"
+##---
+
 # PART 1 : PARSE ARGUMENTS
 
 options = VarParsing.VarParsing ('analysis')
@@ -67,8 +72,8 @@ for filePath in options.inputFiles:
 
 process = cms.Process("GTTFileWriter")
 
-process.load('Configuration.Geometry.GeometryExtendedRun4D88Reco_cff')
-process.load('Configuration.Geometry.GeometryExtendedRun4D88_cff')
+process.load('Configuration.Geometry.GeometryExtendedRun4D110Reco_cff')
+process.load('Configuration.Geometry.GeometryExtendedRun4D110_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -92,6 +97,7 @@ process.load('L1Trigger.L1TTrackMatch.l1tTrackVertexAssociationProducer_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackJetsEmulation_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackerEmuHTMiss_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackerEmuEtMiss_cfi')
+process.load('L1Trigger.L1TTrackMatch.l1tTrackerEmuHT_cfi')
 process.load('L1Trigger.DemonstratorTools.l1tGTTFileWriter_cfi')
 process.load('L1Trigger.DemonstratorTools.l1tGTTFileReader_cfi')
 
@@ -100,7 +106,7 @@ process.l1tGTTFileReader.processInputTracks = cms.bool((options.tracks in ['load
 process.l1tGTTFileReader.processOutputToGlobalTrigger = cms.bool(False) #NotImplemented
 process.l1tGTTFileReader.filesOutputToCorrelator = inputBuffers if (options.vertices in ['load', 'overwrite']) else cms.vstring("L1GTTOutputToCorrelatorFile_0.txt")
 process.l1tGTTFileReader.filesInputTracks = inputTrackBuffers if (options.tracks in ['load', 'overwrite']) else cms.vstring("L1GTTInputFile_0.txt")
-process.l1tGTTFileReader.filesOutputToGlobalTrigger = cms.vstring("L1GTTOutputToGlobalTriggerFile_0.txt")
+process.l1tGTTFileReader.filesOutputToGlobalTrigger = cms.vstring("1GTTOutputToGlobalTriggerFile_0.txt")
 process.l1tGTTFileReader.format = cms.untracked.string(options.readerformat)
 
 process.l1tGTTInputProducer.debug = cms.int32(options.debug)
@@ -164,6 +170,7 @@ process.l1tGTTFileWriter.vertexAssociatedTracks = cms.untracked.InputTag("l1tTra
 process.l1tGTTFileWriter.jets = cms.untracked.InputTag("l1tTrackJetsEmulation","L1TrackJets")
 process.l1tGTTFileWriter.htmiss = cms.untracked.InputTag("l1tTrackerEmuHTMiss", "L1TrackerEmuHTMiss")
 process.l1tGTTFileWriter.etmiss = cms.untracked.InputTag("l1tTrackerEmuEtMiss", "L1TrackerEmuEtMiss")
+process.l1tGTTFileWriter.htscalar = cms.untracked.InputTag("l1tTrackerEmuHT", "L1TrackerEmuHT")
 process.l1tGTTFileWriter.outputCorrelatorFilename = cms.untracked.string("L1GTTOutputToCorrelatorFile")
 process.l1tGTTFileWriter.outputGlobalTriggerFilename = cms.untracked.string("L1GTTOutputToGlobalTriggerFile")
 process.l1tGTTFileWriter.selectedTracksFilename = cms.untracked.string("L1GTTSelectedTracksFile")
@@ -187,5 +194,7 @@ process.p.associate(cms.Task(process.l1tGTTInputProducer,
                              process.l1tTrackSelectionProducerForEtMiss,
                              process.l1tTrackVertexAssociationProducerForEtMiss,
                              process.l1tTrackerEmuEtMiss,
+                             process.l1tTrackerEmuHT,
                          )
                 )
+

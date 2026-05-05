@@ -537,7 +537,7 @@ private:
   float trkHTEmu = 0;
   float trkMETEmu = 0;
   float trkMETEmuPhi = 0;
-  float trkHTEmufromJets = 0;
+  float trkHTScalarEmu = 0;
 
   //displaced
   float trkMETExt = 0;
@@ -1845,7 +1845,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
       eventTree->Branch("trkMHTEmu", &trkMHTEmu, "trkMHTEmu/F");
       eventTree->Branch("trkMHTEmuPhi", &trkMHTEmuPhi, "trkMHTEmuPhi/F");
       eventTree->Branch("trkHTEmu", &trkHTEmu, "trkHTEmu/F");
-      eventTree->Branch("trkHTEmufromJets", &trkHTEmufromJets, "trkHTEmufromJets/F");
+      eventTree->Branch("trkHTScalarEmu", &trkHTScalarEmu, "trkHTScalarEmu/F");
 
     }
     if (Displaced == "Displaced" || Displaced == "Both") {
@@ -1856,7 +1856,7 @@ void L1TrackObjectNtupleMaker::beginJob() {
       eventTree->Branch("trkMHTEmuExt", &trkMHTEmuExt, "trkMHTEmuExt/F");
       eventTree->Branch("trkMHTEmuPhiExt", &trkMHTEmuPhiExt, "trkMHTEmuPhiExt/F");
       eventTree->Branch("trkHTEmuExt", &trkHTEmuExt, "trkHTEmuExt/F");
-      eventTree->Branch("trkHTEmufromJets", &trkHTEmufromJets, "trkHTEmufromJets/F");
+      eventTree->Branch("trkHTScalarEmu", &trkHTScalarEmu, "trkHTScalarEmu/F");
     }
   }
 }
@@ -3614,11 +3614,11 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmu handle not found" << std::endl;
 
       if (L1TkHTEmuHandle.isValid()) {
-        trkHTEmufromJets = L1TkHTEmuHandle->begin()->p4().energy(); 
-        std::cout << "Found tkHTEmu (from jets): " << trkHTEmufromJets << std::endl;
+        trkHTScalarEmu = L1TkHTEmuHandle->begin()->p4().energy(); 
+        std::cout << "Found tkHTEmuScalar: " << trkHTScalarEmu << std::endl;
       }
       else {
-        edm::LogWarning("DataNotFound") << "\nWarning: tkHTEmu (from jets) handle not found" << std::endl;
+        edm::LogWarning("DataNotFound") << "\nWarning: tkHTEm (scalar) handle not found" << std::endl;
       }
     }  //end prompt-track quantities
 

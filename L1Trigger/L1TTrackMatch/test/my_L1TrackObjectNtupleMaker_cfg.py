@@ -43,7 +43,7 @@ process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(40))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(200))
 
 readFiles = cms.untracked.vstring(
     'root://cms-xrd-global.cern.ch///store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root',
@@ -287,7 +287,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
 
         TrackMHTEmuInputTag = cms.InputTag("l1tTrackerEmuHTMiss",process.l1tTrackerEmuHTMiss.L1MHTCollectionName.value()),
         TrackMHTEmuExtendedInputTag = cms.InputTag("l1tTrackerEmuHTMissExtended",process.l1tTrackerEmuHTMissExtended.L1MHTCollectionName.value()),
-        TrackHTEmuInputTag = cms.InputTag("l1tTrackerEmuHT",process.l1tTrackerEmuHT.L1HTCollectionName.value()), 
+        TrackHTEmuInputTag = cms.InputTag("l1tTrackerEmuHT","L1TrackerEmuHT"), 
         SimVertexInputTag = cms.InputTag("g4SimHits",""),
         GenParticleInputTag = cms.InputTag("genParticles",""),
         RecoVertexInputTag=cms.InputTag("l1tVertexFinder", "L1Vertices"),

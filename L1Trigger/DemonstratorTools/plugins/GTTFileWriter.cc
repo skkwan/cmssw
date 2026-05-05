@@ -84,6 +84,7 @@ private:
   const edm::EDGetTokenT<edm::View<l1t::EtSum>> htMissToken_;
   const edm::EDGetTokenT<edm::View<l1t::EtSum>> htMissDispToken_;
   const edm::EDGetTokenT<edm::View<l1t::EtSum>> etMissToken_;
+  const edm::EDGetTokenT<edm::View<l1t::EtSum>> htScalarToken_;
 
   l1t::demo::BoardDataWriter fileWriterInputTracks_;
   l1t::demo::BoardDataWriter fileWriterConvertedTracks_;
@@ -113,6 +114,7 @@ GTTFileWriter::GTTFileWriter(const edm::ParameterSet& iConfig)
       htMissToken_(consumes<edm::View<l1t::EtSum>>(iConfig.getUntrackedParameter<edm::InputTag>("htmiss"))),
       htMissDispToken_(consumes<edm::View<l1t::EtSum>>(iConfig.getUntrackedParameter<edm::InputTag>("htmissdisp"))),
       etMissToken_(consumes<edm::View<l1t::EtSum>>(iConfig.getUntrackedParameter<edm::InputTag>("etmiss"))),
+      htScalarToken_(consumes<edm::View<l1t::EtSum>>(iConfig.getUntrackedParameter<edm::InputTag>("htscalar"))),
       fileWriterInputTracks_(l1t::demo::parseFileFormat(iConfig.getUntrackedParameter<std::string>("format")),
                              iConfig.getUntrackedParameter<std::string>("inputFilename"),
                              iConfig.getUntrackedParameter<std::string>("fileExtension"),
@@ -182,6 +184,7 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   const auto& htMissCollection = iEvent.get(htMissToken_);
   const auto& htMissDispCollection = iEvent.get(htMissDispToken_);
   const auto& etMissCollection = iEvent.get(etMissToken_);
+  const auto& htScalarCollection = iEvent.get(htScalarToken_);
 
   edm::Handle<TrackCollection_t> convertedTracksHandle;
   edm::Handle<TrackRefCollection_t> selectedTracksHandle;
@@ -201,6 +204,7 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   const auto htMissData(encodeHtSums(htMissCollection));
   const auto htMissDispData(encodeHtSums(htMissDispCollection));
   const auto etMissData(encodeEtSums(etMissCollection));
+  const auto htScalarData(encodeHtScalarSums(htScalarCollection));
 
   // 2) Pack 'object' information into 'event data' object
   l1t::demo::EventData eventDataTracks;
@@ -224,6 +228,7 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   sumsData.insert(sumsData.end(), htMissData.at(0).begin(), htMissData.at(0).end());
   sumsData.insert(sumsData.end(), htMissDispData.at(0).begin(), htMissDispData.at(0).end());
   sumsData.insert(sumsData.end(), etMissData.at(0).begin(), etMissData.at(0).end());
+  // TODO: Check interface document (MET is supposed to be the last valid word in the link so HT should go before it)
 
   std::vector<ap_uint<64>> tracksVerticesData;
   tracksVerticesData.insert(tracksVerticesData.end(), 36, 0);
@@ -295,6 +300,7 @@ void GTTFileWriter::fillDescriptions(edm::ConfigurationDescriptions& description
   desc.addUntracked<edm::InputTag>("htmissdisp",
                                    edm::InputTag("l1tTrackerEmuHTMissExtended", "L1TrackerEmuHTMissExtended"));
   desc.addUntracked<edm::InputTag>("etmiss", edm::InputTag("l1tTrackerEmuEtMiss", "L1TrackerEmuEtMiss"));
+  desc.addUntracked<edm::InputTag>("htscalar", edm::InputTag("l1tTrackerEmuHT", "L1TrackerEmuHT"));
   desc.addUntracked<std::string>("inputFilename", "L1GTTInputFile");
   desc.addUntracked<std::string>("inputConvertedFilename", "L1GTTInputConvertedFile");
   desc.addUntracked<std::string>("selectedTracksFilename", "L1GTTSelectedTracksFile");
