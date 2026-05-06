@@ -225,8 +225,11 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   std::vector<ap_uint<64>> sumsData;
   sumsData.insert(sumsData.end(), jetsData.at(0).begin(), jetsData.at(0).end());
   sumsData.insert(sumsData.end(), jetsDispData.at(0).begin(), jetsDispData.at(0).end());
-  sumsData.insert(sumsData.end(), htMissData.at(0).begin(), htMissData.at(0).end());
-  sumsData.insert(sumsData.end(), htMissDispData.at(0).begin(), htMissDispData.at(0).end());
+  // TODO: temporary: zero out the the htMissData and htMissDispData. Use the other method of std::vector::insert(iterator position, size_type n, const value_type& val);)
+  sumsData.insert(sumsData.end(), htMissData.at(0).size(), 0);
+  sumsData.insert(sumsData.end(), htMissDispData.at(0).size(), 0);
+  // sumsData.insert(sumsData.end(), htMissData.at(0).begin(), htMissData.at(0).end());
+  // sumsData.insert(sumsData.end(), htMissDispData.at(0).begin(), htMissDispData.at(0).end());
   sumsData.insert(sumsData.end(), etMissData.at(0).begin(), etMissData.at(0).end());
   // TODO: Check interface document (MET is supposed to be the last valid word in the link so HT should go before it)
 
