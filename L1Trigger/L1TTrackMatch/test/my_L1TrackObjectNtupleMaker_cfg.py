@@ -1,3 +1,5 @@
+#  cmsRun my_L1TrackObjectNtupleMaker_cfg.py 2>&1 | tee logRun
+
 ############################################################
 # define basic process
 ############################################################
@@ -38,12 +40,13 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
+process.MessageLogger.cout.L1TrackerHTEmulatorProducer = cms.untracked.PSet(limit=cms.untracked.int32(-1))
 
 ############################################################
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(200))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 readFiles = cms.untracked.vstring(
     'root://cms-xrd-global.cern.ch///store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root',
@@ -284,10 +287,10 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         TrackMETEmuInputTag = cms.InputTag("l1tTrackerEmuEtMiss","L1TrackerEmuEtMiss"),
         TrackMHTInputTag = cms.InputTag("l1tTrackerHTMiss","L1TrackerHTMiss"), #includes HT
         TrackMHTExtendedInputTag = cms.InputTag("l1tTrackerHTMissExtended","L1TrackerHTMissExtended"),
-
         TrackMHTEmuInputTag = cms.InputTag("l1tTrackerEmuHTMiss",process.l1tTrackerEmuHTMiss.L1MHTCollectionName.value()),
         TrackMHTEmuExtendedInputTag = cms.InputTag("l1tTrackerEmuHTMissExtended",process.l1tTrackerEmuHTMissExtended.L1MHTCollectionName.value()),
         TrackHTEmuInputTag = cms.InputTag("l1tTrackerEmuHT","L1TrackerEmuHT"), 
+        TrackHTEmuExtendedInputTag = cms.InputTag("l1tTrackerEmuHTExtended","L1TrackerEmuHTExtended"),
         SimVertexInputTag = cms.InputTag("g4SimHits",""),
         GenParticleInputTag = cms.InputTag("genParticles",""),
         RecoVertexInputTag=cms.InputTag("l1tVertexFinder", "L1Vertices"),
@@ -307,7 +310,6 @@ process.out = cms.OutputModule( "PoolOutputModule",
 #process.out.outputCommands.append('keep  *_*_*_*')
 #process.out.outputCommands.append('drop  l1tEMTFHits_*_*_*')
 process.pOut = cms.EndPath(process.out)
-
 
 # use this if you want to re-run the stub making
 # process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmuWithTruth,process.ntuple)

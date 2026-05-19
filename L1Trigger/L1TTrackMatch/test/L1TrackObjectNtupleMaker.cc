@@ -223,6 +223,7 @@ private:
   //edm::InputTag TrackMETEmuExtendedInputTag;
   edm::InputTag TrackMHTExtendedInputTag;
   edm::InputTag TrackMHTEmuExtendedInputTag;
+  edm::InputTag TrackHTEmuExtendedInputTag;
 
   edm::EDGetTokenT<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>> ttClusterToken_;
   edm::EDGetTokenT<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> ttStubToken_;
@@ -547,6 +548,7 @@ private:
   float trkMHTEmuExt = 0;
   float trkMHTEmuPhiExt = 0;
   float trkHTEmuExt = 0;
+  float trkHTScalarEmuExt = 0; 
 
   //fast track jet
   std::vector<float>* m_trkfastjet_vz;
@@ -735,7 +737,6 @@ L1TrackObjectNtupleMaker::L1TrackObjectNtupleMaker(edm::ParameterSet const& iCon
     TrackMHTToken_ = consumes<std::vector<l1t::TkHTMiss>>(TrackMHTInputTag);
     TrackMHTEmuToken_ = consumes<std::vector<l1t::EtSum>>(TrackMHTEmuInputTag);
     TrackHTEmuToken_ = consumes<std::vector<l1t::EtSum>>(TrackHTEmuInputTag);
-
   }
 
   if (Displaced == "Displaced" || Displaced == "Both") {
@@ -772,6 +773,7 @@ L1TrackObjectNtupleMaker::L1TrackObjectNtupleMaker(edm::ParameterSet const& iCon
     TrackMHTExtendedInputTag = iConfig.getParameter<InputTag>("TrackMHTExtendedInputTag");
     TrackMHTEmuInputTag = iConfig.getParameter<InputTag>("TrackMHTEmuInputTag");
     TrackMHTEmuExtendedInputTag = iConfig.getParameter<InputTag>("TrackMHTEmuExtendedInputTag");
+    TrackHTEmuExtendedInputTag = iConfig.getParameter<InputTag>("TrackHTEmuExtendedInputTag");
 
     ttTrackExtendedToken_ = consumes<L1TrackCollection>(L1TrackExtendedInputTag);
     ttTrackMCTruthExtendedToken_ =
@@ -803,6 +805,7 @@ L1TrackObjectNtupleMaker::L1TrackObjectNtupleMaker(edm::ParameterSet const& iCon
     TrackMHTExtendedToken_ = consumes<l1t::TkHTMissCollection>(TrackMHTExtendedInputTag);
     TrackMHTEmuToken_ = consumes<std::vector<l1t::EtSum>>(TrackMHTEmuInputTag);
     TrackMHTEmuExtendedToken_ = consumes<std::vector<l1t::EtSum>>(TrackMHTEmuExtendedInputTag);
+    TrackHTEmuExtendedToken_ = consumes<std::vector<l1t::EtSum>>(TrackHTEmuExtendedInputTag);
   }
 
   ttStubToken_ = consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>>(L1StubInputTag);
@@ -2326,6 +2329,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
     iEvent.getByToken(TrackMETExtendedToken_, L1TkMETExtendedHandle);
     iEvent.getByToken(TrackMHTExtendedToken_, L1TkMHTExtendedHandle);
     iEvent.getByToken(TrackMHTEmuExtendedToken_, L1TkMHTEmuExtendedHandle);
+    iEvent.getByToken(TrackHTEmuExtendedToken_, L1TkHTEmuExtendedHandle);
     iEvent.getByToken(ttTrackExtendedToken_, TTTrackExtendedHandle);
     iEvent.getByToken(ttTrackMCTruthExtendedToken_, MCTruthTTTrackExtendedHandle);
     iEvent.getByToken(ttTrackExtendedGTTToken_, TTTrackExtendedGTTHandle);
@@ -3615,7 +3619,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       if (L1TkHTEmuHandle.isValid()) {
         trkHTScalarEmu = L1TkHTEmuHandle->begin()->p4().energy(); 
-        std::cout << "Found tkHTEmuScalar: " << trkHTScalarEmu << std::endl;
+        std::cout << "Found trkHTScalarEmu: " << trkHTScalarEmu << " with firmware version " << L1TkHTEmuHandle->begin()->hwPt() * l1thtemu::kStepHT << std::endl;
       }
       else {
         edm::LogWarning("DataNotFound") << "\nWarning: tkHTEm (scalar) handle not found" << std::endl;
@@ -3643,6 +3647,12 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         trkMHTEmuPhiExt = L1TkMHTEmuExtendedHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi;
       } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmuExtended handle not found" << std::endl;
+      
+      if (L1TkHTEmuExtendedHandle.isValid()) {
+        trkHTScalarEmuExt = L1TkHTEmuExtendedHandle->begin()->p4().energy();
+        std::cout << "Found trkHTScalarEmuExt: " << trkHTScalarEmuExt << " with firmware version " << L1TkHTEmuExtendedHandle->begin()->hwPt() * l1thtemu::kStepHT << std::endl;
+      } else
+        edm::LogWarning("DataNotFound") << "\nWarning: tkHTEmuScalarExtended handle not found" << std::endl;
     }  //end displaced-track quantities
   }
 

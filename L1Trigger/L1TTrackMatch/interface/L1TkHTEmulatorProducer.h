@@ -17,30 +17,40 @@
 
 namespace l1thtemu {
 
+  // This needs to mimic the firmware object
+
   const unsigned int kValidSize{1};
-  const unsigned int kPtSize{18};
-  const unsigned int kPtIntSize{13};
-  const unsigned int kUnassignedSize{64 - (kPtSize + kValidSize)};
+  const unsigned int kVectorSumSize{16}; // unused: vector sum is ap_ufixed(16, 11)
+  const unsigned int kVectorSumIntSize{11}; // unused: vector sum is ap_ufixed(16, 11)
+  const unsigned int kVectorSumPhiSize{13}; // unused: vector sum phi is 13 bits
+  const unsigned int kScalarSumHTSize{18};
+  const unsigned int kScalarSumHTIntSize{13};
+  const unsigned int kUnassignedSize{64 - (kScalarSumHTSize + kVectorSumSize + kVectorSumPhiSize + kValidSize)};
 
   enum BitLocations {
     // The location of the least significant bit (LSB) and most significant bit (MSB) in the sum word for different fields
     kValidLSB = 0,
     kValidMSB = kValidLSB + kValidSize - 1,
-    kPtLSB = kValidMSB + 1,
-    kPtMSB = kPtLSB + kPtSize - 1,
-    kUnassignedLSB = kPtMSB + 1,
+    kVectorSumLSB = kValidMSB + 1,
+    kVectorSumMSB = kVectorSumLSB + kVectorSumSize - 1,
+    kVectorSumPhiLSB = kVectorSumMSB + 1,
+    kVectorSumPhiMSB = kVectorSumPhiLSB + kVectorSumPhiSize - 1,
+    kScalarSumHTLSB = kVectorSumPhiMSB + 1,
+    kScalarSumHTMSB = kScalarSumHTLSB + kScalarSumHTSize - 1,
+    kUnassignedLSB = kScalarSumHTMSB + 1,
     kUnassignedMSB = kUnassignedLSB + kUnassignedSize - 1,
   };
 
   const float kMaxHT{8192};  // 8.192 TeV
 
-  typedef ap_ufixed<kPtSize, kPtIntSize> ht_t;
+  typedef ap_ufixed<kScalarSumHTSize, kScalarSumHTIntSize> ht_t;
 
-  const unsigned int kHTBins = 1 << kPtSize;
+  const unsigned int kHTBins = 1 << kScalarSumHTSize;
 
-  const double kStepPt{0.25};
+  const double kStepPt = 0.03125; // jet pT
+  const unsigned int kPtSize{16}; // jet pT int size ap_ufixed(16, 11)
 
-  const double kStepHT = (l1thtemu::kMaxHT / l1thtemu::kHTBins);
+  const double kStepHT = (l1thtemu::kMaxHT / l1thtemu::kHTBins); // (8192 / (1<<18)) = 0.03125
 
   template <typename T>
   T digitizeSignedValue(double value, unsigned int nBits, double lsb) {

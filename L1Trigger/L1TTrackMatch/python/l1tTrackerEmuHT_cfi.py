@@ -7,7 +7,7 @@ l1tTrackerEmuHT = cms.EDProducer("L1TkHTEmulatorProducer",
     jet_minPt = cms.double(3.0),
     jet_minNtracksLowPt = cms.int32(0),
     jet_minNtracksHighPt = cms.int32(0),
-    debug = cms.bool(False),
+    debug = cms.bool(True),
     displaced = cms.bool(False)
 )
 

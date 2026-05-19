@@ -14,20 +14,12 @@
 
 namespace l1t::demo::codecs {
 
-  ap_uint<64> encodeHtSum(const l1t::EtSum& v);
+  ap_uint<64> encodeHtSum(const l1t::EtSum& vMHT, const l1t::EtSum& vHT);
 
-  ap_uint<64> encodeHtScalarSum(const l1t::EtSum& v);
-
-  // Encodes EtSum collection onto 1 'logical' output link
-  std::array<std::vector<ap_uint<64>>, 1> encodeHtSums(const edm::View<l1t::EtSum>&);
+  // Encodes ETSum collections (of Missing HT and HTScalarSum) onto 1 'logical' output link
+  std::array<std::vector<ap_uint<64>>, 1> encodeHtSums(const edm::View<l1t::EtSum>& vMHTs, const edm::View<l1t::EtSum>& vHTs);
 
   std::vector<l1t::EtSum> decodeHtSums(const std::vector<ap_uint<64>>&);
-
-  // Encode EtScalarSum collection onto 1 'logical' output link
-  std::array<std::vector<ap_uint<64>>, 1> encodeHtScalarSums(const edm::View<l1t::EtSum>&);
-
-  std::vector<l1t::EtSum> decodeHtScalarSums(const std::vector<ap_uint<64>>&);
-
 
 }  // namespace l1t::demo::codecs
 

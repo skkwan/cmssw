@@ -106,7 +106,7 @@ process.l1tGTTFileReader.processInputTracks = cms.bool((options.tracks in ['load
 process.l1tGTTFileReader.processOutputToGlobalTrigger = cms.bool(False) #NotImplemented
 process.l1tGTTFileReader.filesOutputToCorrelator = inputBuffers if (options.vertices in ['load', 'overwrite']) else cms.vstring("L1GTTOutputToCorrelatorFile_0.txt")
 process.l1tGTTFileReader.filesInputTracks = inputTrackBuffers if (options.tracks in ['load', 'overwrite']) else cms.vstring("L1GTTInputFile_0.txt")
-process.l1tGTTFileReader.filesOutputToGlobalTrigger = cms.vstring("1GTTOutputToGlobalTriggerFile_0.txt")
+process.l1tGTTFileReader.filesOutputToGlobalTrigger = cms.vstring("L1GTTOutputToGlobalTriggerFile_0.txt")
 process.l1tGTTFileReader.format = cms.untracked.string(options.readerformat)
 
 process.l1tGTTInputProducer.debug = cms.int32(options.debug)
@@ -171,6 +171,7 @@ process.l1tGTTFileWriter.jets = cms.untracked.InputTag("l1tTrackJetsEmulation","
 process.l1tGTTFileWriter.htmiss = cms.untracked.InputTag("l1tTrackerEmuHTMiss", "L1TrackerEmuHTMiss")
 process.l1tGTTFileWriter.etmiss = cms.untracked.InputTag("l1tTrackerEmuEtMiss", "L1TrackerEmuEtMiss")
 process.l1tGTTFileWriter.htscalar = cms.untracked.InputTag("l1tTrackerEmuHT", "L1TrackerEmuHT")
+process.l1tGTTFileWriter.htscalardisp = cms.untracked.InputTag("l1tTrackerEmuHTExtended", "L1TrackerEmuHTExtended")
 process.l1tGTTFileWriter.outputCorrelatorFilename = cms.untracked.string("L1GTTOutputToCorrelatorFile")
 process.l1tGTTFileWriter.outputGlobalTriggerFilename = cms.untracked.string("L1GTTOutputToGlobalTriggerFile")
 process.l1tGTTFileWriter.selectedTracksFilename = cms.untracked.string("L1GTTSelectedTracksFile")
@@ -195,6 +196,7 @@ process.p.associate(cms.Task(process.l1tGTTInputProducer,
                              process.l1tTrackVertexAssociationProducerForEtMiss,
                              process.l1tTrackerEmuEtMiss,
                              process.l1tTrackerEmuHT,
+                             process.l1tTrackerEmuHTExtended,
                          )
                 )
 

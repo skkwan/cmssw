@@ -93,12 +93,11 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
   for (jetIter = L1TkJetsHandle->begin(); jetIter != L1TkJetsHandle->end(); ++jetIter) {
 
-    //float tmp_jet_et_ = jetIter->pt();  // FIXME Get Et from the emulated jets
     float tmp_jet_pt_ = jetIter->pt();
 
     // bool tmp_jet_isDisplaced_ = jetIter->dispflag();
 
-    l1thtemu::ht_t tmp_jet_pt = l1thtemu::digitizeSignedValue<l1thtemu::ht_t>(jetIter->pt(), l1thtemu::kPtSize, l1thtemu::kStepPt);
+    l1thtemu::ht_t tmp_jet_pt = l1thtemu::digitizeSignedValue<l1thtemu::ht_t>(jetIter->pt(), l1thtemu::kScalarSumHTSize, l1thtemu::kStepHT);
    
     jetn++;
 
@@ -116,14 +115,13 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
           << "AP_INTS NEW\n"
           << "PT: " << tmp_jet_pt << "\n"
           << "AP_INTS NEW TO FLOATS\n"
-          << "PT: " << (float)tmp_jet_pt * l1thtemu::kStepPt << "\n"
+          << "PT: " << (float)tmp_jet_pt * l1thtemu::kStepHT << "\n"
           << "-------------------------------------------------------------------------\n";
     }
 
     if (debug_) {
       HT_ += tmp_jet_pt_;
     }
-
 
     HT += tmp_jet_pt;
 
@@ -141,13 +139,15 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         << "HT: " << HT 
         << "\n"
         << "====HT AP_INTS TO FLOATS====\n"
-        << "HT: " << (float) HT * l1thtemu::kStepPt << "\n"
+        << "HT: " << (float) HT * l1thtemu::kStepHT << "\n"
         << "-------------------------------------------------------------------------\n";
   }
   //rescale HT to correct output range
-  HT = HT / (int)(1 / l1thtemu::kStepPt);
+  // HT = HT / (int)(1 / l1thtemu::kStepHT);
 
   math::XYZTLorentzVector vectorHt(0, 0, 0, HT);
+
+  std::cout << "L1Trigger/L1TTrackMatch/plugins/L1TkHTEmulatorProducer.cc: HT is " << HT << std::endl;
 
   EtSum L1HTSum(vectorHt, EtSum::EtSumType::kTotalHt, (int) HT.range(), 0, 0, (int)jetn);
 
