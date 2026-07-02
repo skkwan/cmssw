@@ -4,7 +4,7 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 
 
 ###---
-# cmsRun createFirmwareInputFiles_cfg.py format=APx maxEvents=10 inputFiles="/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root"
+# cmsRun createFirmwareInputFiles_cfg.py format=APx maxEvents=1 inputFiles="/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root"
 ##---
 
 # PART 1 : PARSE ARGUMENTS

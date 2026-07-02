@@ -91,15 +91,22 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   // loop over jets
   int jetn = 0;
 
+  const int MAX_N_JETS = 12;
+  
   for (jetIter = L1TkJetsHandle->begin(); jetIter != L1TkJetsHandle->end(); ++jetIter) {
+
+
+    // Maximum of 12 jets allowed to be written
+    if (jetn >= MAX_N_JETS) {
+      continue;
+    }
 
     float tmp_jet_pt_ = jetIter->pt();
 
     // bool tmp_jet_isDisplaced_ = jetIter->dispflag();
 
-    l1thtemu::ht_t tmp_jet_pt = l1thtemu::digitizeSignedValue<l1thtemu::ht_t>(jetIter->pt(), l1thtemu::kScalarSumHTSize, l1thtemu::kStepHT);
-   
-    jetn++;
+    // l1thtemu::ht_t tmp_jet_pt = l1thtemu::digitizeSignedValue<l1thtemu::ht_t>(jetIter->pt(), l1thtemu::kPtSize, l1thtemu::kStepPt);
+    l1thtemu::ht_t tmp_jet_pt = jetIter->ptWord(); // ap_ufixed<16, 11> (ht_t is ap_ufixed<18, 13> so there should be no truncation)
 
     if (debug_) {
       edm::LogVerbatim("L1TrackerHTEmulatorProducer")
@@ -112,10 +119,8 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
           << "AP_INTS RAW\n"
           << "PT: " << jetIter->ptWord() << "| ETA: " << jetIter->glbEtaWord() << "| PHI: " << jetIter->glbPhiWord()
           << "| NTRACKS: " << jetIter->ntWord() << "\n"
-          << "AP_INTS NEW\n"
+          << "AP_UFIXED NEW\n"
           << "PT: " << tmp_jet_pt << "\n"
-          << "AP_INTS NEW TO FLOATS\n"
-          << "PT: " << (float)tmp_jet_pt * l1thtemu::kStepHT << "\n"
           << "-------------------------------------------------------------------------\n";
     }
 
@@ -124,6 +129,14 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
     }
 
     HT += tmp_jet_pt;
+
+    if (jetn == (MAX_N_JETS - 1)) {
+      edm::LogVerbatim("L1TrackerHTEmulatorProducer")
+        << "**** Truncating HT emulation at " << MAX_N_JETS <<  " jets (maximum jets written in firmware)" << "\n"
+        << "-------------------------------------------------------------------------\n";
+    }
+
+    jetn++;
 
   }  // end jet loop
 
@@ -135,11 +148,9 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         << "====HT FLOATS====\n"
         << "HT: " << HT_ 
         << "\n"
-        << "====HT AP_INTS====\n"
+        << "====HT AP_UFIXED====\n"
         << "HT: " << HT 
         << "\n"
-        << "====HT AP_INTS TO FLOATS====\n"
-        << "HT: " << (float) HT * l1thtemu::kStepHT << "\n"
         << "-------------------------------------------------------------------------\n";
   }
   //rescale HT to correct output range

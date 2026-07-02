@@ -3619,7 +3619,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
 
       if (L1TkHTEmuHandle.isValid()) {
         trkHTScalarEmu = L1TkHTEmuHandle->begin()->p4().energy(); 
-        std::cout << "Found trkHTScalarEmu: " << trkHTScalarEmu << " with firmware version " << L1TkHTEmuHandle->begin()->hwPt() * l1thtemu::kStepHT << std::endl;
+        std::cout << "Found trkHTScalarEmu: " << trkHTScalarEmu << " with firmware version " << L1TkHTEmuHandle->begin()->hwPt() << std::endl;
       }
       else {
         edm::LogWarning("DataNotFound") << "\nWarning: tkHTEm (scalar) handle not found" << std::endl;
@@ -3650,7 +3650,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       
       if (L1TkHTEmuExtendedHandle.isValid()) {
         trkHTScalarEmuExt = L1TkHTEmuExtendedHandle->begin()->p4().energy();
-        std::cout << "Found trkHTScalarEmuExt: " << trkHTScalarEmuExt << " with firmware version " << L1TkHTEmuExtendedHandle->begin()->hwPt() * l1thtemu::kStepHT << std::endl;
+        std::cout << "Found trkHTScalarEmuExt: " << trkHTScalarEmuExt << " with firmware version " << L1TkHTEmuExtendedHandle->begin()->hwPt() << std::endl;
       } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkHTEmuScalarExtended handle not found" << std::endl;
     }  //end displaced-track quantities

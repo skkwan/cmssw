@@ -9,10 +9,11 @@ namespace l1t::demo::codecs {
     l1tmhtemu::EtMiss htMiss;
     htMiss.Et = 0; // originally htSum.p4().energy();
     htMiss.Phi = 0; // originally htSum.hwPhi();
-    ap_ufixed<l1thtemu::kScalarSumHTSize, l1thtemu::kScalarSumHTIntSize> HT = htScalarSum.hwPt();  // note the consts from the different namespace
+    ap_ufixed<l1thtemu::kScalarSumHTSize, l1thtemu::kScalarSumHTIntSize> HT; 
+    HT.range() = htScalarSum.hwPt();  
     // originally: ap_uint<l1tmhtemu::kMHTSize> HT = htSum.hwPt();
-    std::cout << "DemonstratorTools/src/codecs_htsums.cc: htScalarSum.et(): " << htScalarSum.hwPt() << ", HT: " << HT << std::endl;
-    ap_uint<l1thtemu::kValidSize> valid = (htSum.hwQual() > 0);
+    std::cout << "DemonstratorTools/src/codecs_htsums.cc: htScalarSum.hwPt(): " <<  htScalarSum.hwPt() << " after trying to cast to ap_ufixed: " << HT << std::endl;
+    ap_uint<l1thtemu::kValidSize> valid = (htScalarSum.hwQual() > 0);
     ap_uint<l1thtemu::kUnassignedSize> unassigned = 0;
     ap_uint<64> htSumWord = (unassigned, HT.range(), htMiss.Phi, htMiss.Et.range(), valid);
     return htSumWord;

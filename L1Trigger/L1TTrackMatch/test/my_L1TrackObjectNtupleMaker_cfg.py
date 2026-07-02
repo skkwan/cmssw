@@ -46,7 +46,7 @@ process.MessageLogger.cout.L1TrackerHTEmulatorProducer = cms.untracked.PSet(limi
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 readFiles = cms.untracked.vstring(
     'root://cms-xrd-global.cern.ch///store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root',
@@ -299,6 +299,31 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         DisplacedVertexEmulationInputTag = cms.InputTag("DisplacedVertexProducer","dispVerticesEmulation"),
         runDispVert = cms.bool(runDispVert)
 )
+
+process.l1tTrackSelectionProducerForJets.processSimulatedTracks = cms.bool(True)
+process.l1tTrackSelectionProducerForJets.cutSet = cms.PSet(
+    ptMin = cms.double(2.0), # pt must be greater than this value, [GeV]
+    absEtaMax = cms.double(2.4), # absolute value of eta must be less than this value
+    absZ0Max = cms.double(15.0), # z0 must be less than this value, [cm]
+    nStubsMin = cms.int32(4), # number of stubs must be greater than or equal to this value
+    nPSStubsMin = cms.int32(0), # the number of stubs in the PS Modules must be greater than or equal to this value
+    
+    promptMVAMin = cms.double(-1.0), # MVA must be greater than this value
+    reducedBendChi2Max = cms.double(2.25), # bend chi2 must be less than this value
+    reducedChi2RZMax = cms.double(5.0), # chi2rz/dof must be less than this value
+    reducedChi2RPhiMax = cms.double(20.0), # chi2rphi/dof must be less than this value
+)
+process.l1tTrackVertexAssociationProducerForJets.processSimulatedTracks = cms.bool(True)
+process.l1tTrackVertexAssociationProducerForJets.cutSet = cms.PSet(
+    #deltaZMaxEtaBounds = cms.vdouble(0.0, absEtaMax.value), # these values define the bin boundaries in |eta|
+    #deltaZMax = cms.vdouble(0.5), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
+    deltaZMaxEtaBounds = cms.vdouble(0.0, 0.7, 1.0, 1.2, 1.6, 2.0, 2.4), # these values define the bin boundaries in |eta|
+    deltaZMax = cms.vdouble(0.37, 0.50, 0.60, 0.75, 1.00, 1.60), # delta z must be less than these values, there will be one less value here than in deltaZMaxEtaBounds, [cm]
+)
+
+#Disable internal track selection
+process.l1tTrackJetsEmulation.trk_zMax = cms.double(20.46912512)    # maximum track z from TrackWord
+
 
 process.ntuple = cms.Path(process.L1TrackNtuple)
 
