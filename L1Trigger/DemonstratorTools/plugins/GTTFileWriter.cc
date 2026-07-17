@@ -304,7 +304,6 @@ void GTTFileWriter::fillDescriptions(edm::ConfigurationDescriptions& description
                                    edm::InputTag("l1tTrackerEmuHTMissExtended", "L1TrackerEmuHTMissExtended"));
   desc.addUntracked<edm::InputTag>("etmiss", edm::InputTag("l1tTrackerEmuEtMiss", "L1TrackerEmuEtMiss"));
   desc.addUntracked<edm::InputTag>("htscalar", edm::InputTag("l1tTrackerEmuHT", "L1TrackerEmuHT"));
-  desc.addUntracked<edm::InputTag>("htscalardisp", edm::InputTag("l1tTrackerEmuHTExtended", "L1TrackerEmuHTExtended"));
   desc.addUntracked<std::string>("inputFilename", "L1GTTInputFile");
   desc.addUntracked<std::string>("inputConvertedFilename", "L1GTTInputConvertedFile");
   desc.addUntracked<std::string>("selectedTracksFilename", "L1GTTSelectedTracksFile");
