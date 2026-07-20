@@ -103,10 +103,15 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
     float tmp_jet_pt_ = jetIter->pt();
 
-    // bool tmp_jet_isDisplaced_ = jetIter->dispflag();
+    bool tmp_jet_isDisplaced_ = jetIter->dispflag();
 
     // l1thtemu::ht_t tmp_jet_pt = l1thtemu::digitizeSignedValue<l1thtemu::ht_t>(jetIter->pt(), l1thtemu::kPtSize, l1thtemu::kStepPt);
     l1thtemu::ht_t tmp_jet_pt = jetIter->ptWord(); // ap_ufixed<16, 11> (ht_t is ap_ufixed<18, 13> so there should be no truncation)
+
+    jetn++;
+
+    if (displaced_ && !tmp_jet_isDisplaced_)
+      continue;
 
     if (debug_) {
       edm::LogVerbatim("L1TrackerHTEmulatorProducer")
@@ -136,11 +141,7 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         << "-------------------------------------------------------------------------\n";
     }
 
-    jetn++;
-
   }  // end jet loop
-
-  // define missing HT
 
   if (debug_) {
     edm::LogVerbatim("L1TrackerHTEmulatorProducer")
@@ -153,12 +154,8 @@ void L1TkHTEmulatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
         << "\n"
         << "-------------------------------------------------------------------------\n";
   }
-  //rescale HT to correct output range
-  // HT = HT / (int)(1 / l1thtemu::kStepHT);
 
   math::XYZTLorentzVector vectorHt(0, 0, 0, HT);
-
-  std::cout << "L1Trigger/L1TTrackMatch/plugins/L1TkHTEmulatorProducer.cc: HT is " << HT << std::endl;
 
   EtSum L1HTSum(vectorHt, EtSum::EtSumType::kTotalHt, (int) HT.range(), 0, 0, (int)jetn);
 
