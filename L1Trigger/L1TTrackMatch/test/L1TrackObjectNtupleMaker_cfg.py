@@ -38,12 +38,15 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
+process.MessageLogger.cerr.L1TrackerHTMissEmulatorProducer = cms.untracked.PSet(
+    limit = cms.untracked.int32(-1)  # unlimited: un-suppress LogVerbatim("L1TrackerHTMissEmulatorProducer") debug printouts
+)
 
 ############################################################
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 readFiles = cms.untracked.vstring(
     'root://cms-xrd-global.cern.ch///store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root',
@@ -95,6 +98,8 @@ process.load("L1Trigger.L1TTrackMatch.l1tTrackerEtMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuEtMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerHTMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuHTMiss_cfi")
+process.l1tTrackerEmuHTMiss.debug = cms.bool(True)
+# process.l1tTrackerEmuHTMissExtended.debug = cms.bool(True)
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuHT_cfi") 
 process.load("L1Trigger.L1TTrackMatch.l1tTrackTripletEmulation_cfi")
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')

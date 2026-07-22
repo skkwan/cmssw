@@ -8,7 +8,8 @@ l1tTrackerEmuHTMiss = cms.EDProducer("L1TkHTMissEmulatorProducer",
     jet_minNtracksLowPt = cms.int32(0),
     jet_minNtracksHighPt = cms.int32(0),
     debug = cms.bool(False),
-    displaced = cms.bool(False)
+    displaced = cms.bool(False),
+    maxNJetsForHT = cms.int32(12),       # Maximum number of jets used for firmware-accurate TrackJets HT computation
 )
 
 l1tTrackerEmuHTMissExtended = cms.EDProducer("L1TkHTMissEmulatorProducer",
@@ -19,5 +20,6 @@ l1tTrackerEmuHTMissExtended = cms.EDProducer("L1TkHTMissEmulatorProducer",
     jet_minNtracksLowPt = cms.int32(0),
     jet_minNtracksHighPt = cms.int32(0),
     debug = cms.bool(False),
-    displaced = cms.bool(True)
+    displaced = cms.bool(True),
+    maxNJetsForHT = cms.int32(12),       # Maximum number of jets used for firmware-accurate TrackJets HT computation  
 )

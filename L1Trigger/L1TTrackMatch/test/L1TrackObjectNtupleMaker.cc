@@ -3607,6 +3607,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
       if (L1TkMHTHandle.isValid()) {
         trkMHT = L1TkMHTHandle->begin()->EtMiss();
         trkHT = L1TkMHTHandle->begin()->etTotal();
+        std::cout << "Found trkHT: " << trkHT << std::endl;
       } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHT handle not found" << std::endl;
 
@@ -3614,6 +3615,7 @@ void L1TrackObjectNtupleMaker::analyze(const edm::Event& iEvent, const edm::Even
         trkMHTEmu = L1TkMHTEmuHandle->begin()->p4().energy();
         trkHTEmu = L1TkMHTEmuHandle->begin()->hwPt() * l1tmhtemu::kStepMHT;
         trkMHTEmuPhi = L1TkMHTEmuHandle->begin()->hwPhi() * l1tmhtemu::kStepMHTPhi - M_PI;
+        std::cout << "Found trkHTEmu: " << trkHTEmu << std::endl;
       } else
         edm::LogWarning("DataNotFound") << "\nWarning: tkMHTEmu handle not found" << std::endl;
 

@@ -39,9 +39,11 @@ private:
   const unsigned int minNtracksLowPt_;
   const float minJetEtLowPt_;  // for track jets, minimum et required, depending on number of low pT tracks
   const float minJetEtHighPt_;
-  const bool displaced_;  // Use prompt/displaced tracks
+  const bool displaced_;            // Use prompt/displaced tracks
+  const int maxNJetsForHT_;         // for track jets, maximum number of jets used to compute HT
   const edm::EDGetTokenT<VertexCollection> pvToken_;
   const edm::EDGetTokenT<TkJetCollection> jetToken_;
+  
 };
 
 L1TkHTMissProducer::L1TkHTMissProducer(const edm::ParameterSet& iConfig)
@@ -56,6 +58,7 @@ L1TkHTMissProducer::L1TkHTMissProducer(const edm::ParameterSet& iConfig)
       minJetEtLowPt_(iConfig.getParameter<double>("jet_minJetEtLowPt")),
       minJetEtHighPt_(iConfig.getParameter<double>("jet_minJetEtHighPt")),
       displaced_(iConfig.getParameter<bool>("displaced")),
+      maxNJetsForHT_(iConfig.getParameter<int>("maxNJetsForHT")),
       pvToken_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("L1VertexInputTag"))),
       jetToken_(consumes<TkJetCollection>(iConfig.getParameter<edm::InputTag>("L1TkJetInputTag"))) {
   if (useCaloJets_)
@@ -200,23 +203,39 @@ void L1TkHTMissProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
     float HT = 0;
 
     // loop over jets
+    int jetn = 0;
     for (jetIter = L1TkJetsHandle->begin(); jetIter != L1TkJetsHandle->end(); ++jetIter) {
       float tmp_jet_px = jetIter->px();
       float tmp_jet_py = jetIter->py();
       float tmp_jet_et = jetIter->et();
       float tmp_jet_pt = jetIter->pt();
+      
+      jetn++; 
+
       if (tmp_jet_pt < jetMinPt_)
         continue;
       if (std::abs(jetIter->eta()) > jetMaxEta_)
         continue;
-      if (jetIter->ntracks() < minNtracksLowPt_ && tmp_jet_et > minJetEtLowPt_)
+      if (jetIter->ntracks() < minNtracksLowPt_ && tmp_jet_et > minJetEtLowPt_) {
+        std::cout << "Skipped a jet here in low pT" << std::endl;
         continue;
-      if (jetIter->ntracks() < minNtracksHighPt_ && tmp_jet_et > minJetEtHighPt_)
+      }
+      if (jetIter->ntracks() < minNtracksHighPt_ && tmp_jet_et > minJetEtHighPt_) {
+        std::cout << "Skipped a jet here in high pT" << std::endl;
         continue;
+      }
+
       sumPx += tmp_jet_px;
       sumPy += tmp_jet_py;
-      HT += tmp_jet_pt;
+      if (jetn <= maxNJetsForHT_) { // jetn from 1 through 12 is included in the HT sum
+        HT += tmp_jet_pt;
+        std::cout << ">>> L1TkHTMissProducer: Adding jet " << jetn << " with pt "
+                  << tmp_jet_pt << " and et " << tmp_jet_et 
+                  << " and eta, phi " << jetIter->eta() << ", " << jetIter->phi()
+                  << " for displaced? " << displaced_ << std::endl;
+      }
     }  // end jet loop
+    std::cout << ">>> In L1TkHTMissProducer:cc: HT is " << HT << " for displaced? " << displaced_ << std::endl;
 
     // define missing HT
     float et = sqrt(sumPx * sumPx + sumPy * sumPy);

@@ -13,7 +13,8 @@ l1tTkCaloHTMiss = cms.EDProducer("L1TkHTMissProducer",
      deltaZ = cms.double(1.0),              # require jets to have |z_jet - z_ref| below deltaZ [cm]
      primaryVtxConstrain = cms.bool(False), # use primary vertex instead of leading jet as reference z position
      useCaloJets = cms.bool(True),        # determines whether matched jets or standalone jets are used for MHT
-     displaced = cms.bool(False) #Run with prompt/displaced jets - only useful for track jets
+     displaced = cms.bool(False),         # Run with prompt/displaced jets - only useful for track jets
+     maxNJetsForHT = cms.int32(-1)        # Dummy value for calo jets (this is used to limit the number of trackjets being used for HT)
 )
 
 l1tTkCaloHTMissVtx = l1tTkCaloHTMiss.clone(doVtxConstrain = True)
@@ -31,7 +32,8 @@ l1tTrackerHTMiss = cms.EDProducer("L1TkHTMissProducer",
     doVtxConstrain = cms.bool(False),      # turn on/off applying any vertex constraint32
     deltaZ = cms.double(1.0),              # This is a dummy value for track only jets
     primaryVtxConstrain = cms.bool(False), # primary vertex already applied to track jet collections
-    displaced = cms.bool(False) # Run with prompt/displaced jets
+    displaced = cms.bool(False),           # Run with prompt/displaced jets
+    maxNJetsForHT = cms.int32(12)          # Maximum number of jets used for firmware-accurate TrackJets HT computation
 )
 
 l1tTrackerHTMissExtended = cms.EDProducer("L1TkHTMissProducer",
@@ -47,5 +49,6 @@ l1tTrackerHTMissExtended = cms.EDProducer("L1TkHTMissProducer",
     doVtxConstrain = cms.bool(False),      # turn on/off applying any vertex constraint32
     deltaZ = cms.double(1.0),              # This is a dummy value for track only jets
     primaryVtxConstrain = cms.bool(False), # primary vertex already applied to track jet collections
-    displaced = cms.bool(True) # Run with prompt/displaced jets
+    displaced = cms.bool(True),            # Run with prompt/displaced jets
+    maxNJetsForHT = cms.int32(12)          # Maximum number of jets used for firmware-accurate TrackJets HT computation
 )

@@ -30,7 +30,9 @@ namespace l1tmhtemu {
   const unsigned int kMHTSize{16};  // For output Magnitude default 16
   const unsigned int kMHTIntSize{11};
   const unsigned int kMHTPhiSize{13};  // For output Phi default 13
-  const unsigned int kHTSize{kInternalPtWidth + kEtExtra};
+  const unsigned int kEtSize{kInternalPtWidth + kEtExtra}; 
+  const unsigned int kHTSize{18}; 
+  const unsigned int kHTIntSize{13};
   const unsigned int kUnassignedSize{64 - (kHTSize + kMHTSize + kMHTPhiSize + kValidSize)};
 
   enum BitLocations {
@@ -55,9 +57,10 @@ namespace l1tmhtemu {
   typedef ap_int<kInternalEtaWidth> eta_t;
   typedef ap_int<kInternalPhiWidth> phi_t;
 
-  typedef ap_int<kHTSize> Et_t;
+  typedef ap_int<kEtSize> Et_t;
   typedef ap_ufixed<kMHTSize, kMHTIntSize> MHT_t;
   typedef ap_uint<kMHTPhiSize> MHTphi_t;
+  typedef ap_ufixed<kHTSize, kHTIntSize> HT_t;
 
   const unsigned int kMHTBins = 1 << kMHTSize;
   const unsigned int kMHTPhiBins = 1 << kMHTPhiSize;
